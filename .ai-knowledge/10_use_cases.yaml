@@ -1,0 +1,104 @@
+# Use Case Tree & API Mapping
+
+Domain: AI Fashion E-commerce
+Architecture: Microservices (Node.js Core, FastAPI AI Vision, FastAPI AI Stylist)
+
+Epics:
+  - Epic: User Profile & Personalization
+    Description: Quản lý thông tin định danh và đặc điểm vóc dáng để cá nhân hóa kết quả AI.
+    Features:
+      - Feature: AI Profile Setup
+        Use_Cases:
+          - ID: UC-PROF-01
+            Name: Thiết lập hồ sơ AI (Ảnh và số đo)
+            Description: Khởi tạo dữ liệu gốc (ảnh người dùng, chiều cao, cân nặng) để mô hình CatVTON làm căn cứ sinh ảnh.
+            API_Endpoint: 
+              Method: POST
+              Path: /api/v1/ai-profile
+              Controller: ai_profile_controller.create_profile
+              Payload_Type: Multipart/form-data
+            Tech_Stack: [FastAPI, Cloud Storage]
+
+  - Epic: AI Stylist & Smart Recommendation
+    Description: Hệ thống tư vấn phối đồ thông minh dựa trên ngôn ngữ tự nhiên và tìm kiếm vector.
+    Features:
+      - Feature: AI Styling Search
+        Use_Cases:
+          - ID: UC-STYLE-01
+            Name: Truy vấn phối đồ bằng văn bản (Text-to-Style)
+            Description: Phân tích ý định từ text (ví dụ: "đồ đi tiệc") và trả về các kịch bản phối đồ (Options).
+            API_Endpoint:
+              Method: POST
+              Path: /api/v1/stylist/search
+              Controller: stylist_service.search_by_intent
+            Logic: Intent Classification (Kimi-k2.5) -> Vector Search (LanceDB)
+          - ID: UC-STYLE-02
+            Name: Thay đổi món đồ trong kết quả (Replace Item)
+            Description: Tìm kiếm sản phẩm tương đồng để thay thế một món đồ cụ thể trong một Option mà vẫn giữ tông màu/phong cách.
+            API_Endpoint:
+              Method: POST
+              Path: /api/v1/stylist/replace
+              Controller: stylist_service.replace_item
+            Logic: Similarity Search with context exclusion
+
+  - Epic: Virtual Try-On (VTON) Operations
+    Description: Quy trình xử lý ảnh thử đồ ảo bất đồng bộ qua hàng đợi.
+    Features:
+      - Feature: Product Try-On
+        Use_Cases:
+          - ID: UC-VTON-01
+            Name: Thử đồ tại trang sản phẩm (PDP)
+            Description: Ghép sản phẩm đang xem lên ảnh hồ sơ của người dùng.
+            Interaction: Frontend -> Node.js Core -> RabbitMQ -> AI Vision Worker
+          - ID: UC-VTON-02
+            Name: Phối đồ chủ động (Mix & Match)
+            Description: Thử kết hợp nhiều món đồ (từ giỏ hàng/tủ đồ) cùng lúc.
+            Logic: Multi-step Jobs (Job 1: Top, Job 2: Bottom dùng kết quả Job 1 làm nền).
+        Communication_Contracts:
+          - Type: Message Queue
+            Name: ai_vision_jobs
+            Payload: {job_id, human_image_url, garment_image_url, category}
+          - Type: SSE (Server-Sent Events)
+            Path: /api/v1/stream/vision-results
+            Description: Đẩy URL ảnh kết quả cuối cùng về cho Frontend.
+
+  - Epic: Personal Wardrobe & Assets
+    Description: Quản lý tài sản số của người dùng bao gồm đồ đã mua và đồ tự tải lên.
+    Features:
+      - Feature: Personal Asset Retrieval
+        Use_Cases:
+          - ID: UC-WARD-01
+            Name: Lấy dữ liệu cá nhân (Giỏ hàng/Wishlist/Lịch sử)
+            API_Endpoint:
+              Method: GET
+              Path: /api/v1/user/assets
+              Query_Params: [source, category]
+      - Feature: User Garment Upload
+        Use_Cases:
+          - ID: UC-WARD-02
+            Name: Tải lên trang phục cá nhân
+            Description: Tách nền ảnh quần áo người dùng chụp để đưa vào tủ đồ ảo.
+            API_Endpoint:
+              Method: POST
+              Path: /api/v1/user/garments
+            Logic: Remove Background -> Store PNG -> Save Metadata (PostgreSQL)
+
+  - Epic: E-commerce Core Transactions
+    Description: Luồng mua hàng và xử lý thanh toán.
+    Features:
+      - Feature: Cart Management
+        Use_Cases:
+          - ID: UC-CART-01
+            Name: Thêm sản phẩm vào giỏ hàng
+            API_Endpoint:
+              Method: POST
+              Path: /api/v1/cart/items
+            Validation: Check Inventory (PostgreSQL)
+      - Feature: Checkout Process
+        Use_Cases:
+          - ID: UC-CHECK-01
+            Name: Khởi tạo thanh toán
+            API_Endpoint:
+              Method: POST
+              Path: /api/v1/checkout
+            Logic: Order Creation -> Stock Locking -> Payment Gateway Redirect

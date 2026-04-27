@@ -1,0 +1,184 @@
+# API Contracts & Message Queues
+# File: .ai-knowledge/api_contracts.yaml
+
+Groups:
+  - Group: BFF_to_Services
+    Description: Nhóm API nghiệp vụ tương tác trực tiếp từ Frontend (Next.js) đến các Services.
+    Endpoints:
+      - ID: API-01
+        Name: Thiết lập hồ sơ AI
+        Method: POST
+        Path: /api/v1/ai-profile
+        Producer: AI Python Service
+        Request:
+          Type: multipart/form-data
+          Payload:
+            user_id: string (UUID)
+            human_image: file (Yêu cầu nén qua Canvas tại Client)
+            height: number (cm)
+            weight: number (kg)
+            gender: string ("male" | "female" | "unisex")
+        Response:
+          Success: 
+            status: "success"
+            data: { profile_id: string, processed_image_url: string, vector_status: string }
+
+      - ID: API-02
+        Name: Truy vấn phối đồ
+        Method: POST
+        Path: /api/v1/stylist/search
+        Producer: AI Stylist Service
+        Request:
+          Type: application/json
+          Payload:
+            query_text: string
+            reference_image_url: string | null
+            filters: object
+            gender: string
+            price_range: array [min, max]
+            limit_options: number
+        Response:
+          Success: Trả về danh sách options (option_id, title, reasoning, items kèm stock).
+
+      - ID: API-03
+        Name: Đổi món đồ trong kịch bản
+        Method: POST
+        Path: /api/v1/stylist/replace
+        Producer: AI Stylist Service
+        Request:
+          Type: application/json
+          Payload:
+            current_option_id: string
+            target_product_id: string
+            context_items: array [string]
+            action: string ("similar_search")
+
+      - ID: API-04
+        Name: Lấy danh mục phụ trợ (Mini-catalog)
+        Method: GET
+        Path: /api/v1/products/{product_id}/mini-catalog
+        Producer: Node.js Core
+        Request:
+          Query_Params:
+            gender: string
+            limit: number
+        Response:
+          Success: Trả về danh sách sản phẩm gợi ý phối kèm.
+
+      - ID: API-05
+        Name: Lấy dữ liệu cá nhân hóa (Mix & Match)
+        Method: GET
+        Path: /api/v1/user/assets
+        Producer: Node.js Core
+        Request:
+          Headers:
+            Authorization: "Bearer <token>"
+          Query_Params:
+            source: string ("cart" | "wishlist" | "history")
+            category: string (optional)
+            page: number
+
+      - ID: API-06
+        Name: Tải lên trang phục cá nhân
+        Method: POST
+        Path: /api/v1/user/garments
+        Producer: Node.js Core & AI Service
+        Request:
+          Type: multipart/form-data
+          Payload:
+            user_id: string (UUID)
+            garment_image: file
+            category: string ("upper_body" | "lower_body" | "dress" | "accessory")
+
+  - Group: Transaction_and_State
+    Description: Nhóm API giao dịch, giỏ hàng và thanh toán (BFF -> Core Node.js).
+    Endpoints:
+      - ID: API-07
+        Name: Thêm sản phẩm vào giỏ
+        Method: POST
+        Path: /api/v1/cart/items
+        Request:
+          Type: application/json
+          Payload:
+            session_id: string
+            product_id: string
+            variant_id: string
+            quantity: number
+            metadata: object (added_from, ai_session_id)
+
+      - ID: API-08
+        Name: Quản lý chi tiết giỏ hàng
+        Method: PUT
+        Path: /api/v1/cart/items/{item_id}
+        Request:
+          Type: application/json
+          Payload:
+            quantity: number
+            variant_id: string
+        Response:
+          Error: Trả về mã INSUFFICIENT_STOCK nếu quantity > available_stock.
+
+      - ID: API-09
+        Name: Khởi tạo thanh toán
+        Method: POST
+        Path: /api/v1/checkout
+        Request:
+          Type: application/json
+          Payload:
+            cart_id: string
+            shipping_address_id: string
+            payment_method: string
+            coupon_code: string
+
+      - ID: API-10
+        Name: Nhận kết quả AI thời gian thực
+        Method: GET
+        Path: /api/v1/stream/vision-results
+        Protocol: Server-Sent Events (SSE)
+        Response:
+          Stream_Event: "vision_complete" hoặc "vision_error" kèm payload tương ứng.
+
+  - Group: Internal_Async_Contracts
+    Description: Hợp đồng giao tiếp nội bộ qua Message Broker (Service -> Service).
+    Queues:
+      - ID: QUEUE-01
+        Name: ai_vision_jobs
+        Producer: Next.js BFF
+        Consumer: AI Vision FastAPI
+        Message_Payload:
+          Type: JSON
+          Schema:
+            job_id: string
+            parent_job_id: string
+            step: string
+            user_id: string
+            human_image_url: string
+            garment_image_url: string
+            category: string
+            options: object (prefetch, resolution)
+
+      - ID: QUEUE-02
+        Name: product_metadata_sync
+        Producer: Node.js Core E-commerce
+        Consumer: AI Stylist Service
+        Message_Payload:
+          Type: JSON
+          Schema:
+            event_type: string ("product_created" | "product_updated" | "product_deleted")
+            timestamp: string
+            data: object (product_id, name, text_description, image_url)
+            metadata: object (category, gender)
+
+      - ID: QUEUE-03
+        Name: ai_vision_results
+        Producer: AI Vision FastAPI
+        Consumer: Next.js BFF
+        Message_Payload:
+          Type: JSON
+          Schema:
+            job_id: string
+            user_id: string
+            status: string ("completed" | "failed")
+            result_image_url: string | null
+            error_message: string | null
+        Notes: "Khi Next.js BFF nhận message từ hàng đợi này, nó sẽ dùng EventBus nội bộ đẩy kết quả tương ứng với user_id qua kênh SSE (API-10) về Client."

@@ -1,0 +1,99 @@
+# Ma trận CRUD ánh xạ API và Cơ sở dữ liệu (Database - API Mapping Matrix)
+# File: .ai-knowledge/db_api_matrix.yaml
+
+Entities:
+  - Entity: ai_profiles
+    Primary_Key: id
+    API_Interactions:
+      - API: POST /api/v1/ai-profile
+        Action: CREATE_OR_UPDATE
+        Affected_Fields: [customer_id, height, weight, base_body_image_url]
+        Validation_Rules: "Xác thực customer_id qua JWT. Chỉ lưu URL sau khi ảnh đã nén và tải lên Cloud Storage thành công."
+
+  - Entity: user_closet_items
+    Primary_Key: id
+    API_Interactions:
+      - API: POST /api/v1/user/garments
+        Action: CREATE
+        Affected_Fields: [customer_id, image_url, category, vector_status]
+        Validation_Rules: "Hệ thống AI xử lý tách nền trước khi lưu URL. Trường category phải thuộc enum [upper_body, lower_body, dress, accessory]. Khởi tạo vector_status = 'pending'."
+      - API: GET /api/v1/user/assets
+        Action: READ
+        Affected_Fields: [id, image_url, category]
+        Validation_Rules: "Chỉ trả về các item thuộc quyền sở hữu của customer_id. Có hỗ trợ phân trang."
+
+  - Entity: products
+    Primary_Key: id
+    API_Interactions:
+      - API: GET /api/v1/products/{product_id}/mini-catalog
+        Action: READ
+        Affected_Fields: [id, title, category_id]
+        Validation_Rules: "Join với bảng product_variants để đảm bảo chỉ trả về sản phẩm còn hàng (inventory_quantity > 0)."
+
+  - Entity: product_variants
+    Primary_Key: id
+    API_Interactions:
+      - API: POST /api/v1/cart/items
+        Action: READ
+        Affected_Fields: [id, inventory_quantity]
+        Validation_Rules: "Kiểm tra inventory_quantity >= quantity được yêu cầu trước khi cho phép thêm vào giỏ. Chưa thực hiện khóa (lock) dữ liệu ở bước này."
+      - API: POST /api/v1/checkout
+        Action: UPDATE
+        Affected_Fields: [inventory_quantity]
+        Validation_Rules: "Thực hiện Row-level Lock (SELECT FOR UPDATE) để trừ tồn kho khi tạo đơn hàng, tránh Race Condition."
+
+  - Entity: stylist_sessions
+    Primary_Key: id
+    API_Interactions:
+      - API: POST /api/v1/stylist/search
+        Action: CREATE
+        Affected_Fields: [customer_id, prompt, reasoning, status]
+        Validation_Rules: "Tạo session mới mỗi khi người dùng gửi văn bản mô tả yêu cầu phối đồ."
+
+  - Entity: stylist_session_items
+    Primary_Key: id
+    API_Interactions:
+      - API: POST /api/v1/stylist/search
+        Action: CREATE
+        Affected_Fields: [session_id, product_id]
+        Validation_Rules: "Lưu trữ hàng loạt (Bulk Insert) danh sách sản phẩm được AI đề xuất cho session_id tương ứng."
+      - API: POST /api/v1/stylist/replace
+        Action: UPDATE
+        Affected_Fields: [replaces_item_id, product_id]
+        Validation_Rules: "Ghi nhận product_id cũ vào trường replaces_item_id và thêm bản ghi mới cho product_id thay thế."
+
+  - Entity: line_item
+    Primary_Key: id
+    API_Interactions:
+      - API: POST /api/v1/cart/items
+        Action: CREATE_OR_UPDATE
+        Affected_Fields: [cart_id, variant_id, quantity, unit_price, stylist_session_id]
+        Validation_Rules: "Nếu variant_id đã tồn tại trong cart_id, thực hiện UPDATE quantity (cộng dồn). Nếu thêm từ giao diện AI Stylist, phải lưu stylist_session_id để đo lường chuyển đổi."
+      - API: PUT /api/v1/cart/items/{item_id}
+        Action: UPDATE
+        Affected_Fields: [quantity, variant_id]
+        Validation_Rules: "Kiểm tra available_stock của variant_id. Từ chối yêu cầu nếu quantity > available_stock."
+      - API: DELETE /api/v1/cart/items/{item_id}
+        Action: DELETE
+        Affected_Fields: [ALL]
+        Validation_Rules: "Xác thực item_id thuộc về cart_id của customer đang request."
+
+  - Entity: orders
+    Primary_Key: id
+    API_Interactions:
+      - API: POST /api/v1/checkout
+        Action: CREATE
+        Affected_Fields: [customer_id, total_amount, status, payment_method]
+        Validation_Rules: "Khởi tạo đơn hàng với status='pending_payment'. Cập nhật line_item (gắn order_id và xóa cart_id). Sử dụng Database Transaction (BEGIN...COMMIT) cho toàn bộ luồng này."
+
+  - Entity: vton_jobs
+    Primary_Key: id
+    API_Interactions:
+      - API: Queue ai_vision_jobs (BFF Producer)
+        Action: CREATE
+        Affected_Fields: [customer_id, parent_job_id, step, status]
+        Validation_Rules: "Khởi tạo bản ghi với status='pending' trước khi đẩy tác vụ vào RabbitMQ."
+      - API: Webhook / Internal API (AI Worker Consumer)
+        Action: UPDATE
+        Affected_Fields: [status, result_image_url, error_message]
+        Validation_Rules: "Worker cập nhật status thành 'completed' kèm ảnh, hoặc 'failed' kèm error_message. Kích hoạt Event để Node.js Core đẩy SSE về Frontend."
