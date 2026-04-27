@@ -25,7 +25,7 @@ Trước khi xuất ra mã nguồn, bạn phải thực hiện suy luận ngầm
 2. Kích hoạt Điều tra (nếu cần): Gọi `codebase_investigator` để hiểu cấu trúc hiện tại và đối chiếu Knowledge Base.
 3. Đánh giá Rủi ro: Kiểm tra tính tuân thủ `db_api_matrix.yaml` và rủi ro Over-engineering.
 4. Lập kế hoạch: Liệt kê các file sẽ tác động kèm theo logic thay đổi chính.
-5. Chỉ thực hiện chỉnh sửa hoặc viết file khi có sự đồng ý của tôi. 
+5. Chỉ thực hiện chỉnh sửa hoặc viết file khi có sự đồng ý của tôi. Nếu tôi đồng ý thì phải sử dụng phương thức replace, không được dùng writefile 
 
 # Troubleshooting & Investigation Protocol (Giao thức Gỡ lỗi và Điều tra)
 Khi tiếp nhận yêu cầu sửa lỗi (bug fix) hoặc xử lý sự cố:
