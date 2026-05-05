@@ -2,8 +2,8 @@ import amqplib, { Connection, Channel } from "amqplib";
 import { IMessageQueueService } from "./IMessageQueueService";
 
 export class AmqplibAdapter implements IMessageQueueService {
-  private connection: Connection | null = null;
-  private channel: Channel | null = null;
+  private connection: any = null;
+  private channel: any = null;
   private url: string;
 
   constructor() {

@@ -67,9 +67,7 @@ uv run uvicorn main:app --reload
 Để kiểm tra xem MedusaJS có gửi được tin nhắn sang FastAPI thông qua RabbitMQ hay không, hãy mở **Terminal thứ 3** và chạy lệnh cURL sau (trên Windows):
 
 ```powershell
-curl.exe -X POST http://localhost:9000/custom/internal/test-rmq `
-     -H "x-internal-token: your_super_secret_internal_key_here" `
-     -H "Content-Type: application/json"
+curl.exe -X POST http://localhost:9000/custom/internal/test-rmq -H "x-internal-token: your_super_secret_internal_key_here" -H "Content-Type: application/json"
 ```
 
 **Kết quả mong đợi:**
@@ -77,4 +75,4 @@ curl.exe -X POST http://localhost:9000/custom/internal/test-rmq `
 - Terminal của **AI Service** in ra log: `[RabbitMQ Consumer] Received product metadata sync event...`.
 
 ---
-*Dự án đang trong quá trình phát triển Giai đoạn 5.*
+*Dự án đang trong quá trình phát triển Giai đoạn 5.

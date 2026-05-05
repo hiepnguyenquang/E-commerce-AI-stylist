@@ -63,3 +63,7 @@ docker/rabbitmq_data/
 # LanceDB / Local DB Data
 apps/ai-service/data/
 apps/ai-service/lancedb_data/
+
+#medusa
+apps/api-medusa/public/ 
+public/uploads
