@@ -1,0 +1,110 @@
+import json
+import os
+from abc import ABC, abstractmethod
+from google import genai
+from google.genai import types
+
+# --- 1. Interface Chuẩn (Hợp đồng giao tiếp) ---
+class IIntentAnalyzer(ABC):
+    @abstractmethod
+    def parse_query(self, user_query: str) -> dict:
+        pass
+
+    @abstractmethod
+    def generate_outfit_options(self, user_query: str, limit_options: int, available_products: list) -> dict:
+        pass
+
+# --- 2. Adapter cho Google Gemini ---
+class GeminiAnalyzerAdapter(IIntentAnalyzer):
+    def __init__(self):
+        gemini_api_key = os.getenv("GEMINI_API_KEY")
+        self.model = os.getenv("LLM_MODEL", "gemini-1.5-flash-8b")
+        self.client = genai.Client(api_key=gemini_api_key)
+
+    def parse_query(self, user_query: str) -> dict:
+        prompt = f"""Bạn là hệ thống phân tích ngôn ngữ tự nhiên. Khách hàng vừa nhập yêu cầu tìm kiếm thời trang: "{user_query}".
+Hãy trích xuất yêu cầu này thành các bộ lọc JSON để hệ thống Database thực hiện tìm kiếm.
+Nếu thông tin nào không được nhắc đến, hãy để null. Bắt buộc CHỈ trả về JSON hợp lệ.
+
+Cấu trúc JSON yêu cầu:
+{{
+  "target_category": "String | null (Loại trang phục khách đang tìm, có thể là dresses, tops, pants, shoes, accessories)",
+  "target_occasion": "String | null (Hoàn cảnh sử dụng, ví dụ: beach, party, casual, work, sport, formal)",
+  "target_style": "String | null (Phong cách hướng tới, ví dụ: vintage, streetwear, office, minimalist, y2k)",
+  "price_preference": "String | null (cheap, premium, luxury)",
+  "search_keywords": "String (Từ khóa cô đọng nhất dùng để tìm kiếm Vector, đã loại bỏ các từ nhiễu)"
+}}"""
+        try:
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=[types.Content(role="user", parts=[types.Part.from_text(text=prompt)])],
+                config=types.GenerateContentConfig(
+                    system_instruction="You are a JSON-only response assistant.",
+                    response_mime_type="application/json",
+                    temperature=0.1
+                )
+            )
+            return json.loads(response.text)
+        except Exception as e:
+            print(f"[GeminiAnalyzerAdapter] Query parse error: {e}")
+            return {
+                "target_category": None,
+                "target_occasion": None,
+                "target_style": None,
+                "price_preference": None,
+                "search_keywords": user_query
+            }
+
+    def generate_outfit_options(self, user_query: str, limit_options: int, available_products: list) -> dict:
+        simplified_products = [
+            {
+                "id": p["product_id"],
+                "name": p["name"],
+                "category": p["category"],
+                "style": p.get("style", []),
+                "price": p.get("price", 0.0)
+            } for p in available_products
+        ]
+        
+        prompt = f"""Bạn là một Stylist thời trang cao cấp. Dưới đây là yêu cầu phối đồ của khách hàng:
+Yêu cầu: "{user_query}"
+Số lượng Set đồ (Options) cần tạo: {limit_options}
+
+Dưới đây là danh sách các sản phẩm ĐANG CÓ SẴN trong kho (bạn CHỈ được phép chọn từ danh sách này):
+{json.dumps(simplified_products, ensure_ascii=False)}
+
+Nhiệm vụ: 
+Hãy chọn ra các món đồ phù hợp nhất từ danh sách trên để kết hợp thành {limit_options} Options hoàn chỉnh.
+1. Mỗi Option phải có 1 tiêu đề (title) hấp dẫn.
+2. Có lời giải thích (reasoning) thuyết phục khách hàng tại sao Set đồ này hợp với họ.
+3. Bắt buộc trả về định dạng JSON chuẩn xác theo cấu trúc sau, không kèm văn bản thừa:
+
+{{
+  "options": [
+    {{
+      "option_id": "opt_1",
+      "title": "Tên chủ đề Set đồ",
+      "reasoning": "Lời khuyên của Stylist (Khoảng 2-3 câu)...",
+      "items": ["id_1", "id_3"] 
+    }}
+  ]
+}}"""
+        try:
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=[types.Content(role="user", parts=[types.Part.from_text(text=prompt)])],
+                config=types.GenerateContentConfig(
+                    system_instruction="You are a highly skilled Fashion Stylist and JSON-only response assistant.",
+                    response_mime_type="application/json",
+                    temperature=0.7
+                )
+            )
+            return json.loads(response.text)
+        except Exception as e:
+            print(f"[GeminiAnalyzerAdapter] Outfit generator error: {e}")
+            return {"options": []}
+
+# Để tương thích ngược (hoặc Dependency Injection), tạo Factory hoặc Export mặc định
+def get_intent_analyzer() -> IIntentAnalyzer:
+    # Ở đây có thể thêm logic if-else đọc từ biến môi trường để chọn Adapter
+    return GeminiAnalyzerAdapter()

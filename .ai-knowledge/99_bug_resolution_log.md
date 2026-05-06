@@ -22,4 +22,14 @@ Tệp tin này lưu trữ lịch sử các lỗi đã được giải quyết đ
 - **Bài học (Lessons Learned):**
   Khi truyền file vật lý cục bộ vào bất kỳ thư viện xử lý AI hoặc WebAssembly nào trên Node.js, luôn ưu tiên định dạng URI dạng `file://` thay vì Absolute Path của Windows.
 
+## [2026-05-05] - [MedusaJS Middleware req.path Override (404/301 Errors)]
+- **Triệu chứng (Symptoms):**
+  Frontend không thể load ảnh qua URL `/uploads/processed_xxx.png`. Trình duyệt báo lỗi 404 (Not Found) hoặc bị redirect 301 tự động nối thêm gạch chéo `/` vào đuôi file (`.png/`).
+- **Nguyên nhân gốc rễ (Root Cause):**
+  Cơ chế định tuyến nội bộ của MedusaJS tự động sửa đổi thuộc tính `req.path` khi request đi qua custom middleware. Nó cắt bỏ prefix `/uploads` khiến việc parse filename từ `req.path` bị trả về chuỗi rỗng `/`. Thư viện `express.static` cũng không tương thích tốt với cơ chế này.
+- **Giải pháp (Resolution):**
+  Bỏ `express.static` và viết custom middleware phục vụ file tĩnh (`res.sendFile()`). Thay vì dùng `req.path`, bắt buộc phải trích xuất tên file từ `req.originalUrl` (vì thuộc tính này bảo toàn URL ban đầu) kết hợp với regex để làm sạch trailing slash do 301 redirect gây ra.
+- **Bài học (Lessons Learned):**
+  Trong môi trường MedusaJS v2, khi thao tác với URL trong custom middleware, luôn cẩn trọng với `req.path` và ưu tiên dùng `req.originalUrl` để lấy chính xác thông tin request ban đầu từ Client.
+
 ---

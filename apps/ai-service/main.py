@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 import lancedb
 import pika
 
+from src.api.routes import stylist
+
 load_dotenv()
 
 INTERNAL_API_SECRET = os.getenv("INTERNAL_API_SECRET", "your_super_secret_internal_key_here")
@@ -55,6 +57,8 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+app.include_router(stylist.router, prefix="/api/v1/stylist", tags=["stylist"])
 
 async def verify_internal_token(x_internal_token: str = Header(None)):
     if x_internal_token != INTERNAL_API_SECRET:
