@@ -5,12 +5,13 @@ from fastapi import FastAPI, Header, HTTPException, Security, status
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
+# Nạp biến môi trường từ .env TRƯỚC KHI import bất kỳ module cục bộ nào
+load_dotenv()
+
 import lancedb
 import pika
 
 from src.api.routes import stylist
-
-load_dotenv()
 
 INTERNAL_API_SECRET = os.getenv("INTERNAL_API_SECRET", "your_super_secret_internal_key_here")
 LANCEDB_URI = os.getenv("LANCEDB_URI", "./data/lancedb")

@@ -36,19 +36,22 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
 ## 🧠 PHÂN ĐOẠN 5.2: AI STYLIST (TRÍ TUỆ PHỐI ĐỒ)
 *Mục tiêu: Trò chuyện và nhận gợi ý phối đồ từ AI dựa trên kho hàng thực tế.*
 
+> **Lưu ý cải tiến sau MVP (Intent Guardrail):**
+> Cần bổ sung thêm một lớp AI lọc câu hỏi (Intent Guardrail) ở đầu luồng. Nếu câu hỏi của người dùng không liên quan đến phối đồ hoặc thời trang, hệ thống sẽ không thực hiện tìm kiếm mà khéo léo từ chối và điều hướng người dùng về việc phối đồ. Tính năng này sẽ giúp tiết kiệm chi phí API và bảo vệ hệ thống khỏi những prompt không mong muốn, sẽ được bổ sung sau khi hoàn thành bản MVP.
+
 ### [Frontend - Instance 1]
-- [ ] Phát triển giao diện `AI Stylist Chat` (Floating Widget hoặc Page):
-    - [ ] Khung chat real-time.
-    - [ ] Hiển thị kết quả gợi ý dạng `Outfit Card` (Click để xem chi tiết sản phẩm).
-    - [ ] Logic "Đổi món đồ" (Replace Item) ngay trong khung chat.
+- [x] Phát triển giao diện `AI Stylist Chat` (Floating Widget hoặc Page):
+    - [x] Khung chat real-time.
+    - [x] Hiển thị kết quả gợi ý dạng `Outfit Card` (Click để xem chi tiết sản phẩm).
+    - [ ] Logic "Đổi món đồ" (Replace Item) ngay trong khung chat (Tính năng API-03 sẽ làm sau).
 
 ### [Backend/AI - Instance 2]
-- [ ] Thiết lập LanceDB & Vector Search:
-    - [ ] Script nhúng toàn bộ kho hàng PostgreSQL sang LanceDB (`clip-ViT-B-32`).
-    - [ ] Implement Hybrid Search (Metadata + Vector).
-- [ ] Hiện thực hóa API-02 (`POST /api/v1/stylist/search`):
-    - [ ] Luồng RAG: Query Parser -> LanceDB Retrieve -> LLM Outfit Generator.
-    - [ ] Lưu session vào `stylist_sessions`.
+- [x] Thiết lập LanceDB & Vector Search:
+    - [x] Script nhúng toàn bộ kho hàng PostgreSQL sang LanceDB (`clip-ViT-B-32`).
+    - [x] Implement Hybrid Search (Metadata + Vector).
+- [x] Hiện thực hóa API-02 (`POST /api/v1/stylist/search`):
+    - [x] Luồng RAG: Query Parser -> LanceDB Retrieve -> LLM Outfit Generator.
+    - [x] Lưu session vào `stylist_sessions`.
 
 ---
 
