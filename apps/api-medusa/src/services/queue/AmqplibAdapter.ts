@@ -47,6 +47,38 @@ export class AmqplibAdapter implements IMessageQueueService {
     }
   }
 
+  async consume(queueName: string, callback: (payload: any) => Promise<void>): Promise<void> {
+    try {
+      await this.connect();
+      if (!this.channel) {
+        throw new Error("Channel is not established.");
+      }
+
+      await this.channel.assertQueue(queueName, { durable: true });
+      this.channel.prefetch(1);
+
+      console.log(`[AmqplibAdapter] Listening for messages on queue '${queueName}'`);
+      
+      this.channel.consume(queueName, async (msg: amqplib.ConsumeMessage | null) => {
+        if (msg) {
+          try {
+            const payload = JSON.parse(msg.content.toString());
+            await callback(payload);
+            this.channel.ack(msg);
+          } catch (err) {
+            console.error(`[AmqplibAdapter] Error processing message from queue '${queueName}':`, err);
+            // Optionally nack or reject the message here. 
+            // We'll ack it to prevent infinite loops if we don't have retry mechanisms.
+            this.channel.ack(msg);
+          }
+        }
+      });
+    } catch (error) {
+      console.error(`[AmqplibAdapter] Error setting up consumer for queue '${queueName}':`, error);
+      throw error;
+    }
+  }
+
   async disconnect(): Promise<void> {
     try {
       if (this.channel) {
@@ -61,3 +93,5 @@ export class AmqplibAdapter implements IMessageQueueService {
     }
   }
 }
+
+export const amqpAdapter = new AmqplibAdapter();

@@ -13,6 +13,7 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
 > 2. Thư viện `@imgly/background-removal-node` trên môi trường Windows sẽ báo lỗi `Unsupported protocol: d:` nếu truyền đường dẫn vật lý (absolute path). Cần sử dụng `pathToFileURL` để chuyển đổi path thành định dạng URI (`file:///D:/...`) trước khi xử lý.
 > 3. Cơ chế Routing của MedusaJS v2 sẽ cắt bớt `req.path`. Tuyệt đối không dùng `express.static` để phục vụ file mà phải tự parse `req.originalUrl` và dùng `res.sendFile()` để tránh lỗi 404 hoặc 301 tự động thêm trailing slash.
 > 4. **Tính năng Xóa ảnh (Chưa có):** Cần bổ sung API và UI cho phép người dùng xóa trang phục trong tủ đồ. Cơ chế xóa phải thực hiện đồng bộ 2 việc: xóa bản ghi trong DB (`user_closet_items`) và xóa file vật lý trong thư mục `.medusa/uploads`.
+> 5. **Nợ kỹ thuật (Tech Debt) - API lấy hồ sơ AI:** Hiện tại chưa có API `GET /api/v1/ai-profile` để Frontend tự động lấy lại thông tin và URL ảnh cơ thể từ Database sau khi tải lại trang (hiện đang dùng tạm LocalStorage của Zustand để bypass). Cần bổ sung API này để Frontend đồng bộ dữ liệu chuẩn với Backend.
 
 ### [Frontend - Instance 1]
 - [x] Xây dựng trang `AI Profile Setup` (`/ai-profile`):
@@ -59,10 +60,10 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
 *Mục tiêu: Ghép thử sản phẩm lên ảnh người dùng qua hàng đợi RabbitMQ.*
 
 ### [Frontend - Instance 1]
-- [ ] Tích hợp nút `Try-On` tại trang chi tiết sản phẩm (PDP):
-    - [ ] Gửi request vào hàng đợi qua Medusa.
-    - [ ] Thiết lập kết nối SSE (`/api/v1/stream/vision-results`) để nhận ảnh kết quả.
-    - [ ] UI trạng thái: "Đang xử lý (Pending)" -> "Đang vẽ (Rendering)" -> "Hoàn tất".
+- [x] Tích hợp nút `Try-On` tại trang chi tiết sản phẩm (PDP):
+    - [x] Gửi request vào hàng đợi qua Medusa.
+    - [x] Thiết lập kết nối SSE (`/api/v1/stream/vision-results`) để nhận ảnh kết quả.
+    - [x] UI trạng thái: "Đang xử lý (Pending)" -> "Đang vẽ (Rendering)" -> "Hoàn tất".
 
 ### [Backend/AI - Instance 2]
 - [ ] Cấu hình Worker AI (`apps/ai-service`):

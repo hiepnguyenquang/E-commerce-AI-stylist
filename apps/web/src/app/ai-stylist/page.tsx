@@ -1,4 +1,5 @@
 import ChatBox from '@/components/features/ai-stylist/ChatBox';
+import VTONModal from '@/components/features/ai-stylist/VTONModal';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -18,6 +19,9 @@ export default function AIStylistPage() {
       
       {/* Khung chat Component */}
       <ChatBox />
+      
+      {/* Popup Thử đồ ảo */}
+      <VTONModal />
     </div>
   );
 }

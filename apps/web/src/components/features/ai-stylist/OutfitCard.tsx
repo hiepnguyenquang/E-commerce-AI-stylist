@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { OutfitOption } from '@/store/useStylistStore';
+import { useVTONStore } from '@/store/useVTONStore';
+import { useVTONService } from '@/hooks/useVTONService';
 
 interface Product {
   id: string;
@@ -13,6 +15,9 @@ interface Product {
 export default function OutfitCard({ option }: { option: OutfitOption }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const vtonStore = useVTONStore();
+  const { startTryOn } = useVTONService("default_user");
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -47,6 +52,19 @@ export default function OutfitCard({ option }: { option: OutfitOption }) {
     }
   }, [option.items]);
 
+  const handleTryOn = (garmentUrl: string | null) => {
+    if (!garmentUrl) {
+      alert("Sản phẩm này chưa có hình ảnh.");
+      return;
+    }
+    if (!vtonStore.humanImageUrl) {
+      alert("Bạn chưa thiết lập Hồ sơ AI (chưa có ảnh gốc). Vui lòng vào trang Hồ sơ AI để tải ảnh lên.");
+      return;
+    }
+    
+    startTryOn(vtonStore.humanImageUrl, garmentUrl);
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 mb-6">
       <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
@@ -78,7 +96,13 @@ export default function OutfitCard({ option }: { option: OutfitOption }) {
                       No Image
                     </div>
                   )}
-                  <p className="text-xs font-medium text-center line-clamp-2">{p.title}</p>
+                  <p className="text-xs font-medium text-center line-clamp-2 mb-2">{p.title}</p>
+                  <button 
+                    onClick={() => handleTryOn(p.thumbnail)}
+                    className="mt-auto text-xs bg-black text-white px-3 py-1 rounded hover:bg-gray-800 transition-colors w-full"
+                  >
+                    Thử VTON
+                  </button>
                 </div>
               ))
             ) : (
@@ -88,18 +112,18 @@ export default function OutfitCard({ option }: { option: OutfitOption }) {
                   <div className="w-full h-32 bg-gray-100 flex items-center justify-center rounded-md mb-2 text-xs text-gray-400">
                     Product ID: {id.substring(0, 8)}...
                   </div>
-                  <p className="text-xs font-medium text-center">Item {idx + 1}</p>
+                  <p className="text-xs font-medium text-center mb-2">Item {idx + 1}</p>
+                  <button 
+                    onClick={() => handleTryOn('https://via.placeholder.com/768x1024.png?text=Mock+Garment')}
+                    className="mt-auto text-xs bg-black text-white px-3 py-1 rounded hover:bg-gray-800 transition-colors w-full"
+                  >
+                    Thử VTON (Mock)
+                  </button>
                 </div>
               ))
             )}
           </div>
         )}
-        
-        <div className="mt-4 flex justify-end">
-          <button className="text-sm bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
-            Thử đồ ảo ngay (VTON)
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -16,4 +16,10 @@ dependencies = [
     "pillow>=12.2.0",
     "openai>=2.34.0",
     "google-genai>=1.75.0",
+    "diffusers>=0.37.1",
+    "accelerate>=1.13.0",
+    "transformers>=5.7.0",
+    "huggingface-hub>=1.13.0",
+    "xformers>=0.0.35",
+    "requests>=2.33.1",
 ]
