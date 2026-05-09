@@ -67,3 +67,51 @@ class VectorSearch:
         # chúng ta có thể pass kết quả trực tiếp cho LLM tự quyết định dựa trên pool kết quả gần nghĩa nhất.
         
         return results
+
+    def search_closet(self, user_id: str, search_keywords: str, limit: int = 10) -> list:
+        """Tìm kiếm các món đồ trong tủ đồ cá nhân."""
+        table_name = "closet_vector"
+        if table_name not in self.db.table_names():
+            return []
+            
+        table = self.db.open_table(table_name)
+        
+        if search_keywords:
+            query_vector = self.embedder.embed_text(search_keywords)
+            search = table.search(query_vector).metric("cosine")
+        else:
+            search = table.search()
+            
+        where_clause = f"user_id = '{user_id}'"
+        search = search.where(where_clause, prefilter=True)
+        
+        try:
+            results = search.limit(limit).to_list()
+            # Normalize closet results to look like products for the LLM
+            normalized_results = []
+            for r in results:
+                normalized_results.append({
+                    "product_id": r["id"],
+                    "name": f"Đồ cá nhân ({r.get('category', 'unknown')})",
+                    "category": r.get("category"),
+                    "style": r.get("style", []),
+                    "price": 0.0,
+                    "source": "closet"
+                })
+            return normalized_results
+        except Exception as e:
+            print(f"[VectorSearch] Closet search query failed: {e}")
+            return []
+
+    def global_search(self, user_id: str, search_keywords: str, filters: dict, limit: int = 20) -> list:
+        """Gộp kết quả từ cửa hàng và tủ đồ cá nhân."""
+        store_results = self.hybrid_search(search_keywords, filters, limit=limit)
+        closet_results = self.search_closet(user_id, search_keywords, limit=limit//2)
+        
+        # Đánh dấu nguồn gốc cho các món đồ từ cửa hàng
+        for r in store_results:
+            r["source"] = "store"
+            
+        # Nối 2 list lại. AI sẽ chọn từ pool chung này
+        return store_results + closet_results
+

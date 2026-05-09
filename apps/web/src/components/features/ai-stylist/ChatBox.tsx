@@ -156,7 +156,7 @@ export default function ChatBox() {
         <div className="relative flex items-center">
           <input
             type="text"
-            className="w-full pl-5 pr-14 py-4 bg-gray-100 border-transparent rounded-full focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+            className="w-full pl-5 pr-14 py-4 bg-gray-100 border-transparent rounded-full focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900 font-medium"
             placeholder="Nhập yêu cầu phối đồ (VD: đồ đi tiệc, phong cách vintage...)"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}

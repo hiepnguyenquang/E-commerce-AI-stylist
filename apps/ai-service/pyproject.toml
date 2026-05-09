@@ -3,7 +3,7 @@ name = "ai-service"
 version = "0.1.0"
 description = "AI Fashion Service using FastAPI & LanceDB"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"
 dependencies = [
     "fastapi>=0.100.0",
     "uvicorn>=0.22.0",
@@ -20,6 +20,25 @@ dependencies = [
     "accelerate>=1.13.0",
     "transformers>=5.7.0",
     "huggingface-hub>=1.13.0",
-    "xformers>=0.0.35",
     "requests>=2.33.1",
+    "opencv-python>=4.13.0.92",
+    "scikit-image>=0.25.2",
+    "fvcore>=0.1.5.post20221221",
+    "cloudpickle>=3.1.2",
+    "omegaconf>=2.3.0",
+    "torch>=2.7.0.dev",
+    "torchvision>=0.21.0.dev",
+    "torchaudio>=2.5.0.dev",
+    "pycocotools>=2.0.11",
+    "matplotlib>=3.10.9",
+    "av>=17.0.1",
+    "peft>=0.19.1",
 ]
+
+[[tool.uv.index]]
+name = "pytorch-nightly"
+url = "https://download.pytorch.org/whl/nightly/cu128"
+
+[tool.uv]
+prerelease = "allow"
+index-strategy = "unsafe-best-match"

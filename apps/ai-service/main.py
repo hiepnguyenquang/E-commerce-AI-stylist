@@ -25,15 +25,188 @@ import time
 import json
 from src.ai.vton import LocalCatVTONAdapter
 
+from src.ai.llm_client import get_intent_analyzer
+from src.ai.embedding import get_embedding_service
+from src.database.schema import products_schema, closet_schema
+import requests
+
+def start_closet_consumer():
+    try:
+        connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
+        channel = connection.channel()
+        channel.queue_declare(queue='closet_metadata_sync', durable=True)
+        
+        intent_analyzer = get_intent_analyzer()
+        embedder = get_embedding_service()
+        
+        def callback(ch, method, properties, body):
+            print(f"\n[Closet Consumer] Received closet metadata sync event:\n{body.decode()}\n")
+            try:
+                payload = json.loads(body.decode())
+                data = payload.get("data", {})
+                
+                item_id = data.get("id")
+                user_id = data.get("user_id")
+                image_url = data.get("image_url", "")
+                base_category = data.get("category", "unknown")
+                description = data.get("description", "")
+                
+                if not item_id or not user_id:
+                    raise ValueError("Missing item_id or user_id in payload")
+
+                print(f"[Closet Consumer] Downloading and analyzing closet item {item_id}...")
+                
+                # Download image bytes (assuming image_url is accessible from AI service)
+                # In development, Medusa is at localhost:9000
+                full_image_url = f"http://localhost:9000{image_url}" if image_url.startswith("/") else image_url
+                img_response = requests.get(full_image_url)
+                img_response.raise_for_status()
+                image_bytes = img_response.content
+                
+                # Analyze image with Vision LLM
+                extracted_meta = intent_analyzer.analyze_closet_image(image_bytes)
+                
+                category = extracted_meta.get("category", base_category)
+                color = extracted_meta.get("color", "unknown")
+                style = extracted_meta.get("style", [])
+                pattern = extracted_meta.get("pattern", "unknown")
+                material = extracted_meta.get("material", "unknown")
+                
+                # Embed metadata
+                text_to_embed = (
+                    f"Danh mục: {category}. "
+                    f"Màu sắc: {color}. "
+                    f"Phong cách: {', '.join(style)}. "
+                    f"Họa tiết: {pattern}. "
+                    f"Chất liệu: {material}."
+                )
+                if description:
+                    text_to_embed += f" Mô tả: {description}."
+                    
+                print(f"[Closet Consumer] Embedding text: {text_to_embed}")
+                vector = embedder.embed_text(text_to_embed)
+                
+                # Save to LanceDB
+                table_name = "closet_vector"
+                if table_name not in db.table_names():
+                    print(f"[Closet Consumer] Creating LanceDB table '{table_name}'...")
+                    table = db.create_table(table_name, schema=closet_schema)
+                else:
+                    table = db.open_table(table_name)
+                    
+                record = [{
+                    "id": item_id,
+                    "user_id": user_id,
+                    "vector": vector,
+                    "category": category,
+                    "color": color,
+                    "pattern": pattern,
+                    "style": style,
+                    "material": material,
+                    "image_url": image_url
+                }]
+                
+                table.delete(f"id = '{item_id}'")
+                table.add(record)
+                
+                print(f"[Closet Consumer] Closet item {item_id} synced to LanceDB successfully.")
+                
+            except Exception as ex:
+                print(f"[Closet Consumer] Lỗi xử lý đồng bộ tủ đồ: {ex}")
+                
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            
+        channel.basic_qos(prefetch_count=1)
+        channel.basic_consume(queue='closet_metadata_sync', on_message_callback=callback)
+        
+        print("[Closet Consumer] Started listening on 'closet_metadata_sync'...")
+        channel.start_consuming()
+    except Exception as e:
+        print(f"[Closet Consumer] Failed to connect: {e}")
+
 def start_rabbitmq_consumer():
     try:
         connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
         channel = connection.channel()
         channel.queue_declare(queue='product_metadata_sync', durable=True)
         
+        # Khởi tạo các services
+        intent_analyzer = get_intent_analyzer()
+        embedder = get_embedding_service()
+        
         def callback(ch, method, properties, body):
             print(f"\n[RabbitMQ Consumer] Received product metadata sync event:\n{body.decode()}\n")
-            # Ở Giai đoạn 5: Ta sẽ dùng LLM trích xuất tag (Prompt A) và lưu vào LanceDB tại đây.
+            try:
+                payload = json.loads(body.decode())
+                data = payload.get("data", {})
+                metadata = payload.get("metadata", {})
+                
+                product_id = data.get("product_id")
+                name = data.get("name", "")
+                text_description = data.get("text_description", "")
+                image_url = data.get("image_url", "")
+                
+                base_category = metadata.get("category", "")
+                gender = metadata.get("gender", "unisex")
+                
+                if not product_id:
+                    raise ValueError("Missing product_id in payload")
+
+                print(f"[RabbitMQ Consumer] Analyzing product {product_id} with LLM...")
+                # Bước 1: Trích xuất metadata (Prompt A)
+                extracted_meta = intent_analyzer.extract_metadata(name, text_description, base_category)
+                
+                category = extracted_meta.get("category", base_category)
+                color = extracted_meta.get("color", "unknown")
+                style = extracted_meta.get("style", [])
+                occasion = extracted_meta.get("occasion", [])
+                material = extracted_meta.get("material", "unknown")
+                
+                # Bước 2: Tạo câu mô tả và nhúng vector
+                text_to_embed = (
+                    f"Tên: {name}. "
+                    f"Danh mục: {category}. "
+                    f"Phong cách: {', '.join(style)}. "
+                    f"Phù hợp cho: {', '.join(occasion)}. "
+                    f"Chất liệu: {material}. "
+                    f"Màu sắc: {color}."
+                )
+                print(f"[RabbitMQ Consumer] Embedding text: {text_to_embed}")
+                vector = embedder.embed_text(text_to_embed)
+                
+                # Bước 3: Lưu vào LanceDB
+                table_name = "products_vector"
+                if table_name not in db.table_names():
+                    print(f"[RabbitMQ Consumer] Creating LanceDB table '{table_name}'...")
+                    table = db.create_table(table_name, schema=products_schema)
+                else:
+                    table = db.open_table(table_name)
+                    
+                record = [{
+                    "product_id": product_id,
+                    "vector": vector,
+                    "category": category,
+                    "gender": gender,
+                    "color": color,
+                    "price": 0.0, # Mặc định hoặc lấy từ payload
+                    "in_stock": True, # Giả định ban đầu
+                    "style": style,
+                    "occasion": occasion,
+                    "material": material,
+                    "name": name,
+                    "image_url": image_url or ""
+                }]
+                
+                # Trong LanceDB, dùng merge/update nếu đã tồn tại, MVP ta xóa rồi add lại hoặc append
+                # Simple logic for MVP (delete if exists then add)
+                table.delete(f"product_id = '{product_id}'")
+                table.add(record)
+                
+                print(f"[RabbitMQ Consumer] Product {product_id} synced to LanceDB successfully.")
+                
+            except Exception as ex:
+                print(f"[RabbitMQ Consumer] Lỗi xử lý đồng bộ: {ex}")
+                
             ch.basic_ack(delivery_tag=method.delivery_tag)
             
         # Rất quan trọng: Giới hạn xử lý 1 message/lần để bảo vệ VRAM (đã định nghĩa trong architecture_rules)
@@ -55,14 +228,32 @@ def start_vton_consumer():
         channel.queue_declare(queue='ai_vision_results', durable=True)
         
         def callback(ch, method, properties, body):
-            payload = json.loads(body.decode())
-            job_id = payload.get("job_id")
-            user_id = payload.get("user_id")
+            payload_data = json.loads(body.decode())
+            job_id = payload_data.get("job_id")
+            user_id = payload_data.get("user_id")
             print(f"\n[VTON Consumer] Received job: {job_id}")
             
             try:
-                human_url = payload.get("human_image_url")
-                garment_url = payload.get("garment_image_url")
+                # Mới: Payload lồng nhau từ MedusaJS theo cấu trúc CatVTON
+                inner_payload = payload_data.get("payload", {})
+                images = inner_payload.get("images", {})
+                params = inner_payload.get("processing_params", {})
+                
+                human_url = images.get("person_image_url")
+                garment_url = images.get("cloth_image_url")
+                mask_url = images.get("mask_image_url")
+                
+                # Tham số CatVTON
+                cloth_type = params.get("cloth_type", "upper")
+                num_inference_steps = params.get("num_inference_steps", 50)
+                guidance_scale = params.get("guidance_scale", 2.5)
+                seed = params.get("seed", -1)
+                width = params.get("width", 768)
+                height = params.get("height", 1024)
+                repaint = params.get("repaint", False)
+                
+                if not human_url or not garment_url:
+                    raise ValueError("Missing person_image_url or cloth_image_url in payload")
                 
                 # Đảm bảo thư mục lưu trữ tồn tại
                 output_dir = "./data/outputs/vton"
@@ -70,7 +261,19 @@ def start_vton_consumer():
                 output_path = os.path.join(output_dir, f"result_{job_id}.png")
                 
                 # Chạy inference
-                result_path = vton_service.try_on(human_url, garment_url, output_path)
+                result_path = vton_service.try_on(
+                    human_image_url=human_url, 
+                    garment_image_url=garment_url, 
+                    output_path=output_path,
+                    mask_image_url=mask_url,
+                    cloth_type=cloth_type,
+                    num_inference_steps=num_inference_steps,
+                    guidance_scale=guidance_scale,
+                    seed=seed,
+                    width=width,
+                    height=height,
+                    repaint=repaint
+                )
                 
                 # Ở môi trường thực tế, ta cần upload result_path lên S3 hoặc Cloud Storage.
                 # MVP: ta trả về một static URL trỏ vào thư mục outputs hoặc truyền base64,
@@ -126,6 +329,9 @@ async def lifespan(app: FastAPI):
     
     vton_consumer_thread = threading.Thread(target=start_vton_consumer, daemon=True)
     vton_consumer_thread.start()
+    
+    closet_consumer_thread = threading.Thread(target=start_closet_consumer, daemon=True)
+    closet_consumer_thread.start()
     
     yield
     

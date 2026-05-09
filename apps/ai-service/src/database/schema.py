@@ -26,3 +26,16 @@ products_schema = pa.schema([
     pa.field("name", pa.string()),           
     pa.field("image_url", pa.string())       
 ])
+
+# Cấu trúc Bảng closet_vector (User Closet Schema)
+closet_schema = pa.schema([
+    pa.field("id", pa.string()),             # Khóa chính của closet item
+    pa.field("user_id", pa.string()),        # ID của người dùng sở hữu
+    pa.field("vector", pa.list_(pa.float32(), 512)), # Vector nhúng (512 dimensions)
+    pa.field("category", pa.string()),
+    pa.field("color", pa.string()),
+    pa.field("pattern", pa.string()),        # Kiểu hoạ tiết (trơn, kẻ sọc...)
+    pa.field("style", pa.list_(pa.string())),
+    pa.field("material", pa.string()),
+    pa.field("image_url", pa.string())
+])

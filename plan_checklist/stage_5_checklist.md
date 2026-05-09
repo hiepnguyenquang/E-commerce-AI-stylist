@@ -14,6 +14,7 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
 > 3. Cơ chế Routing của MedusaJS v2 sẽ cắt bớt `req.path`. Tuyệt đối không dùng `express.static` để phục vụ file mà phải tự parse `req.originalUrl` và dùng `res.sendFile()` để tránh lỗi 404 hoặc 301 tự động thêm trailing slash.
 > 4. **Tính năng Xóa ảnh (Chưa có):** Cần bổ sung API và UI cho phép người dùng xóa trang phục trong tủ đồ. Cơ chế xóa phải thực hiện đồng bộ 2 việc: xóa bản ghi trong DB (`user_closet_items`) và xóa file vật lý trong thư mục `.medusa/uploads`.
 > 5. **Nợ kỹ thuật (Tech Debt) - API lấy hồ sơ AI:** Hiện tại chưa có API `GET /api/v1/ai-profile` để Frontend tự động lấy lại thông tin và URL ảnh cơ thể từ Database sau khi tải lại trang (hiện đang dùng tạm LocalStorage của Zustand để bypass). Cần bổ sung API này để Frontend đồng bộ dữ liệu chuẩn với Backend.
+> 6. **Quản lý Sản phẩm (Admin API via Next.js):** Để hỗ trợ thêm sản phẩm nhanh từ Web mà không cần dựng luồng Login Admin phức tạp, sử dụng chiến lược: Tạo Custom API `POST /api/v1/internal/products` trên Medusa (bảo mật bằng `x-internal-token`). Next.js sẽ gọi API này để tạo sản phẩm. Sau này khi có hệ thống Login Admin, chỉ cần đổi URL gọi API từ Custom sang API chuẩn của Medusa (`POST /admin/products`) kèm Token Admin, không gây ra Tech Debt ở giao diện nhập liệu.
 
 ### [Frontend - Instance 1]
 - [x] Xây dựng trang `AI Profile Setup` (`/ai-profile`):
@@ -23,6 +24,9 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
 - [x] Xây dựng giao diện `User Closet` (`/wardrobe`):
     - [x] Hiển thị danh sách trang phục đã tải lên (Grid View).
     - [x] Nút "Thêm trang phục mới" kèm logic tách nền (kết nối API).
+- [ ] Hoàn thiện Cửa hàng (`/products`):
+    - [ ] Thêm giao diện lọc (Filters) và sắp xếp (Sort).
+    - [ ] Giao diện Thêm sản phẩm nhanh (`/admin-tools/add-product`).
 
 ### [Backend/AI - Instance 2]
 - [x] Hiện thực hóa API-01 (`POST /api/v1/ai-profile`):
@@ -31,6 +35,8 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
 - [x] Hiện thực hóa API-06 (`POST /api/v1/user/garments`):
     - [x] AI Service: Tích hợp logic Remove Background (ví dụ dùng Rembg). (Đã chuyển sang Node.js MVP)
     - [x] Lưu metadata vào bảng `user_closet_items`.
+- [ ] Hiện thực hóa API thêm sản phẩm nội bộ:
+    - [ ] `POST /api/v1/internal/products` để tạo Product.
 
 ---
 
@@ -66,12 +72,12 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
     - [x] UI trạng thái: "Đang xử lý (Pending)" -> "Đang vẽ (Rendering)" -> "Hoàn tất".
 
 ### [Backend/AI - Instance 2]
-- [ ] Cấu hình Worker AI (`apps/ai-service`):
-    - [ ] Load model `CatVTON` (bf16, prefetch=1).
-    - [ ] Consumer lắng nghe `QUEUE-01` (ai_vision_jobs).
-- [ ] Xây dựng SSE Endpoint tại Medusa:
-    - [ ] Nhận kết quả từ AI (via internal callback).
-    - [ ] Đẩy Event đến đúng User đang kết nối.
+- [x] Cấu hình Worker AI (`apps/ai-service`):
+    - [x] Load model `CatVTON` (bf16, prefetch=1).
+    - [x] Consumer lắng nghe `QUEUE-01` (ai_vision_jobs).
+- [x] Xây dựng SSE Endpoint tại Medusa:
+    - [x] Nhận kết quả từ AI (via internal callback).
+    - [x] Đẩy Event đến đúng User đang kết nối.
 
 ---
 
@@ -79,16 +85,16 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
 *Mục tiêu: Đảm bảo luồng mua hàng ổn định, trừ kho và thanh toán giả lập.*
 
 ### [Frontend - Instance 1]
-- [ ] Hoàn thiện `Cart Drawer` & `Checkout Page`:
-    - [ ] Hiển thị thông tin sản phẩm kèm metadata AI (nếu món đồ được chọn từ Stylist).
-    - [ ] Luồng thanh toán Mockup thành công.
+- [x] Hoàn thiện `Cart Drawer` & `Checkout Page`:
+    - [x] Hiển thị thông tin sản phẩm kèm metadata AI (nếu món đồ được chọn từ Stylist).
+    - [x] Luồng thanh toán Mockup thành công.
 
 ### [Backend/AI - Instance 2]
-- [ ] Viết Medusa Workflows cho Checkout:
-    - [ ] Step: `reserveInventory` (Lock tồn kho).
-    - [ ] Step: `createOrder` (Tạo đơn hàng).
-    - [ ] Step: `processPayment` (Mock logic).
-- [ ] Đồng bộ hóa: Khi đơn hàng thành công, cập nhật `vton_jobs` hoặc `stylist_sessions` để ghi nhận chuyển đổi (Conversion tracking).
+- [x] Viết Medusa Workflows cho Checkout:
+    - [x] Step: `reserveInventory` (Lock tồn kho).
+    - [x] Step: `createOrder` (Tạo đơn hàng).
+    - [x] Step: `processPayment` (Mock logic).
+- [x] Đồng bộ hóa: Khi đơn hàng thành công, cập nhật `vton_jobs` hoặc `stylist_sessions` để ghi nhận chuyển đổi (Conversion tracking).
 
 ---
 

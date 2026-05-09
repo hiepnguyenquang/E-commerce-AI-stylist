@@ -1,25 +1,37 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type VTONStatus = 'idle' | 'uploading' | 'pending' | 'rendering' | 'completed' | 'error';
+export type VTONStatus = 'idle' | 'uploading' | 'pending' | 'rendering' | 'processing_next_step' | 'completed' | 'error';
+
+interface SelectedOutfit {
+  top: string | null;
+  bottom: string | null;
+  dress: string | null;
+}
 
 interface VTONState {
   status: VTONStatus;
   currentJobId: string | null;
   humanImageUrl: string | null;
-  garmentImageUrl: string | null;
+  garmentImageUrl: string | null; // For single item try-on
+  selectedOutfit: SelectedOutfit; // For Mix & Match UI
   resultImageUrl: string | null;
   errorMessage: string | null;
+  progressMessage: string | null;
   
   // Actions
   setStatus: (status: VTONStatus) => void;
   setJobId: (jobId: string) => void;
   setHumanImage: (url: string) => void;
   setGarmentImage: (url: string) => void;
-  startVTON: (humanImageUrl: string, garmentImageUrl: string) => void;
+  setOutfitItem: (type: keyof SelectedOutfit, url: string | null) => void;
+  startVTON: (humanImageUrl: string, garmentImageUrl?: string) => void;
+  startMultiStepVTON: (humanImageUrl: string) => void;
+  setProgress: (message: string) => void;
   setVTONResult: (url: string) => void;
   setVTONError: (message: string) => void;
   reset: () => void;
+  resetOutfit: () => void;
 }
 
 export const useVTONStore = create<VTONState>()(
@@ -29,52 +41,78 @@ export const useVTONStore = create<VTONState>()(
       currentJobId: null,
       humanImageUrl: null,
       garmentImageUrl: null,
+      selectedOutfit: { top: null, bottom: null, dress: null },
       resultImageUrl: null,
       errorMessage: null,
+      progressMessage: null,
 
       setStatus: (status) => set({ status }),
       setJobId: (jobId) => set({ currentJobId: jobId }),
       setHumanImage: (url) => set({ humanImageUrl: url }),
       setGarmentImage: (url) => set({ garmentImageUrl: url }),
+      setOutfitItem: (type, url) => set((state) => ({ 
+          selectedOutfit: { ...state.selectedOutfit, [type]: url } 
+      })),
       
       startVTON: (humanImageUrl, garmentImageUrl) => 
         set({ 
           status: 'pending', 
           humanImageUrl,
-          garmentImageUrl,
+          garmentImageUrl: garmentImageUrl || null,
           resultImageUrl: null, 
-          errorMessage: null 
+          errorMessage: null,
+          progressMessage: null
         }),
+
+      startMultiStepVTON: (humanImageUrl) => 
+        set({ 
+          status: 'pending', 
+          humanImageUrl,
+          garmentImageUrl: null,
+          resultImageUrl: null, 
+          errorMessage: null,
+          progressMessage: "Đang khởi tạo chuỗi công việc..."
+        }),
+      
+      setProgress: (message) => set({ progressMessage: message }),
         
       setVTONResult: (url) => 
         set({ 
           status: 'completed', 
           resultImageUrl: url, 
-          errorMessage: null 
+          errorMessage: null,
+          progressMessage: "Đã hoàn thành!"
         }),
         
       setVTONError: (message) => 
         set({ 
           status: 'error', 
           errorMessage: message, 
-          resultImageUrl: null 
+          resultImageUrl: null,
+          progressMessage: null
         }),
         
       reset: () =>
         set((state) => ({
           status: 'idle',
           currentJobId: null,
-          // Keep humanImageUrl when resetting the VTON modal state
+          // Keep humanImageUrl and selectedOutfit when resetting the VTON modal state
           humanImageUrl: state.humanImageUrl,
           garmentImageUrl: null,
           resultImageUrl: null,
           errorMessage: null,
+          progressMessage: null
         })),
+        
+      resetOutfit: () => set({ selectedOutfit: { top: null, bottom: null, dress: null } }),
     }),
     {
       name: 'vton-storage',
-      // Chỉ lưu humanImageUrl vào localStorage để không bị mất khi F5
-      partialize: (state) => ({ humanImageUrl: state.humanImageUrl }),
+      // Lưu lại humanImageUrl và bộ đồ đang mix dang dở
+      partialize: (state) => ({ 
+          humanImageUrl: state.humanImageUrl,
+          selectedOutfit: state.selectedOutfit
+      }),
     }
   )
 );

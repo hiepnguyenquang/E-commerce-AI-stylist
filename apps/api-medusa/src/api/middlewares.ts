@@ -16,7 +16,7 @@ const upload = multer({ dest: uploadDir });
 const corsMiddleware = (req: any, res: any, next: any) => {
   res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-customer-id");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-customer-id, x-internal-token");
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -76,6 +76,23 @@ export default defineMiddlewares({
       ],
     },
     {
+      matcher: "/v1/internal/*",
+      middlewares: [
+        (req: any, res: any, next: any) => {
+          const internalToken = req.headers["x-internal-token"];
+          const secret = process.env.INTERNAL_API_SECRET;
+
+          if (!internalToken || internalToken !== secret) {
+            return res.status(401).json({
+              status: "error",
+              message: "Unauthorized: Internal access only",
+            });
+          }
+          next();
+        },
+      ],
+    },
+    {
       matcher: "/v1/ai-profile",
       method: "POST",
       middlewares: [upload.single("human_image") as any],
@@ -84,6 +101,11 @@ export default defineMiddlewares({
       matcher: "/v1/user/garments",
       method: "POST",
       middlewares: [upload.single("garment_image") as any],
+    },
+    {
+      matcher: "/v1/internal/products",
+      method: "POST",
+      middlewares: [upload.single("image") as any],
     },
   ],
 });

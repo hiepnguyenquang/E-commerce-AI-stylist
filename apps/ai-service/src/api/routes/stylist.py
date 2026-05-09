@@ -30,6 +30,7 @@ llm_client = get_intent_analyzer()
 class StylistSearchRequest(BaseModel):
     query_text: str
     limit_options: int = 2
+    user_id: str = "mock-customer-id"
     
 @router.post("/search")
 async def search_outfit(req: StylistSearchRequest, token: str = Security(verify_internal_token)):
@@ -40,8 +41,9 @@ async def search_outfit(req: StylistSearchRequest, token: str = Security(verify_
         search_keywords = filters.get("search_keywords", req.query_text)
         
         # Bước 2: Tìm kiếm ngữ nghĩa trên LanceDB (Retrieve)
-        # Giới hạn lấy 20 sản phẩm sát nghĩa nhất để cung cấp Pool cho AI
-        pool = vector_search.hybrid_search(
+        # Giới hạn lấy 20 sản phẩm sát nghĩa nhất từ cả cửa hàng và tủ đồ để cung cấp Pool cho AI
+        pool = vector_search.global_search(
+            user_id=req.user_id,
             search_keywords=search_keywords,
             filters=filters,
             limit=20

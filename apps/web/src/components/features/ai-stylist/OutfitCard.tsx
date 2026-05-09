@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 import { OutfitOption } from '@/store/useStylistStore';
 import { useVTONStore } from '@/store/useVTONStore';
 import { useVTONService } from '@/hooks/useVTONService';
+import { useCartStore } from '@/store/useCartStore';
 
 interface Product {
   id: string;
   title: string;
   thumbnail: string | null;
-  variants: unknown[];
+  variants: any[];
 }
 
 export default function OutfitCard({ option }: { option: OutfitOption }) {
@@ -18,6 +19,7 @@ export default function OutfitCard({ option }: { option: OutfitOption }) {
   
   const vtonStore = useVTONStore();
   const { startTryOn } = useVTONService("default_user");
+  const cartStore = useCartStore();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -32,7 +34,6 @@ export default function OutfitCard({ option }: { option: OutfitOption }) {
         if (res.ok) {
           const data = await res.json();
           // Map fetched products to our local state
-          // Handle the case where the API might return products differently
           const fetchedProducts = data.products || [];
           setProducts(fetchedProducts);
         } else {
@@ -63,6 +64,37 @@ export default function OutfitCard({ option }: { option: OutfitOption }) {
     }
     
     startTryOn(vtonStore.humanImageUrl, garmentUrl);
+  };
+
+  const handleAddToCart = (product: Product) => {
+    // Lấy variant đầu tiên làm mặc định cho MVP
+    const variantId = product.variants?.[0]?.id || `mock_variant_${product.id}`;
+    // Giá giả định nếu variant không có giá rõ ràng, hoặc API không trả về
+    const price = 100000; 
+
+    cartStore.addItem({
+      id: `cart_${Date.now()}_${product.id}`,
+      productId: product.id,
+      variantId: variantId,
+      title: product.title,
+      imageUrl: product.thumbnail,
+      quantity: 1,
+      unitPrice: price,
+      stylistSessionId: 'session_mock' // Tracking conversion
+    });
+  };
+
+  const handleAddMockToCart = (id: string, index: number) => {
+    cartStore.addItem({
+      id: `cart_${Date.now()}_${id}`,
+      productId: id,
+      variantId: `mock_variant_${id}`,
+      title: `Sản phẩm ${index + 1} (Gợi ý AI)`,
+      imageUrl: 'https://via.placeholder.com/768x1024.png?text=Mock+Garment',
+      quantity: 1,
+      unitPrice: 100000,
+      stylistSessionId: 'session_mock'
+    });
   };
 
   return (
@@ -97,12 +129,20 @@ export default function OutfitCard({ option }: { option: OutfitOption }) {
                     </div>
                   )}
                   <p className="text-xs font-medium text-center line-clamp-2 mb-2">{p.title}</p>
-                  <button 
-                    onClick={() => handleTryOn(p.thumbnail)}
-                    className="mt-auto text-xs bg-black text-white px-3 py-1 rounded hover:bg-gray-800 transition-colors w-full"
-                  >
-                    Thử VTON
-                  </button>
+                  <div className="mt-auto w-full flex space-x-2">
+                    <button 
+                      onClick={() => handleTryOn(p.thumbnail)}
+                      className="flex-1 text-xs bg-black text-white px-2 py-1 rounded hover:bg-gray-800 transition-colors"
+                    >
+                      Thử VTON
+                    </button>
+                    <button 
+                      onClick={() => handleAddToCart(p)}
+                      className="flex-1 text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition-colors"
+                    >
+                      Thêm Giỏ
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (
@@ -113,12 +153,20 @@ export default function OutfitCard({ option }: { option: OutfitOption }) {
                     Product ID: {id.substring(0, 8)}...
                   </div>
                   <p className="text-xs font-medium text-center mb-2">Item {idx + 1}</p>
-                  <button 
-                    onClick={() => handleTryOn('https://via.placeholder.com/768x1024.png?text=Mock+Garment')}
-                    className="mt-auto text-xs bg-black text-white px-3 py-1 rounded hover:bg-gray-800 transition-colors w-full"
-                  >
-                    Thử VTON (Mock)
-                  </button>
+                  <div className="mt-auto w-full flex space-x-2">
+                    <button 
+                      onClick={() => handleTryOn('https://via.placeholder.com/768x1024.png?text=Mock+Garment')}
+                      className="flex-1 text-xs bg-black text-white px-2 py-1 rounded hover:bg-gray-800 transition-colors"
+                    >
+                      Thử VTON
+                    </button>
+                    <button 
+                      onClick={() => handleAddMockToCart(id, idx)}
+                      className="flex-1 text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition-colors"
+                    >
+                      Thêm Giỏ
+                    </button>
+                  </div>
                 </div>
               ))
             )}

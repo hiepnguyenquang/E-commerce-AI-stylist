@@ -105,23 +105,25 @@ export function ImageUploader({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-sm mx-auto space-y-4">
+    <div className="flex flex-col items-center justify-center w-full space-y-4">
       <div 
-        className="w-full aspect-[3/4] border-2 border-dashed border-gray-300 rounded-lg overflow-hidden relative bg-gray-50 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors"
+        className="h-40 aspect-[3/4] border-2 border-dashed border-gray-300 rounded-lg overflow-hidden relative bg-gray-50 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors shadow-sm"
         onClick={() => fileInputRef.current?.click()}
       >
         {previewUrl ? (
           <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
         ) : (
-          <div className="text-center p-6">
-            <p className="text-gray-500 mb-2">Click to select an image</p>
-            <p className="text-xs text-gray-400">Aspect Ratio: 3:4, Max: 2MB</p>
+          <div className="text-center p-2">
+            <svg className="mx-auto h-8 w-8 text-gray-400 mb-1" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <p className="text-xs text-gray-500 font-medium">Click to upload</p>
           </div>
         )}
         
         {isProcessing && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
           </div>
         )}
       </div>

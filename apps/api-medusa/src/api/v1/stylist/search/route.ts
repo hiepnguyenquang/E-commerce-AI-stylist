@@ -16,6 +16,8 @@ export async function POST(
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://127.0.0.1:8000"
     const INTERNAL_API_SECRET = process.env.INTERNAL_API_SECRET || "your_super_secret_internal_key_here"
 
+    const customer_id = (req as any).auth_context?.actor_id || req.headers["x-customer-id"] || "mock-customer-id"
+
     const aiResponse = await fetch(`${AI_SERVICE_URL}/api/v1/stylist/search`, {
       method: "POST",
       headers: {
@@ -24,7 +26,8 @@ export async function POST(
       },
       body: JSON.stringify({
         query_text,
-        limit_options: limit_options || 2
+        limit_options: limit_options || 2,
+        user_id: customer_id
       }),
     })
 
@@ -36,9 +39,6 @@ export async function POST(
     const aiData = await aiResponse.json()
 
     // Lưu session vào DB
-    // Trong môi trường thật, cần lấy customer_id từ auth token
-    const customer_id = "anonymous_session" 
-    
     const session = await aiPersonalizationModuleService.createStylistSessions({
       customer_id: customer_id,
       prompt: query_text,

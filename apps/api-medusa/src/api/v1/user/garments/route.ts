@@ -5,6 +5,7 @@ import { removeBackground } from "@imgly/background-removal-node"
 import fs from "fs"
 import path from "path"
 import { pathToFileURL } from "url"
+import { AmqplibAdapter } from "../../../../services/queue/AmqplibAdapter"
 
 export async function POST(
   req: MedusaRequest,
@@ -12,7 +13,7 @@ export async function POST(
 ) {
   const aiPersonalizationService: AiPersonalizationModuleService = req.scope.resolve(AI_PERSONALIZATION_MODULE)
   
-  const { category } = req.body as any
+  const { category, description } = req.body as any
   const file = (req as any).file
 
   const customer_id = (req as any).auth_context?.actor_id || req.headers["x-customer-id"] || "mock-customer-id"
@@ -54,8 +55,30 @@ export async function POST(
     customer_id,
     image_url: finalImageUrl,
     category: category || "unknown",
+    metadata: description ? { description } : null,
     vector_status: "pending"
   })
+
+  // Trigger synchronization to LanceDB
+  try {
+    const queueService = new AmqplibAdapter()
+    const payload = {
+      event_type: "closet_item_created",
+      timestamp: new Date().toISOString(),
+      data: {
+        id: closetItem.id,
+        user_id: customer_id,
+        image_url: finalImageUrl,
+        category: category || "unknown",
+        description: description || ""
+      }
+    }
+    await queueService.publish("closet_metadata_sync", payload)
+    console.log(`[Queue] Published closet_metadata_sync for item ${closetItem.id}`)
+  } catch (queueError) {
+    console.error("[Queue] Failed to publish closet_metadata_sync event:", queueError)
+    // We don't block the request if the queue fails, similar to product sync
+  }
 
   res.json({
     status: "success",
