@@ -50,7 +50,33 @@ class LocalCatVTONAdapter(IVirtualTryOnService):
         
         self.mask_processor = VaeImageProcessor(vae_scale_factor=8, do_normalize=False, do_binarize=True, do_convert_grayscale=True)
 
+        self._download_models_if_needed()
+
+        print("[CatVTON] Loading Pipeline into VRAM globally...")
+        self.pipeline = CatVTONPipeline(
+            base_ckpt="runwayml/stable-diffusion-inpainting",
+            attn_ckpt=self.repo_path,
+            attn_ckpt_version="mix",
+            weight_dtype=init_weight_dtype(self.dtype),
+            use_tf32=True,
+            device=self.device,
+            skip_safety_check=True
+        )
+
+        print("[CatVTON] Loading AutoMasker into VRAM globally...")
+        self.automasker = AutoMasker(
+            densepose_ckpt=os.path.join(self.repo_path, "DensePose"),
+            schp_ckpt=os.path.join(self.repo_path, "SCHP"),
+            device=self.device, 
+        )
+
     def _load_image(self, url: str) -> Image.Image:
+        # Tự động map relative path sang MedusaJS Backend
+        if url.startswith('/'):
+            host_ip = "127.0.0.1"
+            medusa_url = os.getenv("MEDUSA_BACKEND_URL", f"http://{host_ip}:9000")
+            url = f"{medusa_url}{url}"
+
         if url.startswith('http'):
             response = requests.get(url)
             response.raise_for_status()
@@ -84,32 +110,7 @@ class LocalCatVTONAdapter(IVirtualTryOnService):
         print(f"[CatVTON] Bắt đầu xử lý. Human: {human_image_url}, Garment: {garment_image_url}")
         print(f"[CatVTON] Params: type={cloth_type}, steps={num_inference_steps}, scale={guidance_scale}, seed={seed}, repaint={repaint}")
         
-        self._download_models_if_needed()
-        
-        # 1. Dọn dẹp VRAM trước khi xử lý (Dynamic Loading)
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-            
-        pipeline = None
-        automasker = None
-        
         try:
-            # 2. Khởi tạo Pipeline
-            print("[CatVTON] Loading Pipeline into VRAM...")
-            pipeline = CatVTONPipeline(
-                base_ckpt="booksforcharlie/stable-diffusion-inpainting",
-                attn_ckpt=self.repo_path,
-                attn_ckpt_version="mix",
-                weight_dtype=init_weight_dtype(self.dtype),
-                use_tf32=True,
-                device=self.device,
-                skip_safety_check=True
-            )
-            
-            # Tối ưu VRAM (Bắt buộc cho GPU < 12GB)
-            # if torch.cuda.is_available():
-            #     pipeline.enable_model_cpu_offload() # CatVTONPipeline doesn't support this directly.
-
             # 3. Tiền xử lý ảnh
             person_image = self._load_image(human_image_url)
             cloth_image = self._load_image(garment_image_url)
@@ -129,12 +130,7 @@ class LocalCatVTONAdapter(IVirtualTryOnService):
             
             if mask is None:
                 print(f"[CatVTON] No mask provided. Generating AutoMask for type: {cloth_type}...")
-                automasker = AutoMasker(
-                    densepose_ckpt=os.path.join(self.repo_path, "DensePose"),
-                    schp_ckpt=os.path.join(self.repo_path, "SCHP"),
-                    device=self.device, 
-                )
-                mask = automasker(person_image, cloth_type)['mask']
+                mask = self.automasker(person_image, cloth_type)['mask']
             
             mask = self.mask_processor.blur(mask, blur_factor=9)
             
@@ -145,7 +141,7 @@ class LocalCatVTONAdapter(IVirtualTryOnService):
 
             # 5. Inference
             print("[CatVTON] Running Inference...")
-            result_image = pipeline(
+            result_image = self.pipeline(
                 image=person_image,
                 condition_image=cloth_image,
                 mask=mask,
@@ -172,15 +168,3 @@ class LocalCatVTONAdapter(IVirtualTryOnService):
         except Exception as e:
             print(f"[CatVTON] Lỗi trong quá trình xử lý: {e}")
             raise e
-        finally:
-            # 8. Dọn rác VRAM (Dynamic Unloading)
-            if pipeline is not None:
-                del pipeline
-            if automasker is not None:
-                del automasker
-                
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-                import gc
-                gc.collect()
-                print("[CatVTON] Cleared VRAM.")

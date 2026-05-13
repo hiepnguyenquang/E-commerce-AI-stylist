@@ -1,34 +1,60 @@
 import os
 import threading
 from contextlib import asynccontextmanager
+import time
+
+print("[Startup] Loading FastAPI...")
 from fastapi import FastAPI, Header, HTTPException, Security, status
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+
+print("[Startup] Loading dotenv...")
 from dotenv import load_dotenv
 
 # Nạp biến môi trường từ .env TRƯỚC KHI import bất kỳ module cục bộ nào
 load_dotenv()
 
+print("[Startup] Loading LanceDB...")
 import lancedb
+
+print("[Startup] Loading Pika...")
 import pika
 
+print("[Startup] Loading Stylist routes (and LLM/Search)...")
 from src.api.routes import stylist
 
 INTERNAL_API_SECRET = os.getenv("INTERNAL_API_SECRET", "your_super_secret_internal_key_here")
 LANCEDB_URI = os.getenv("LANCEDB_URI", "./data/lancedb")
-RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672")
+RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@127.0.0.1:5672")
 
+print("[Startup] Connecting to LanceDB...")
 # Khởi tạo LanceDB connection cục bộ
 db = lancedb.connect(LANCEDB_URI)
 
-import time
 import json
+print("[Startup] Loading LocalCatVTONAdapter (this imports PyTorch and Diffusers, may take a while on WSL2)...")
 from src.ai.vton import LocalCatVTONAdapter
 
+print("[Startup] Loading LLM and Embedding services...")
 from src.ai.llm_client import get_intent_analyzer
 from src.ai.embedding import get_embedding_service
 from src.database.schema import products_schema, closet_schema
 import requests
+
+print("[Startup] All global imports completed.")
+
+def get_host_ip() -> str:
+    import platform
+    import subprocess
+    try:
+        if "microsoft" in platform.uname().release.lower():
+            output = subprocess.check_output(["ip", "route", "show", "default"], text=True)
+            parts = output.split()
+            if "via" in parts:
+                return parts[parts.index("via") + 1]
+    except Exception:
+        pass
+    return "127.0.0.1"
 
 def start_closet_consumer():
     try:
@@ -43,73 +69,86 @@ def start_closet_consumer():
             print(f"\n[Closet Consumer] Received closet metadata sync event:\n{body.decode()}\n")
             try:
                 payload = json.loads(body.decode())
+                event_type = payload.get("event_type", "")
                 data = payload.get("data", {})
                 
                 item_id = data.get("id")
                 user_id = data.get("user_id")
-                image_url = data.get("image_url", "")
-                base_category = data.get("category", "unknown")
-                description = data.get("description", "")
                 
                 if not item_id or not user_id:
                     raise ValueError("Missing item_id or user_id in payload")
 
-                print(f"[Closet Consumer] Downloading and analyzing closet item {item_id}...")
-                
-                # Download image bytes (assuming image_url is accessible from AI service)
-                # In development, Medusa is at localhost:9000
-                full_image_url = f"http://localhost:9000{image_url}" if image_url.startswith("/") else image_url
-                img_response = requests.get(full_image_url)
-                img_response.raise_for_status()
-                image_bytes = img_response.content
-                
-                # Analyze image with Vision LLM
-                extracted_meta = intent_analyzer.analyze_closet_image(image_bytes)
-                
-                category = extracted_meta.get("category", base_category)
-                color = extracted_meta.get("color", "unknown")
-                style = extracted_meta.get("style", [])
-                pattern = extracted_meta.get("pattern", "unknown")
-                material = extracted_meta.get("material", "unknown")
-                
-                # Embed metadata
-                text_to_embed = (
-                    f"Danh mục: {category}. "
-                    f"Màu sắc: {color}. "
-                    f"Phong cách: {', '.join(style)}. "
-                    f"Họa tiết: {pattern}. "
-                    f"Chất liệu: {material}."
-                )
-                if description:
-                    text_to_embed += f" Mô tả: {description}."
-                    
-                print(f"[Closet Consumer] Embedding text: {text_to_embed}")
-                vector = embedder.embed_text(text_to_embed)
-                
-                # Save to LanceDB
-                table_name = "closet_vector"
-                if table_name not in db.table_names():
-                    print(f"[Closet Consumer] Creating LanceDB table '{table_name}'...")
-                    table = db.create_table(table_name, schema=closet_schema)
+                if event_type == "closet_item_deleted":
+                    print(f"[Closet Consumer] Deleting closet item {item_id} from LanceDB...")
+                    table_name = "closet_vector"
+                    if table_name in db.table_names():
+                        table = db.open_table(table_name)
+                        table.delete(f"id = '{item_id}'")
+                        print(f"[Closet Consumer] Deleted closet item {item_id} successfully.")
+                    else:
+                        print(f"[Closet Consumer] Table '{table_name}' does not exist. Skipped deletion.")
                 else:
-                    table = db.open_table(table_name)
+                    image_url = data.get("image_url", "")
+                    base_category = data.get("category", "unknown")
+                    description = data.get("description", "")
                     
-                record = [{
-                    "id": item_id,
-                    "user_id": user_id,
-                    "vector": vector,
-                    "category": category,
-                    "color": color,
-                    "pattern": pattern,
-                    "style": style,
-                    "material": material,
-                    "image_url": image_url
-                }]
-                
-                table.delete(f"id = '{item_id}'")
-                table.add(record)
-                
-                print(f"[Closet Consumer] Closet item {item_id} synced to LanceDB successfully.")
+                    print(f"[Closet Consumer] Downloading and analyzing closet item {item_id}...")
+                    
+                    # Download image bytes (assuming image_url is accessible from AI service)
+                    host_ip = get_host_ip()
+                    medusa_url = os.getenv("MEDUSA_BACKEND_URL", f"http://{host_ip}:9000")
+                    full_image_url = f"{medusa_url}{image_url}" if image_url.startswith("/") else image_url
+                    img_response = requests.get(full_image_url)
+                    img_response.raise_for_status()
+                    image_bytes = img_response.content
+                    
+                    # Analyze image with Vision LLM
+                    extracted_meta = intent_analyzer.analyze_closet_image(image_bytes)
+                    
+                    category = extracted_meta.get("category", base_category)
+                    color = extracted_meta.get("color", "unknown")
+                    style = extracted_meta.get("style", [])
+                    pattern = extracted_meta.get("pattern", "unknown")
+                    material = extracted_meta.get("material", "unknown")
+                    
+                    # Embed metadata
+                    text_to_embed = (
+                        f"Danh mục: {category}. "
+                        f"Màu sắc: {color}. "
+                        f"Phong cách: {', '.join(style)}. "
+                        f"Họa tiết: {pattern}. "
+                        f"Chất liệu: {material}."
+                    )
+                    if description:
+                        text_to_embed += f" Mô tả: {description}."
+                        
+                    print(f"[Closet Consumer] Embedding text: {text_to_embed}")
+                    vector = embedder.embed_text(text_to_embed)
+                    
+                    # Save to LanceDB
+                    table_name = "closet_vector"
+                    if table_name not in db.table_names():
+                        print(f"[Closet Consumer] Creating LanceDB table '{table_name}'...")
+                        table = db.create_table(table_name, schema=closet_schema)
+                    else:
+                        table = db.open_table(table_name)
+                        
+                    record = [{
+                        "id": item_id,
+                        "user_id": user_id,
+                        "vector": vector,
+                        "category": category,
+                        "color": color,
+                        "pattern": pattern,
+                        "style": style,
+                        "material": material,
+                        "image_url": image_url
+                    }]
+                    
+                    table.delete(f"id = '{item_id}'")
+                    table.add(record)
+                    
+                    print(f"[Closet Consumer] Closet item {item_id} synced to LanceDB successfully.")
                 
             except Exception as ex:
                 print(f"[Closet Consumer] Lỗi xử lý đồng bộ tủ đồ: {ex}")
@@ -219,6 +258,8 @@ def start_rabbitmq_consumer():
         print(f"[RabbitMQ Consumer] Failed to connect: {e}")
 
 def start_vton_consumer():
+    print("[VTON Consumer] Importing PyTorch and CatVTON (this may take a while on WSL2...)")
+    from src.ai.vton import LocalCatVTONAdapter
     vton_service = LocalCatVTONAdapter()
     
     try:
@@ -279,7 +320,7 @@ def start_vton_consumer():
                 # MVP: ta trả về một static URL trỏ vào thư mục outputs hoặc truyền base64,
                 # nhưng để dễ tiếp cận từ Frontend, ta giả sử Medusa có một CDN hoặc ta chỉ cần path
                 # Tạm thời trả về tên file và Medusa có thể host tĩnh hoặc Frontend load trực tiếp
-                public_url = f"http://localhost:8000/static/vton/result_{job_id}.png"
+                public_url = f"http://127.0.0.1:8000/static/vton/result_{job_id}.png"
                 
                 result_payload = {
                     "job_id": job_id,
@@ -319,19 +360,41 @@ def start_vton_consumer():
     except Exception as e:
         print(f"[VTON Consumer] Failed to connect: {e}")
 
+def initialize_and_start_consumers():
+    import time
+    # Chờ 2 giây để Uvicorn hoàn tất khởi tạo event loop chính, tránh conflict với C-extensions
+    time.sleep(2)
+    
+    print("[Startup] Sequential Background Initialization started...")
+    
+    # 1. Load CLIP Model
+    print("[Startup] 1/2 Loading Embedding Service (CLIP)...")
+    try:
+        from src.ai.embedding import get_embedding_service
+        get_embedding_service()
+    except Exception as e:
+        print(f"Error loading Embedding Service: {e}")
+
+    # 2. Import VTON Model (thỏa mãn Global Import Lock trước khi thread con chạy)
+    print("[Startup] 2/2 Pre-importing VTON dependencies (PyTorch)...")
+    try:
+        from src.ai.vton import LocalCatVTONAdapter
+    except Exception as e:
+        print(f"Error importing VTON Adapter: {e}")
+        
+    print("[Startup] Starting all consumer threads...")
+    # Sau khi nạp xong vào RAM, các thread con lúc này khởi chạy sẽ cực kỳ an toàn
+    threading.Thread(target=start_rabbitmq_consumer, daemon=True).start()
+    threading.Thread(target=start_vton_consumer, daemon=True).start()
+    threading.Thread(target=start_closet_consumer, daemon=True).start()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("AI Service is starting up...")
     
-    # Khởi tạo một luồng chạy ngầm (daemon thread) cho Consumer để không chặn event loop của FastAPI
-    consumer_thread = threading.Thread(target=start_rabbitmq_consumer, daemon=True)
-    consumer_thread.start()
-    
-    vton_consumer_thread = threading.Thread(target=start_vton_consumer, daemon=True)
-    vton_consumer_thread.start()
-    
-    closet_consumer_thread = threading.Thread(target=start_closet_consumer, daemon=True)
-    closet_consumer_thread.start()
+    # Chỉ khởi tạo 1 luồng duy nhất để phân bổ các model nặng tuần tự, chống Deadlock!
+    init_thread = threading.Thread(target=initialize_and_start_consumers, daemon=True)
+    init_thread.start()
     
     yield
     

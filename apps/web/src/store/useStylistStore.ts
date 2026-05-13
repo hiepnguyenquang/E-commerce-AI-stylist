@@ -1,10 +1,18 @@
 import { create } from 'zustand';
 
+export interface OutfitItem {
+  id: string;
+  title: string;
+  thumbnail: string | null;
+  variants: any[];
+  type: 'store' | 'closet';
+}
+
 export interface OutfitOption {
   option_id: string;
   title: string;
   reasoning: string;
-  items: string[]; // List of product IDs
+  items: OutfitItem[]; // Đã hydrate từ Backend
 }
 
 export interface Message {
@@ -21,6 +29,7 @@ interface StylistState {
   addMessage: (message: Message) => void;
   setTyping: (isTyping: boolean) => void;
   clearChat: () => void;
+  replaceItemInMessage: (messageId: string, optionId: string, oldItemId: string, newItem: OutfitItem) => void;
 }
 
 export const useStylistStore = create<StylistState>((set) => ({
@@ -49,5 +58,25 @@ export const useStylistStore = create<StylistState>((set) => ({
       }
     ], 
     isTyping: false 
+  }),
+  
+  replaceItemInMessage: (messageId, optionId, oldItemId, newItem) => set((state) => {
+    return {
+      messages: state.messages.map(msg => {
+        if (msg.id !== messageId || !msg.options) return msg;
+        
+        return {
+          ...msg,
+          options: msg.options.map(opt => {
+            if (opt.option_id !== optionId) return opt;
+            
+            return {
+              ...opt,
+              items: opt.items.map(item => item.id === oldItemId ? newItem : item)
+            };
+          })
+        };
+      })
+    };
   }),
 }));

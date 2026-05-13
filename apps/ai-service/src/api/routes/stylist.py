@@ -24,20 +24,44 @@ router = APIRouter()
 # For MVP, we initialize it globally here.
 vector_search = VectorSearch()
 
-# Initialize the Intent Analyzer (Adapter)
-llm_client = get_intent_analyzer()
+# Initialize the Intent Analyzer (Adapter) inside the route
+# to avoid blocking server startup if API keys are missing and Google GenAI SDK attempts ADC network calls.
 
 class StylistSearchRequest(BaseModel):
     query_text: str
     limit_options: int = 2
     user_id: str = "mock-customer-id"
+
+class StylistReplaceRequest(BaseModel):
+    current_option_id: str = None
+    target_product_id: str
+    context_items: list[str] = []
+    action: str = "similar_search"
+    user_id: str = "mock-customer-id"
     
 @router.post("/search")
 async def search_outfit(req: StylistSearchRequest, token: str = Security(verify_internal_token)):
     try:
+        llm_client = get_intent_analyzer()
+        
         # Bước 1: Trích xuất ý định từ câu nói (Extract via LLM)
         filters = llm_client.parse_query(req.query_text)
         
+        # --- BẮT ĐẦU: INTENT GUARDRAIL ---
+        if not filters.get("is_fashion_related", True):
+            refusal = filters.get("refusal_message", "Xin lỗi, tôi là AI Stylist, tôi chỉ có thể hỗ trợ các vấn đề liên quan đến thời trang và phối đồ.")
+            return {
+                "options": [
+                    {
+                        "option_id": "guardrail_rejected",
+                        "title": "Chủ đề Không Hỗ Trợ",
+                        "reasoning": refusal,
+                        "items": []
+                    }
+                ]
+            }
+        # --- KẾT THÚC: INTENT GUARDRAIL ---
+
         search_keywords = filters.get("search_keywords", req.query_text)
         
         # Bước 2: Tìm kiếm ngữ nghĩa trên LanceDB (Retrieve)
@@ -64,3 +88,29 @@ async def search_outfit(req: StylistSearchRequest, token: str = Security(verify_
     except Exception as e:
         print(f"[StylistAPI] Error: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@router.post("/replace")
+async def replace_item(req: StylistReplaceRequest, token: str = Security(verify_internal_token)):
+    try:
+        is_closet = not req.target_product_id.startswith("prod_")
+        
+        # Loại trừ chính item đó và các item hiện tại trong set
+        exclude_ids = req.context_items
+        if req.target_product_id not in exclude_ids:
+            exclude_ids.append(req.target_product_id)
+            
+        similar_items = vector_search.find_similar_items(
+            item_id=req.target_product_id,
+            is_closet=is_closet,
+            limit=5,
+            exclude_ids=exclude_ids
+        )
+        
+        return {
+            "status": "success",
+            "data": similar_items
+        }
+    except Exception as e:
+        print(f"[StylistAPI] Error replace: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+

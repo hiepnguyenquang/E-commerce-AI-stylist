@@ -6,6 +6,7 @@ import fs from "fs"
 import path from "path"
 import { pathToFileURL } from "url"
 import { AmqplibAdapter } from "../../../../services/queue/AmqplibAdapter"
+import sharp from "sharp"
 
 export async function POST(
   req: MedusaRequest,
@@ -37,7 +38,13 @@ export async function POST(
     
     // Save the processed image
     const arrayBuffer = await resultBlob.arrayBuffer()
-    const processedBuffer = Buffer.from(arrayBuffer)
+    const rawBuffer = Buffer.from(arrayBuffer)
+    
+    // Sử dụng sharp để chuẩn hóa hình ảnh thành định dạng RGBA/RGB tiêu chuẩn
+    // Việc này sẽ triệt tiêu cảnh báo "Palette images with Transparency..." bên Python
+    const processedBuffer = await sharp(rawBuffer)
+      .toFormat("png")
+      .toBuffer()
     
     const processedFileName = `processed_${file.filename}.png`
     const processedFilePath = path.join(file.destination, processedFileName)

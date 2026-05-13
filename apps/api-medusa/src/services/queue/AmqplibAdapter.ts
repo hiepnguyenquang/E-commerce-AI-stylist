@@ -7,7 +7,7 @@ export class AmqplibAdapter implements IMessageQueueService {
   private url: string;
 
   constructor() {
-    this.url = process.env.RABBITMQ_URL || "amqp://guest:guest@localhost:5672";
+    this.url = process.env.RABBITMQ_URL || "amqp://guest:guest@127.0.0.1:5672";
   }
 
   async connect(): Promise<void> {
@@ -61,6 +61,7 @@ export class AmqplibAdapter implements IMessageQueueService {
       
       this.channel.consume(queueName, async (msg: amqplib.ConsumeMessage | null) => {
         if (msg) {
+          console.log(`[AmqplibAdapter] RECEIVED RAW MESSAGE on '${queueName}'`);
           try {
             const payload = JSON.parse(msg.content.toString());
             await callback(payload);

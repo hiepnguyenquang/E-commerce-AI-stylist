@@ -1,6 +1,5 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework"
 import { visionSSEManager } from "../../../../services/sse/VisionSSEManager"
-import { AI_PERSONALIZATION_MODULE } from "../../../../modules/ai-personalization"
 
 export async function GET(
   req: MedusaRequest,
@@ -12,11 +11,6 @@ export async function GET(
     res.status(400).json({ error: "Missing user_id query parameter" })
     return
   }
-
-  const aiPersonalizationModuleService = req.scope.resolve(AI_PERSONALIZATION_MODULE)
-
-  // Ensure the consumer is running (will only start once)
-  visionSSEManager.startConsuming(aiPersonalizationModuleService).catch(console.error)
 
   // Configure SSE headers
   res.setHeader("Content-Type", "text/event-stream")

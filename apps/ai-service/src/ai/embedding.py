@@ -43,6 +43,16 @@ class LocalCLIPEmbeddingAdapter(IEmbeddingService):
         embedding = self.model.encode(image, convert_to_tensor=True)
         return embedding.cpu().tolist()
 
+import threading
+
+_embedding_service_instance = None
+_embedding_service_lock = threading.Lock()
+
 # Factory
 def get_embedding_service() -> IEmbeddingService:
-    return LocalCLIPEmbeddingAdapter()
+    global _embedding_service_instance
+    if _embedding_service_instance is None:
+        with _embedding_service_lock:
+            if _embedding_service_instance is None:
+                _embedding_service_instance = LocalCLIPEmbeddingAdapter()
+    return _embedding_service_instance

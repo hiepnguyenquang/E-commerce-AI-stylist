@@ -27,25 +27,43 @@ Tài liệu này (Project Checklist 2) lưu trữ các khoản "nợ kỹ thuậ
 - [x] **Xử lý Không tương thích Kiến trúc GPU mới (RTX 5060 / SM120):**
   - **Vấn đề:** PyTorch phiên bản ổn định (2.6) thiếu file thư viện biên dịch sẵn (wheel) cho các kiến trúc cực kỳ mới như `sm_120`, gây lỗi `CUDA error: no kernel image is available`.
   - **Giải pháp:** Cập nhật file `.env` kích hoạt cơ chế biên dịch thời gian thực (PTX JIT) thông qua biến `TORCH_CUDA_ARCH_LIST="12.0"` và `CUDA_MODULE_LOADING=LAZY`. Sau đó, thiết lập lại kho thư viện `pyproject.toml` để ép `uv` cài đặt phiên bản PyTorch Nightly (`>=2.7.0.dev`) tích hợp CUDA 12.8 trên môi trường WSL2/Ubuntu.
-- [ ] **Chống ảo giác API Stylist (Intent Guardrail):**
+- [x] **Chống ảo giác API Stylist (Intent Guardrail):**
   - **Vấn đề:** Nếu khách hàng chat những nội dung không liên quan đến mua sắm/thời trang (VD: "Thời tiết hôm nay"), hệ thống vẫn chạy luồng RAG và gọi DB LanceDB một cách vô ích.
-  - **Giải pháp:** Cập nhật Prompt B hoặc thêm một bước gọi LLM nhỏ ở đầu luồng `POST /api/v1/stylist/search` để phân loại ý định. Nếu không phải là "Fashion Search", trả về JSON yêu cầu Client hiển thị câu trả lời từ chối khéo léo ("Tôi là Stylist thời trang, tôi chỉ giúp bạn phối đồ thôi nhé...").
-- [ ] **Hydrate chi tiết sản phẩm từ Backend (AI Stylist):**
-  - **Vấn đề:** API `/stylist/search` trả về mảng ID sản phẩm `["prod_1", ...]`. Frontend hiện tại phải tự gọi thêm Store API của Medusa để lấy ảnh và giá.
-  - **Giải pháp:** Medusa Proxy (tại `api-medusa`) sau khi nhận mảng ID từ `ai-service`, hãy tự động query database PostgreSQL để lấy ra Object chi tiết (kèm ảnh, giá) và "đắp" (hydrate) vào JSON trước khi trả về cho Client. Giảm tải số lượng request HTTP từ Browser.
-- [ ] **Hệ thống xử lý lỗi UI tập trung (Global Error Boundary):**
+  - **Giải pháp:** Đã cập nhật Prompt B trong `parse_query` tại AI Service để phân loại ý định (trả về `is_fashion_related`). Tại API `search_outfit`, nếu ý định không liên quan, hệ thống ngay lập tức trả về JSON Option chứa thông báo từ chối khéo léo thay vì tiến hành tìm kiếm Vector.
+- [x] **Hydrate chi tiết sản phẩm từ Backend (AI Stylist):**
+  - **Vấn đề:** API `/stylist/search` của Python trả về mảng ID. Frontend hiện tại dùng `useEffect` trong thẻ đồ (OutfitCard) để gọi Store API một cách rời rạc, làm chậm thời gian tải. Hơn nữa, Store API chỉ lấy được đồ của cửa hàng, trong khi AI Stylist có thể gợi ý cả trang phục cá nhân (từ tủ đồ), dẫn đến việc đồ cá nhân bị vỡ ảnh vì không tìm thấy.
+  - **Kế hoạch triển khai (Checklist):**
+    - [x] **Backend (`apps/api-medusa/src/api/v1/stylist/search/route.ts`):** 
+      - Chặn payload JSON từ Python trước khi trả về Client.
+      - Duyệt mảng các ID. Sử dụng Product Module để fetch các ID có dạng `prod_...` và AI Personalization Service để fetch các UUID (đồ tủ đồ).
+      - Xây dựng mảng Object đã Hydrate gồm: `{ id, title, thumbnail, type }`. Ghi đè vào mảng `items` cũ.
+    - [x] **Frontend (`apps/web`):**
+      - **`useStylistStore.ts`**: Đổi kiểu dữ liệu `items` từ `string[]` thành `OutfitItem[]` object.
+      - **`OutfitCard.tsx`**: Xóa bỏ hoàn toàn Hook fetch API (Store). Render HTML trực tiếp từ mảng Object.
+      - Cập nhật logic: Nếu `type` là đồ cá nhân (`closet`), hiển thị ảnh (nối thêm host backend nếu cần) và **ẩn nút "Thêm vào giỏ"**. Nếu là đồ của shop (`store`), giữ nguyên các nút thao tác.
+- [x] **Hệ thống xử lý lỗi UI tập trung (Global Error Boundary):**
   - **Vấn đề:** Các lỗi API hoặc đứt kết nối SSE hiện tại xử lý khá rải rác, có thể gây trắng trang (White screen of death) trên React.
   - **Giải pháp:** Tạo các file `error.tsx` chuẩn của Next.js App Router và tích hợp Toast Notification tập trung.
+- [x] **Tách rời bộ điều phối VTON (Orchestrator) khỏi kết nối SSE:**
+  - **Vấn đề:** Tiến trình ghép đồ VTON đa bước (Mix & Match) bị đứt gãy sau bước 1. Nguyên nhân là do logic lắng nghe kết quả từ RabbitMQ (`ai_vision_results`) đang bị ràng buộc cứng vào API SSE `/v1/stream/vision-results` (MedusaJS). Nếu Frontend không kết nối SSE, hệ thống Backend sẽ không tự động nhận tin nhắn từ Queue để đẩy tiếp bước 2.
+  - **Giải pháp:** Di chuyển hàm gọi Consumer (ví dụ: `visionSSEManager.startConsuming`) từ Route API sang một file Loader (ví dụ: `src/loaders/vision-consumer.ts`) để Backend tự động lắng nghe độc lập ngay khi khởi động.
+- [x] **Tối ưu hóa thời gian tải Model VRAM (Persistent Loading):**
+  - **Vấn đề:** Ban đầu hệ thống nạp và xóa model CatVTON trên mỗi request (Dynamic Loading) để tiết kiệm VRAM cho NLP. Do đã chuyển sang NLP Cloud, VRAM hiện đang dư thừa. Việc nạp đi nạp lại model từ ổ đĩa tốn rất nhiều thời gian.
+  - **Giải pháp:** Chuyển đổi logic khởi tạo `CatVTONPipeline` và `AutoMasker` vào `__init__` của Adapter. Model sẽ được nạp thẳng vào VRAM một lần duy nhất lúc khởi động server, giúp giảm độ trễ (latency) khi ghép đồ xuống mức tối thiểu.
+
 ---
 
 ## 2. Tính năng Mở rộng (Feature Backlog)
 *Các tính năng giúp nâng cao trải nghiệm người dùng và nghiệp vụ thương mại.*
 
-- [ ] **"Đổi món đồ" trong Set đồ (Replace Item - API-03):**
+- [x] **Lưu trữ Kết quả Thử đồ VTON (VTON Result Gallery):**
+  - **Mô tả:** Sau khi AI sinh ra ảnh VTON thành công (từ đồ trong tủ đồ hoặc cửa hàng), hiện tại ảnh chỉ hiển thị tạm thời trên giao diện Mix & Match. Cần có tính năng tự động (hoặc có nút bấm) lưu ảnh kết quả này vào một mục "Thư viện Outfit" hoặc thêm thẳng vào "Tủ đồ cá nhân" với danh mục riêng.
+  - **Giải pháp:**  Tái sử dụng bảng `user_closet_items` với category là "outfit". Tạo API `POST /api/v1/user/garments/vton-result` để nhận URL ảnh nội bộ, bỏ qua bước tách nền. Giao diện Wardrobe thêm Tab/Filter để xem riêng Outfits và nút "Lưu Kết Quả" trên Mannequin.
+- [x] **"Đổi món đồ" trong Set đồ (Replace Item - API-03):**
   - **Mô tả:** Trong giao diện AI Stylist (Outfit Card), thêm nút "Tìm áo khác". Khi bấm, hệ thống gọi API-03 để tìm kiếm trong LanceDB các sản phẩm tương đồng về Style/Occasion để thay thế vào Set đồ hiện tại mà không làm hỏng tổng cục.
 - [x] **Phối đồ chủ động (Mix & Match - UC-VTON-02):**
   - **Mô tả:** Xây dựng giao diện Kéo-Thả (Drag & Drop) hoặc Canvas trên trang Tủ đồ cá nhân (`/wardrobe`). Cho phép khách hàng tự do chọn nhiều món đồ đã được tách nền (Ví dụ: 1 Áo + 1 Quần) từ tủ đồ, ghép chúng lại với nhau thành một Set hoàn chỉnh và nhấn "Thử đồ ảo" (gọi VTON với multi-step jobs).
-- [ ] **Lịch sử Chat Stylist (Chat History):**
+- [x] **Lịch sử Chat Stylist (Chat History):**
   - **Mô tả:** Lưu lại lịch sử chat của người dùng (từ bảng `stylist_sessions`) và hiển thị lại ở một Sidebar bên Frontend. Cho phép khách hàng xem lại các gợi ý phối đồ từ ngày hôm qua.
 - [ ] **Đồng bộ hóa Tồn kho & Vector DB (Cronjob/Fallback):**
   - **Mô tả:** Luồng Product Sync hiện tại (RabbitMQ) có thể bị fail nếu LLM API lỗi hoặc LanceDB bị khóa. Cần viết một Cronjob chạy ngầm (hoặc Medusa Scheduled Job) quét bảng `products` mỗi đêm để tìm những sản phẩm chưa có Vector, sau đó đẩy lại vào queue để đảm bảo tính nhất quán dữ liệu 100%.

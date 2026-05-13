@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export type VTONStatus = 'idle' | 'uploading' | 'pending' | 'rendering' | 'processing_next_step' | 'completed' | 'error';
+export type VTONContext = 'modal' | 'wardrobe' | null;
 
 interface SelectedOutfit {
   top: string | null;
@@ -11,6 +12,7 @@ interface SelectedOutfit {
 
 interface VTONState {
   status: VTONStatus;
+  activeContext: VTONContext;
   currentJobId: string | null;
   humanImageUrl: string | null;
   garmentImageUrl: string | null; // For single item try-on
@@ -26,7 +28,7 @@ interface VTONState {
   setGarmentImage: (url: string) => void;
   setOutfitItem: (type: keyof SelectedOutfit, url: string | null) => void;
   startVTON: (humanImageUrl: string, garmentImageUrl?: string) => void;
-  startMultiStepVTON: (humanImageUrl: string) => void;
+  startMultiStepVTON: (humanImageUrl: string, context?: VTONContext) => void;
   setProgress: (message: string) => void;
   setVTONResult: (url: string) => void;
   setVTONError: (message: string) => void;
@@ -38,6 +40,7 @@ export const useVTONStore = create<VTONState>()(
   persist(
     (set) => ({
       status: 'idle',
+      activeContext: null,
       currentJobId: null,
       humanImageUrl: null,
       garmentImageUrl: null,
@@ -57,6 +60,7 @@ export const useVTONStore = create<VTONState>()(
       startVTON: (humanImageUrl, garmentImageUrl) => 
         set({ 
           status: 'pending', 
+          activeContext: 'modal',
           humanImageUrl,
           garmentImageUrl: garmentImageUrl || null,
           resultImageUrl: null, 
@@ -64,9 +68,10 @@ export const useVTONStore = create<VTONState>()(
           progressMessage: null
         }),
 
-      startMultiStepVTON: (humanImageUrl) => 
+      startMultiStepVTON: (humanImageUrl, context = 'wardrobe') => 
         set({ 
           status: 'pending', 
+          activeContext: context,
           humanImageUrl,
           garmentImageUrl: null,
           resultImageUrl: null, 
@@ -95,6 +100,7 @@ export const useVTONStore = create<VTONState>()(
       reset: () =>
         set((state) => ({
           status: 'idle',
+          activeContext: null,
           currentJobId: null,
           // Keep humanImageUrl and selectedOutfit when resetting the VTON modal state
           humanImageUrl: state.humanImageUrl,

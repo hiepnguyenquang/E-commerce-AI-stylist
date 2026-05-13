@@ -1,4 +1,5 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { Modules } from "@medusajs/framework/utils"
 
 export async function POST(
   req: MedusaRequest,
@@ -6,6 +7,7 @@ export async function POST(
 ) {
   const { query_text, limit_options } = req.body as any
   const aiPersonalizationModuleService = req.scope.resolve("aiPersonalization")
+  const productModuleService = req.scope.resolve(Modules.PRODUCT)
 
   if (!query_text) {
     return res.status(400).json({ status: "error", message: "Missing query_text" })
@@ -47,22 +49,110 @@ export async function POST(
 
     const itemsToCreate: any[] = []
     
-    // Duyệt mảng options trả về từ AI để bóc tách các product_id
+    // --- BẮT ĐẦU LOGIC HYDRATE ---
+    // Tập hợp tất cả ID cần lấy
+    const productIds: string[] = []
+    const closetItemIds: string[] = []
+
     if (aiData.options && Array.isArray(aiData.options)) {
         aiData.options.forEach((opt: any) => {
             if (opt.items && Array.isArray(opt.items)) {
-                opt.items.forEach((productId: string) => {
+                opt.items.forEach((id: string) => {
+                    // ID sản phẩm Medusa thường bắt đầu bằng prod_
+                    if (id.startsWith("prod_")) {
+                        productIds.push(id)
+                    } else {
+                        closetItemIds.push(id)
+                    }
+                    // Lưu session item db
                     itemsToCreate.push({
                         session: session.id,
-                        product_id: productId,
+                        product_id: id.startsWith("prod_") ? id : null, // Tuỳ schema DB
+                        replaces_item_id: !id.startsWith("prod_") ? id : null // Dùng tạm field này lưu closet id
                     })
                 })
             }
         })
     }
 
+    // Fetch dữ liệu thật
+    let productsMap: Record<string, any> = {}
+    let closetMap: Record<string, any> = {}
+
+    if (productIds.length > 0) {
+        const products = await productModuleService.listProducts(
+            { id: productIds },
+            { relations: ["variants"] }
+        )
+        products.forEach(p => {
+            productsMap[p.id] = {
+                id: p.id,
+                title: p.title,
+                thumbnail: p.thumbnail,
+                variants: p.variants || [],
+                type: 'store'
+            }
+        })
+    }
+
+    if (closetItemIds.length > 0) {
+        const closetItems = await aiPersonalizationModuleService.listUserClosetItems({
+            id: closetItemIds
+        })
+        closetItems.forEach(c => {
+            closetMap[c.id] = {
+                id: c.id,
+                title: `Trang phục cá nhân (${c.category || 'unknown'})`,
+                thumbnail: c.image_url,
+                variants: [],
+                type: 'closet'
+            }
+        })
+    }
+
+    // Lắp ghép (Hydrate) lại vào mảng options
+    if (aiData.options && Array.isArray(aiData.options)) {
+        aiData.options.forEach((opt: any) => {
+            if (opt.items && Array.isArray(opt.items)) {
+                const hydratedItems: any[] = []
+                opt.items.forEach((id: string) => {
+                    const itemData = productsMap[id] || closetMap[id]
+                    if (itemData) {
+                        hydratedItems.push(itemData)
+                    } else {
+                        // Fallback an toàn: Nếu ID bị ảo giác, thay thế bằng một sản phẩm ngẫu nhiên trong productsMap (nếu có)
+                        const availableStoreProducts = Object.values(productsMap);
+                        if (availableStoreProducts.length > 0) {
+                            const fallbackItem = availableStoreProducts[Math.floor(Math.random() * availableStoreProducts.length)];
+                            hydratedItems.push(fallbackItem);
+                        } else {
+                            hydratedItems.push({
+                                id: id,
+                                title: "Sản phẩm không khả dụng",
+                                thumbnail: null,
+                                variants: [],
+                                type: id.startsWith("prod_") ? 'store' : 'closet'
+                            })
+                        }
+                    }
+                })
+                opt.items = hydratedItems // Ghi đè mảng String bằng mảng Object
+            }
+        })
+    }
+    // --- KẾT THÚC LOGIC HYDRATE ---
+
+    // Ghi db: ta bỏ qua lỗi khoá ngoại nếu schema không support closet_id trong session items, MVP ta skip lỗi này
     if (itemsToCreate.length > 0) {
-        await aiPersonalizationModuleService.createStylistSessionItems(itemsToCreate)
+        try {
+           // Lọc chỉ lưu những thằng có product_id thực sự vào db nếu DB bắt buộc
+           const validStoreItems = itemsToCreate.filter(i => i.product_id)
+           if (validStoreItems.length > 0) {
+               await aiPersonalizationModuleService.createStylistSessionItems(validStoreItems)
+           }
+        } catch (e) {
+           console.log("Skip saving some session items due to schema constraint")
+        }
     }
 
     // Cập nhật lại session với reasoning (tổng hợp tiêu đề)

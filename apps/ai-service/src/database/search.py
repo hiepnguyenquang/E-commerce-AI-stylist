@@ -10,9 +10,10 @@ class VectorSearch:
         self.db = lancedb.connect(LANCEDB_URI)
         self.table_name = "products_vector"
         
-        # Chỉ load model khi gọi query (Lazy load) hoặc load sẵn 1 instance.
-        # Khởi tạo model nhúng để convert text sang vector 512d
-        self.embedder = get_embedding_service()
+    @property
+    def embedder(self):
+        # Khởi tạo model nhúng để convert text sang vector 512d (Lazy load)
+        return get_embedding_service()
         
     def hybrid_search(self, search_keywords: str, filters: dict, limit: int = 20) -> list:
         """
@@ -114,4 +115,63 @@ class VectorSearch:
             
         # Nối 2 list lại. AI sẽ chọn từ pool chung này
         return store_results + closet_results
+
+    def find_similar_items(self, item_id: str, is_closet: bool = False, limit: int = 5, exclude_ids: list = None) -> list:
+        """Tìm kiếm các sản phẩm tương đồng dựa trên vector của một sản phẩm."""
+        table_name = "closet_vector" if is_closet else "products_vector"
+        if table_name not in self.db.table_names():
+            return []
+            
+        table = self.db.open_table(table_name)
+        id_field = "id" if is_closet else "product_id"
+        
+        # 1. Tìm vector của item gốc
+        target_results = table.search().where(f"{id_field} = '{item_id}'", prefilter=True).to_list()
+        
+        if not target_results or "vector" not in target_results[0]:
+            print(f"[VectorSearch] Target item {item_id} not found or has no vector.")
+            return []
+            
+        target_vector = target_results[0]["vector"]
+        target_category = target_results[0].get("category")
+        
+        # 2. Tìm các item tương đồng
+        search = table.search(target_vector).metric("cosine")
+        
+        # Build where clause
+        where_conditions = [f"{id_field} != '{item_id}'"]
+        if target_category:
+            cat = target_category.replace("'", "''")
+            where_conditions.append(f"category = '{cat}'")
+            
+        if not is_closet:
+            where_conditions.append("in_stock = true")
+            
+        if exclude_ids:
+            ids_str = ", ".join([f"'{eid}'" for eid in exclude_ids])
+            where_conditions.append(f"{id_field} NOT IN ({ids_str})")
+            
+        where_clause = " AND ".join(where_conditions)
+        search = search.where(where_clause, prefilter=True)
+        
+        try:
+            results = search.limit(limit).to_list()
+            normalized = []
+            for r in results:
+                if is_closet:
+                    normalized.append({
+                        "product_id": r["id"],
+                        "name": f"Đồ cá nhân ({r.get('category', 'unknown')})",
+                        "category": r.get("category"),
+                        "style": r.get("style", []),
+                        "price": 0.0,
+                        "source": "closet"
+                    })
+                else:
+                    r["source"] = "store"
+                    normalized.append(r)
+            return normalized
+        except Exception as e:
+            print(f"[VectorSearch] find_similar_items query failed: {e}")
+            return []
 

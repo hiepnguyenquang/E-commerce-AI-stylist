@@ -19,6 +19,47 @@ export function useVTONService(userId: string = "default_user") {
     }
   };
 
+  const setupSSE = () => {
+    closeSSE(); // Close any existing connection
+    const sseUrl = `http://localhost:9000/v1/stream/vision-results?user_id=${userId}`;
+    eventSourceRef.current = new EventSource(sseUrl);
+
+    eventSourceRef.current.onmessage = (event) => {
+      // Ignored un-named events
+    };
+
+    eventSourceRef.current.addEventListener('vision_update', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.status === 'completed') {
+          store.setVTONResult(data.result_image_url);
+          closeSSE();
+        } else if (data.status === 'failed') {
+          store.setVTONError(data.error_message || "Đã xảy ra lỗi AI.");
+          closeSSE();
+        } else if (data.status === 'processing_next_step') {
+          store.setStatus('processing_next_step');
+          store.setProgress(data.message || "Đang chuyển sang bước tiếp theo...");
+        } else {
+          // Optional: Handle other statuses if needed
+          if (data.status) {
+            store.setProgress(`Trạng thái: ${data.status}`);
+          }
+        }
+      } catch (e) {
+        store.setVTONError("Lỗi đọc dữ liệu từ server.");
+        closeSSE();
+      }
+    });
+
+    eventSourceRef.current.onerror = (error) => {
+      console.error("SSE Error:", error);
+      // We do not immediately close on error to allow auto-reconnect,
+      // but if store state is pending for too long we might timeout.
+    };
+  };
+
   const startTryOn = async (humanImageUrl: string, garmentImageUrl: string) => {
     if (!humanImageUrl || !garmentImageUrl) {
       store.setVTONError("Thiếu ảnh người mẫu hoặc trang phục.");
@@ -29,42 +70,8 @@ export function useVTONService(userId: string = "default_user") {
       // 1. Update State
       store.startVTON(humanImageUrl, garmentImageUrl);
 
-      // 2. Initialize SSE BEFORE calling the API to ensure we don't miss any fast events
-      closeSSE(); // Close any existing connection
-      const sseUrl = `http://localhost:9000/v1/stream/vision-results?user_id=${userId}`;
-      eventSourceRef.current = new EventSource(sseUrl);
-
-      eventSourceRef.current.onmessage = (event) => {
-        // Ignored un-named events
-      };
-
-      eventSourceRef.current.addEventListener('vision_complete', (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          store.setVTONResult(data.result_image_url);
-          closeSSE();
-        } catch (e) {
-          store.setVTONError("Lỗi đọc dữ liệu từ server.");
-          closeSSE();
-        }
-      });
-
-      eventSourceRef.current.addEventListener('vision_error', (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          store.setVTONError(data.error_message || "Đã xảy ra lỗi AI.");
-          closeSSE();
-        } catch (e) {
-          store.setVTONError("Lỗi kết nối đến server.");
-          closeSSE();
-        }
-      });
-
-      eventSourceRef.current.onerror = (error) => {
-        console.error("SSE Error:", error);
-        // We do not immediately close on error to allow auto-reconnect,
-        // but if store state is pending for too long we might timeout.
-      };
+      // 2. Initialize SSE BEFORE calling the API
+      setupSSE();
 
       // 3. Trigger the job
       const res = await fetch("http://localhost:9000/v1/vton/jobs", {
@@ -94,8 +101,50 @@ export function useVTONService(userId: string = "default_user") {
     }
   };
 
+  const startMultiStepTryOn = async (humanImageUrl: string, garments: {url: string, type: string}[]) => {
+    if (!humanImageUrl || garments.length === 0) {
+      store.setVTONError("Thiếu ảnh người mẫu hoặc trang phục.");
+      return;
+    }
+
+    try {
+      // 1. Update State
+      store.startMultiStepVTON(humanImageUrl);
+
+      // 2. Initialize SSE BEFORE calling the API
+      setupSSE();
+
+      // 3. Trigger the job
+      const res = await fetch("http://localhost:9000/v1/vton/jobs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          human_image_url: humanImageUrl,
+          garments: garments,
+          user_id: userId,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Failed to start VTON job");
+      }
+
+      const data = await res.json();
+      store.setJobId(data.data.job_id);
+
+    } catch (error: any) {
+      console.error(error);
+      store.setVTONError(error.message);
+      closeSSE();
+    }
+  };
+
   return {
     startTryOn,
+    startMultiStepTryOn,
     closeSSE,
   };
 }

@@ -8,7 +8,7 @@ export default function VTONModal() {
   const store = useVTONStore();
   const { startTryOn, closeSSE } = useVTONService("default_user");
 
-  if (store.status === 'idle') return null;
+  if (store.status === 'idle' || store.activeContext !== 'modal') return null;
 
   const handleClose = () => {
     store.reset();

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react"
 import { ImageUploader } from "../../components/ui/ImageUploader"
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd"
 import { useVTONStore } from "../../store/useVTONStore"
+import { useVTONService } from "../../hooks/useVTONService"
 import { Camera, X, Play, Trash2 } from "lucide-react"
 
 interface Garment {
@@ -21,8 +22,12 @@ export default function WardrobePage() {
   const [category, setCategory] = useState("upper_body")
   const [description, setDescription] = useState("")
   const [isUploading, setIsUploading] = useState(false)
+  const [activeTab, setActiveTab] = useState<'garments' | 'outfits'>('garments')
+  const [isSavingResult, setIsSavingResult] = useState(false)
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
 
-  const { selectedOutfit, setOutfitItem, startMultiStepVTON, humanImageUrl, status, progressMessage, resultImageUrl } = useVTONStore()
+  const { selectedOutfit, setOutfitItem, humanImageUrl, status, progressMessage, resultImageUrl, activeContext } = useVTONStore()
+  const vtonService = useVTONService("mock-customer-id")
 
   const fetchGarments = async () => {
     setIsLoading(true)
@@ -42,6 +47,33 @@ export default function WardrobePage() {
   useEffect(() => {
     fetchGarments()
   }, [])
+
+  const handleSaveResult = async () => {
+    if (!resultImageUrl) return;
+    setIsSavingResult(true);
+    try {
+      const res = await fetch("http://localhost:9000/v1/user/garments/vton-result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image_url: resultImageUrl,
+          selectedOutfit
+        })
+      });
+      if (res.ok) {
+        alert("Đã lưu kết quả vào bộ sưu tập Outfit!");
+        await fetchGarments();
+      } else {
+        const data = await res.json();
+        alert(data.message || "Lỗi khi lưu kết quả.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Lỗi khi lưu kết quả.");
+    } finally {
+      setIsSavingResult(false);
+    }
+  }
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa trang phục này không?")) return;
@@ -141,29 +173,11 @@ export default function WardrobePage() {
           return;
       }
 
-      startMultiStepVTON(humanImageUrl);
-
-      try {
-          const res = await fetch("http://localhost:9000/v1/vton/jobs", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                  human_image_url: humanImageUrl,
-                  garments: garmentsToProcess,
-                  user_id: "mock-customer-id" // To match the mock user
-              })
-          });
-
-          if (!res.ok) {
-              throw new Error("Failed to start VTON job");
-          }
-      } catch (err) {
-          console.error(err);
-          alert("Có lỗi xảy ra khi bắt đầu ghép đồ.");
-      }
+      // Use the service to start the multi-step try-on and setup SSE automatically
+      await vtonService.startMultiStepTryOn(humanImageUrl, garmentsToProcess);
   }
+
+  const displayedItems = garments.filter(g => activeTab === 'outfits' ? g.category === 'outfit' : g.category !== 'outfit');
 
   return (
     <div className="max-w-7xl mx-auto p-6 mt-10">
@@ -182,11 +196,23 @@ export default function WardrobePage() {
           
           {/* Inventory Pane */}
           <div className="col-span-2 bg-gray-50 p-6 rounded-xl border">
-            <h2 className="text-xl font-semibold mb-4">My Wardrobe</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-black">My Wardrobe</h2>
+                <div className="flex bg-white rounded-lg p-1 shadow-sm">
+                    <button 
+                        onClick={() => setActiveTab('garments')} 
+                        className={`px-3 py-1 text-sm rounded-md transition-colors ${activeTab === 'garments' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                    >Garments</button>
+                    <button 
+                        onClick={() => setActiveTab('outfits')} 
+                        className={`px-3 py-1 text-sm rounded-md transition-colors ${activeTab === 'outfits' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                    >Saved Outfits</button>
+                </div>
+            </div>
             {isLoading ? (
               <p>Loading your closet...</p>
-            ) : garments.length === 0 ? (
-              <p className="text-gray-500">Your wardrobe is empty.</p>
+            ) : displayedItems.length === 0 ? (
+              <p className="text-gray-500">{activeTab === 'outfits' ? "You haven't saved any outfits yet." : "Your wardrobe is empty."}</p>
             ) : (
               <Droppable droppableId="inventory" direction="horizontal" isDropDisabled={true}>
                 {(provided) => (
@@ -195,14 +221,20 @@ export default function WardrobePage() {
                     {...provided.droppableProps}
                     className="flex flex-wrap gap-4"
                   >
-                    {garments.map((g, index) => (
-                      <Draggable key={g.id} draggableId={g.id} index={index}>
+                    {displayedItems.map((g, index) => (
+                      <Draggable key={g.id} draggableId={g.id} index={index} isDragDisabled={activeTab === 'outfits'}>
                         {(provided) => (
                           <div 
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="w-32 h-40 border rounded-lg overflow-hidden relative group bg-white cursor-grab active:cursor-grabbing shadow-sm"
+                            className={`w-32 h-40 border rounded-lg overflow-hidden relative group bg-white shadow-sm ${activeTab === 'outfits' ? 'cursor-pointer hover:shadow-md' : 'cursor-grab active:cursor-grabbing'}`}
+                            onClick={(e) => {
+                                if (activeTab === 'outfits') {
+                                    e.stopPropagation();
+                                    setPreviewImage(g.image_url.startsWith('http') ? g.image_url : `http://localhost:9000${g.image_url}`)
+                                }
+                            }}
                           >
                             <button 
                               onClick={(e) => {
@@ -215,8 +247,8 @@ export default function WardrobePage() {
                               <Trash2 size={14} />
                             </button>
                             <div className="h-full flex items-center justify-center p-2">
-                              <img 
-                                src={`http://localhost:9000${g.image_url}`} 
+                                <img 
+                                src={g.image_url.startsWith('http') ? g.image_url : `http://localhost:9000${g.image_url}`} 
                                 alt="Garment" 
                                 className="max-h-full object-contain pointer-events-none"
                               />
@@ -237,17 +269,21 @@ export default function WardrobePage() {
 
           {/* Mannequin / Workspace Pane */}
           <div className="bg-white p-6 rounded-xl border shadow-sm flex flex-col items-center">
-            <h2 className="text-xl font-semibold mb-4">Mannequin</h2>
             
             <div className="w-full max-w-sm flex flex-col gap-4 relative">
                 
                 {/* Result Overlay */}
-                {(status === 'pending' || status === 'processing_next_step' || status === 'completed') && (
+                {activeContext === 'wardrobe' && (status === 'pending' || status === 'processing_next_step' || status === 'completed') && (
                     <div className="absolute inset-0 bg-white/95 z-10 flex flex-col items-center p-4 border rounded-xl">
                         {status === 'completed' && resultImageUrl ? (
                             <>
                                 <img src={resultImageUrl} alt="VTON Result" className="w-full h-auto rounded-lg shadow-md mb-4" />
-                                <button onClick={() => useVTONStore.getState().reset()} className="px-4 py-2 border rounded-md">Mix lại</button>
+                                <div className="flex gap-2 w-full">
+                                    <button onClick={() => useVTONStore.getState().reset()} className="flex-1 px-4 py-2 border rounded-md hover:bg-gray-50 transition-colors">Mix lại</button>
+                                    <button onClick={handleSaveResult} disabled={isSavingResult} className="flex-1 px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50 transition-colors">
+                                        {isSavingResult ? "Đang lưu..." : "Lưu Kết Quả"}
+                                    </button>
+                                </div>
                             </>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-full">
@@ -268,7 +304,7 @@ export default function WardrobePage() {
                         >
                             {selectedOutfit.top ? (
                                 <>
-                                    <img src={`http://localhost:9000${selectedOutfit.top}`} className="h-full object-contain p-2" />
+                                    <img src={selectedOutfit.top.startsWith('http') ? selectedOutfit.top : `http://localhost:9000${selectedOutfit.top}`} className="h-full object-contain p-2" />
                                     <button onClick={() => setOutfitItem('top', null)} className="absolute top-2 right-2 p-1 bg-white rounded-full shadow hover:bg-red-50 text-red-500"><X size={16} /></button>
                                 </>
                             ) : (
@@ -289,7 +325,7 @@ export default function WardrobePage() {
                         >
                             {selectedOutfit.bottom ? (
                                 <>
-                                    <img src={`http://localhost:9000${selectedOutfit.bottom}`} className="h-full object-contain p-2" />
+                                    <img src={selectedOutfit.bottom.startsWith('http') ? selectedOutfit.bottom : `http://localhost:9000${selectedOutfit.bottom}`} className="h-full object-contain p-2" />
                                     <button onClick={() => setOutfitItem('bottom', null)} className="absolute top-2 right-2 p-1 bg-white rounded-full shadow hover:bg-red-50 text-red-500"><X size={16} /></button>
                                 </>
                             ) : (
@@ -393,6 +429,21 @@ export default function WardrobePage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox Modal */}
+      {previewImage && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4" onClick={() => setPreviewImage(null)}>
+          <div className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+             <button 
+                onClick={() => setPreviewImage(null)}
+                className="absolute -top-12 right-0 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+              >
+                <X size={24} />
+             </button>
+             <img src={previewImage} alt="Enlarged Preview" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" />
           </div>
         </div>
       )}
