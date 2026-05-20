@@ -11,7 +11,7 @@ class IIntentAnalyzer(ABC):
         pass
 
     @abstractmethod
-    def generate_outfit_options(self, user_query: str, limit_options: int, available_products: list) -> dict:
+    def generate_outfit_options(self, user_query: str, limit_options: int, available_products: list, gender: str = "unisex") -> dict:
         pass
 
     @abstractmethod
@@ -39,7 +39,7 @@ Nếu KHÔNG liên quan (ví dụ: hỏi thời tiết, toán học, lập trìn
 }}
 
 Nếu CÓ liên quan, hãy trích xuất yêu cầu thành các bộ lọc JSON để hệ thống Database thực hiện tìm kiếm.
-Nếu thông tin nào không được nhắc đến, hãy để null. Bắt buộc CHỈ trả về JSON hợp lệ.
+Nếu thông Bản nào không được nhắc đến, hãy để null. Bắt buộc CHỈ trả về JSON hợp lệ.
 
 Cấu trúc JSON yêu cầu (khi CÓ liên quan):
 {{
@@ -72,7 +72,7 @@ Cấu trúc JSON yêu cầu (khi CÓ liên quan):
                 "search_keywords": user_query
             }
 
-    def generate_outfit_options(self, user_query: str, limit_options: int, available_products: list) -> dict:
+    def generate_outfit_options(self, user_query: str, limit_options: int, available_products: list, gender: str = "unisex") -> dict:
         simplified_products = [
             {
                 "id": p["product_id"],
@@ -84,19 +84,31 @@ Cấu trúc JSON yêu cầu (khi CÓ liên quan):
             } for p in available_products
         ]
         
-        prompt = f"""Bạn là một Stylist thời trang cao cấp. Dưới đây là yêu cầu phối đồ của khách hàng:
+        # Determine the target audience term
+        audience = "của khách hàng"
+        if gender == "male":
+            audience = "dành cho nam giới (quý ông, phong cách nam tính)"
+        elif gender == "female":
+            audience = "dành cho nữ giới (quý cô, phong cách nữ tính)"
+            
+        prompt = f"""Bạn là một Stylist thời trang cao cấp. Dưới đây là yêu cầu phối đồ {audience}:
 Yêu cầu: "{user_query}"
-Số lượng Set đồ (Options) cần tạo: {limit_options}
+Giới tính khách hàng: {gender}
+Số lượng Set đồ (Options) TỐI ĐA cần tạo: {limit_options}
 
 Dưới đây là danh sách các sản phẩm ĐANG CÓ SẴN trong kho và TỦ ĐỒ CÁ NHÂN của khách hàng (bạn CHỈ được phép chọn từ danh sách này):
 {json.dumps(simplified_products, ensure_ascii=False)}
 
 Nhiệm vụ: 
-Hãy chọn ra các món đồ phù hợp nhất từ danh sách trên để kết hợp thành {limit_options} Options hoàn chỉnh.
+Hãy chọn ra các món đồ phù hợp nhất từ danh sách trên để kết hợp thành TỐI ĐA {limit_options} Options hoàn chỉnh. LƯU Ý QUAN TRỌNG: Nếu danh sách sản phẩm cung cấp không đủ đa dạng để tạo ra {limit_options} Set đồ hoàn toàn khác biệt, hãy chỉ trả về số lượng Option khả thi (ví dụ 1 Option duy nhất). TUYỆT ĐỐI KHÔNG được tạo ra các Option trùng lặp hoặc giống hệt nhau chỉ để đáp ứng đủ số lượng yêu cầu.
 Ràng buộc QUAN TRỌNG: 
-- Mỗi Option PHẢI là một BỘ ĐỒ HOÀN CHỈNH. Tức là nó phải bao gồm ít nhất một Áo (tops) và một Quần/Váy (bottoms), HOẶC một chiếc Váy liền (dresses). Không bao giờ được gợi ý chỉ một chiếc áo hoặc chỉ một chiếc quần. Bạn có thể thêm giày (shoes) hoặc phụ kiện (accessories) nếu có trong danh sách.
+- CÁC MÓN ĐỒ PHẢI PHÙ HỢP VỚI GIỚI TÍNH: Lời khuyên và xưng hô phải phù hợp với giới tính là '{gender}'. Tuyệt đối KHÔNG xưng hô "quý cô" nếu giới tính là 'male' (nam).
+- GIỚI HẠN SỐ LƯỢNG MÓN ĐỒ: Hệ thống hiện tại chỉ hỗ trợ thử đồ ảo (VTON) tối đa 2 lớp. Vì vậy, mỗi Option CHỈ ĐƯỢC PHÉP chứa:
+  + TRƯỜNG HỢP 1: Chính xác 2 món (1 Áo + 1 Quần/Chân váy).
+  + TRƯỜNG HỢP 2: Chính xác 1 món (Váy liền/Đầm).
+  + TUYỆT ĐỐI KHÔNG gợi ý thêm Áo khoác ngoài (outerwear), Giày (shoes) hay Phụ kiện (accessories) trong thời điểm hiện tại. Không bao giờ được gợi ý chỉ một chiếc áo hoặc chỉ một chiếc quần.
 - Hãy ƯU TIÊN sử dụng các sản phẩm từ tủ đồ cá nhân (có "source": "closet") để phối cùng các món đồ mới từ cửa hàng (có "source": "store"), nhằm tạo sự kết nối với trang phục sẵn có của khách.
-- CÁC OPTION PHẢI KHÁC BIỆT NHAU: Tuyệt đối không được tạo ra 2 Option giống hệt nhau. Mỗi Option nên mang một phong cách (style) khác nhau hoặc sử dụng các món đồ chính (áo/quần/váy) khác nhau.
+- CÁC OPTION PHẢI KHÁC BIỆT NHAU: Mỗi Option nên mang một phong cách (style) khác nhau hoặc sử dụng các món đồ chính (áo/quần/váy) khác nhau.
 
 1. Mỗi Option phải có 1 tiêu đề (title) hấp dẫn.
 2. Có lời giải thích (reasoning) thuyết phục khách hàng tại sao Set đồ này hợp với họ và giải thích sự kết hợp giữa các món đồ.

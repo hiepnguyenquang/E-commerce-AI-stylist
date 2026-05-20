@@ -31,6 +31,7 @@ class StylistSearchRequest(BaseModel):
     query_text: str
     limit_options: int = 2
     user_id: str = "mock-customer-id"
+    gender: str = "unisex"
 
 class StylistReplaceRequest(BaseModel):
     current_option_id: str = None
@@ -51,14 +52,9 @@ async def search_outfit(req: StylistSearchRequest, token: str = Security(verify_
         if not filters.get("is_fashion_related", True):
             refusal = filters.get("refusal_message", "Xin lỗi, tôi là AI Stylist, tôi chỉ có thể hỗ trợ các vấn đề liên quan đến thời trang và phối đồ.")
             return {
-                "options": [
-                    {
-                        "option_id": "guardrail_rejected",
-                        "title": "Chủ đề Không Hỗ Trợ",
-                        "reasoning": refusal,
-                        "items": []
-                    }
-                ]
+                "refusal": True,
+                "message": refusal,
+                "options": []
             }
         # --- KẾT THÚC: INTENT GUARDRAIL ---
 
@@ -80,7 +76,8 @@ async def search_outfit(req: StylistSearchRequest, token: str = Security(verify_
         outfit_response = llm_client.generate_outfit_options(
             user_query=req.query_text,
             limit_options=req.limit_options,
-            available_products=pool
+            available_products=pool,
+            gender=req.gender
         )
         
         return outfit_response

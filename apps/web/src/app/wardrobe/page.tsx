@@ -5,7 +5,7 @@ import { ImageUploader } from "../../components/ui/ImageUploader"
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd"
 import { useVTONStore } from "../../store/useVTONStore"
 import { useVTONService } from "../../hooks/useVTONService"
-import { Camera, X, Play, Trash2 } from "lucide-react"
+import { Camera, X, Play, Trash2, Plus, Sparkles } from "lucide-react"
 
 interface Garment {
   id: string;
@@ -87,7 +87,6 @@ export default function WardrobePage() {
         const deletedItem = garments.find(g => g.id === id);
         setGarments(prev => prev.filter(g => g.id !== id));
         
-        // Remove from current mannequin if it's there
         if (deletedItem) {
           if (selectedOutfit.top === deletedItem.image_url) setOutfitItem('top', null);
           if (selectedOutfit.bottom === deletedItem.image_url) setOutfitItem('bottom', null);
@@ -123,7 +122,7 @@ export default function WardrobePage() {
 
       if (!res.ok) throw new Error("Upload failed")
       
-      await fetchGarments() // Refresh list
+      await fetchGarments()
       setIsModalOpen(false)
       setFile(null)
       setDescription("")
@@ -144,7 +143,6 @@ export default function WardrobePage() {
     if (sourceId === "inventory" && (destId === "top" || destId === "bottom" || destId === "dress")) {
       const item = garments.find(g => g.id === result.draggableId);
       if (item) {
-          // Simple validation
           if (destId === 'top' && item.category !== 'upper_body') return;
           if (destId === 'bottom' && item.category !== 'lower_body') return;
           if (destId === 'dress' && item.category !== 'dress') return;
@@ -169,284 +167,329 @@ export default function WardrobePage() {
       }
 
       if (garmentsToProcess.length === 0) {
-          alert("Vui lòng kéo thả ít nhất 1 món đồ vào người mẫu.");
+          alert("Vui lòng kéo thả ít nhất 1 món đồ vào không gian thử đồ.");
           return;
       }
 
-      // Use the service to start the multi-step try-on and setup SSE automatically
       await vtonService.startMultiStepTryOn(humanImageUrl, garmentsToProcess);
   }
 
   const displayedItems = garments.filter(g => activeTab === 'outfits' ? g.category === 'outfit' : g.category !== 'outfit');
 
   return (
-    <div className="max-w-7xl mx-auto p-6 mt-10">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Mix & Match Workspace</h1>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
-        >
-          Add Garment
-        </button>
-      </div>
-
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
-          {/* Inventory Pane */}
-          <div className="col-span-2 bg-gray-50 p-6 rounded-xl border">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-black">My Wardrobe</h2>
-                <div className="flex bg-white rounded-lg p-1 shadow-sm">
+    <div className="relative h-[calc(100vh-80px)] bg-zinc-50/50 overflow-hidden font-sans flex flex-col items-center">
+      <div className="w-full px-4 sm:px-6 relative z-10 flex flex-col h-full pt-6 pb-6">
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0">
+            
+            {/* Inventory Pane */}
+            <div className="lg:col-span-8 bg-white p-6 sm:p-8 rounded-[2rem] border border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col h-full overflow-hidden">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-zinc-100 pb-4 shrink-0">
+                <h2 className="text-2xl font-bold text-zinc-900 tracking-tight flex items-center gap-3">
+                  Tủ đồ cá nhân <Sparkles className="text-zinc-400 w-5 h-5 hidden sm:block" />
+                </h2>
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                  <div className="flex bg-zinc-50 rounded-full p-1 border border-zinc-100 shadow-inner flex-1 sm:flex-none">
                     <button 
                         onClick={() => setActiveTab('garments')} 
-                        className={`px-3 py-1 text-sm rounded-md transition-colors ${activeTab === 'garments' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-                    >Garments</button>
+                        className={`flex-1 sm:flex-none px-4 sm:px-5 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-full transition-all duration-300 ${activeTab === 'garments' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200' : 'text-zinc-500 hover:text-zinc-800'}`}
+                    >Trang phục</button>
                     <button 
                         onClick={() => setActiveTab('outfits')} 
-                        className={`px-3 py-1 text-sm rounded-md transition-colors ${activeTab === 'outfits' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-                    >Saved Outfits</button>
-                </div>
-            </div>
-            {isLoading ? (
-              <p>Loading your closet...</p>
-            ) : displayedItems.length === 0 ? (
-              <p className="text-gray-500">{activeTab === 'outfits' ? "You haven't saved any outfits yet." : "Your wardrobe is empty."}</p>
-            ) : (
-              <Droppable droppableId="inventory" direction="horizontal" isDropDisabled={true}>
-                {(provided) => (
-                  <div 
-                    ref={provided.innerRef} 
-                    {...provided.droppableProps}
-                    className="flex flex-wrap gap-4"
+                        className={`flex-1 sm:flex-none px-4 sm:px-5 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-full transition-all duration-300 ${activeTab === 'outfits' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200' : 'text-zinc-500 hover:text-zinc-800'}`}
+                    >Đã lưu</button>
+                  </div>
+                  <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 bg-zinc-900 text-white text-[10px] sm:text-xs font-bold tracking-wide uppercase rounded-full hover:bg-zinc-800 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
                   >
-                    {displayedItems.map((g, index) => (
-                      <Draggable key={g.id} draggableId={g.id} index={index} isDragDisabled={activeTab === 'outfits'}>
-                        {(provided) => (
-                          <div 
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={`w-32 h-40 border rounded-lg overflow-hidden relative group bg-white shadow-sm ${activeTab === 'outfits' ? 'cursor-pointer hover:shadow-md' : 'cursor-grab active:cursor-grabbing'}`}
-                            onClick={(e) => {
-                                if (activeTab === 'outfits') {
+                    <Plus size={14} /> Thêm đồ
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto pr-2 pb-4">
+                {isLoading ? (
+                  <div className="flex justify-center items-center h-full opacity-50">
+                    <div className="w-10 h-10 border-4 border-zinc-200 border-t-zinc-900 rounded-full animate-spin"></div>
+                  </div>
+                ) : displayedItems.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center">
+                    <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mb-4 border border-zinc-100">
+                      <Sparkles className="w-8 h-8 text-zinc-300" />
+                    </div>
+                    <p className="text-zinc-500 font-medium text-[15px]">{activeTab === 'outfits' ? "Bạn chưa lưu outfit nào." : "Tủ đồ của bạn đang trống."}</p>
+                    {activeTab === 'garments' && (
+                      <button onClick={() => setIsModalOpen(true)} className="mt-4 text-sm font-bold text-zinc-900 hover:text-zinc-600 hover:scale-105 transition-all">
+                        Tải lên ngay &rarr;
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <Droppable droppableId="inventory" direction="horizontal" isDropDisabled={true}>
+                    {(provided) => (
+                      <div 
+                        ref={provided.innerRef} 
+                        {...provided.droppableProps}
+                        className="flex flex-wrap gap-5"
+                      >
+                        {displayedItems.map((g, index) => (
+                          <Draggable key={g.id} draggableId={g.id} index={index} isDragDisabled={activeTab === 'outfits'}>
+                            {(provided, snapshot) => (
+                              <div 
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`w-32 h-44 bg-white rounded-2xl overflow-hidden relative group transition-all duration-300 border border-zinc-100 shadow-sm hover:shadow-[0_8px_25px_rgba(0,0,0,0.06)] hover:border-zinc-300 ${snapshot.isDragging ? 'shadow-2xl scale-110 rotate-3 z-50 ring-4 ring-zinc-900/10' : 'hover:-translate-y-1'} ${activeTab === 'outfits' ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'}`}
+                                onClick={(e) => {
+                                    if (activeTab === 'outfits') {
+                                        e.stopPropagation();
+                                        setPreviewImage(g.image_url.startsWith('http') ? g.image_url : `http://localhost:9000${g.image_url}`)
+                                    }
+                                }}
+                              >
+                                <button 
+                                  onClick={(e) => {
                                     e.stopPropagation();
-                                    setPreviewImage(g.image_url.startsWith('http') ? g.image_url : `http://localhost:9000${g.image_url}`)
-                                }
-                            }}
+                                    handleDelete(g.id);
+                                  }}
+                                  className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur hover:bg-red-50 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-all z-10 shadow-sm scale-75 group-hover:scale-100"
+                                  title="Xóa"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                                <div className="h-full w-full p-3 flex items-center justify-center bg-zinc-50 group-hover:bg-white transition-colors">
+                                  <img 
+                                    src={g.image_url.startsWith('http') ? g.image_url : `http://localhost:9000${g.image_url}`} 
+                                    alt="Garment" 
+                                    className="max-h-full max-w-full object-contain pointer-events-none drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
+                                  />
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 py-1.5 text-center bg-white/90 backdrop-blur-sm border-t border-zinc-100">
+                                  <span className="text-[10px] font-bold text-zinc-800 tracking-widest uppercase">
+                                    {g.category.replace("_", " ")}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                )}
+              </div>
+            </div>
+
+            {/* Workspace Pane */}
+            <div className="lg:col-span-4 bg-white p-6 sm:p-8 rounded-[2rem] border border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col items-center justify-start h-full overflow-y-auto relative">
+              
+              <h2 className="text-xl font-bold text-zinc-900 tracking-tight mb-6 w-full text-center relative z-10">Không gian Thử đồ</h2>
+              
+              <div className="w-full flex flex-col gap-5 flex-1 relative z-10">
+                  
+                  {/* Result Overlay */}
+                  {activeContext === 'wardrobe' && (status === 'pending' || status === 'processing_next_step' || status === 'completed') && (
+                      <div className="absolute inset-[-10px] bg-white/90 backdrop-blur-md z-30 flex flex-col items-center p-6 rounded-[2rem] border border-zinc-100 shadow-xl transition-all duration-300 opacity-100 animate-in fade-in zoom-in-95">
+                          {status === 'completed' && resultImageUrl ? (
+                              <div className="flex flex-col h-full w-full">
+                                  <div className="flex-1 flex items-center justify-center overflow-hidden bg-zinc-50 rounded-2xl mb-6 p-2 border border-zinc-100 shadow-inner relative group">
+                                    <img src={resultImageUrl} alt="VTON Result" className="max-h-full w-auto object-contain rounded-xl drop-shadow-md hover:scale-[1.02] transition-transform duration-300" />
+                                  </div>
+                                  <div className="flex gap-3 w-full mt-auto">
+                                      <button onClick={() => useVTONStore.getState().reset()} className="flex-1 px-4 py-3.5 text-[12px] font-bold text-zinc-700 bg-white border border-zinc-200 shadow-sm rounded-full hover:bg-zinc-50 hover:-translate-y-0.5 transition-all">MIX LẠI</button>
+                                      <button onClick={handleSaveResult} disabled={isSavingResult} className="flex-1 px-4 py-3.5 text-[12px] font-bold bg-zinc-900 text-white rounded-full shadow-md hover:bg-zinc-800 hover:-translate-y-0.5 disabled:opacity-50 transition-all uppercase tracking-wider">
+                                          {isSavingResult ? "ĐANG LƯU..." : "LƯU KẾT QUẢ"}
+                                      </button>
+                                  </div>
+                              </div>
+                          ) : (
+                              <div className="flex flex-col items-center justify-center h-full w-full">
+                                  <div className="relative w-16 h-16 mb-6">
+                                    <div className="absolute inset-0 border-4 border-zinc-100 rounded-full"></div>
+                                    <div className="absolute inset-0 border-4 border-zinc-900 rounded-full border-t-transparent animate-spin"></div>
+                                    <Sparkles className="absolute inset-0 m-auto w-5 h-5 text-zinc-400 animate-pulse" />
+                                  </div>
+                                  <h3 className="text-lg font-bold text-zinc-800 mb-2">Đang xử lý...</h3>
+                                  <p className="text-center text-xs font-medium text-zinc-500 animate-pulse tracking-wide">{progressMessage || "AI đang tổng hợp dữ liệu"}</p>
+                              </div>
+                          )}
+                      </div>
+                  )}
+
+                  {/* Top Slot */}
+                  <Droppable droppableId="top">
+                      {(provided, snapshot) => (
+                          <div 
+                              ref={provided.innerRef} 
+                              {...provided.droppableProps}
+                              className={`w-full h-32 border border-dashed rounded-[1.5rem] flex items-center justify-center relative transition-all duration-300 overflow-hidden ${snapshot.isDraggingOver ? 'bg-zinc-100 border-zinc-400 scale-[1.02]' : 'bg-zinc-50 border-zinc-200 hover:bg-white hover:border-zinc-300'}`}
                           >
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation(); // Ngăn drag
-                                handleDelete(g.id);
-                              }}
-                              className="absolute top-1 right-1 p-1.5 bg-white/90 hover:bg-red-50 text-red-500 rounded-md opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-sm"
-                              title="Xóa trang phục"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                            <div className="h-full flex items-center justify-center p-2">
-                                <img 
-                                src={g.image_url.startsWith('http') ? g.image_url : `http://localhost:9000${g.image_url}`} 
-                                alt="Garment" 
-                                className="max-h-full object-contain pointer-events-none"
-                              />
-                            </div>
-                            <div className="p-1 bg-black text-white text-[10px] font-medium uppercase tracking-wider absolute bottom-0 left-0 right-0 text-center opacity-80">
-                              {g.category.replace("_", " ")}
-                            </div>
+                              {selectedOutfit.top ? (
+                                  <>
+                                      <img src={selectedOutfit.top.startsWith('http') ? selectedOutfit.top : `http://localhost:9000${selectedOutfit.top}`} className="h-full object-contain p-2 drop-shadow-sm scale-105" />
+                                      <button onClick={() => setOutfitItem('top', null)} className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur rounded-full shadow hover:bg-red-50 hover:text-red-500 text-red-400 transition-all"><X size={12} /></button>
+                                  </>
+                              ) : (
+                                  <span className="text-zinc-400 text-[10px] font-bold tracking-widest uppercase flex flex-col items-center gap-1.5">
+                                    <div className="w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center text-zinc-300"><Plus size={14}/></div>
+                                    Kéo Áo
+                                  </span>
+                              )}
+                              {provided.placeholder}
                           </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
+                      )}
+                  </Droppable>
+
+                  {/* Bottom Slot */}
+                  <Droppable droppableId="bottom">
+                      {(provided, snapshot) => (
+                          <div 
+                              ref={provided.innerRef} 
+                              {...provided.droppableProps}
+                              className={`w-full h-36 border border-dashed rounded-[1.5rem] flex items-center justify-center relative transition-all duration-300 overflow-hidden ${snapshot.isDraggingOver ? 'bg-zinc-100 border-zinc-400 scale-[1.02]' : 'bg-zinc-50 border-zinc-200 hover:bg-white hover:border-zinc-300'}`}
+                          >
+                              {selectedOutfit.bottom ? (
+                                  <>
+                                      <img src={selectedOutfit.bottom.startsWith('http') ? selectedOutfit.bottom : `http://localhost:9000${selectedOutfit.bottom}`} className="h-full object-contain p-2 drop-shadow-sm scale-105" />
+                                      <button onClick={() => setOutfitItem('bottom', null)} className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur rounded-full shadow hover:bg-red-50 hover:text-red-500 text-red-400 transition-all"><X size={12} /></button>
+                                  </>
+                              ) : (
+                                  <span className="text-zinc-400 text-[10px] font-bold tracking-widest uppercase flex flex-col items-center gap-1.5">
+                                    <div className="w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center text-zinc-300"><Plus size={14}/></div>
+                                    Kéo Quần
+                                  </span>
+                              )}
+                              {provided.placeholder}
+                          </div>
+                      )}
+                  </Droppable>
+                  
+                  {/* Dress Slot */}
+                   <Droppable droppableId="dress">
+                      {(provided, snapshot) => (
+                          <div 
+                              ref={provided.innerRef} 
+                              {...provided.droppableProps}
+                              className={`w-full h-24 border border-dashed rounded-[1.5rem] flex items-center justify-center relative transition-all duration-300 overflow-hidden ${snapshot.isDraggingOver ? 'bg-zinc-100 border-zinc-400 scale-[1.02]' : 'bg-zinc-50 border-zinc-200 hover:bg-white hover:border-zinc-300'}`}
+                          >
+                               {selectedOutfit.dress ? (
+                                  <>
+                                      <img src={`http://localhost:9000${selectedOutfit.dress}`} className="h-full object-contain p-2 drop-shadow-sm scale-105" />
+                                      <button onClick={() => setOutfitItem('dress', null)} className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur rounded-full shadow hover:bg-red-50 hover:text-red-500 text-red-400 transition-all"><X size={12} /></button>
+                                  </>
+                              ) : (
+                                  <span className="text-zinc-400 text-[10px] font-bold tracking-widest uppercase flex flex-col items-center gap-1.5 text-center px-4">
+                                    Hoặc Đầm (Váy liền)
+                                  </span>
+                              )}
+                              {provided.placeholder}
+                          </div>
+                      )}
+                  </Droppable>
+              </div>
+
+              <div className="w-full mt-6 relative z-10 shrink-0">
+                <button 
+                    onClick={handleStartVTON}
+                    className="w-full py-4 bg-zinc-900 text-white text-[13px] font-bold tracking-widest uppercase rounded-full shadow-md hover:bg-zinc-800 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 group"
+                >
+                    <Play fill="currentColor" size={14} className="group-hover:scale-110 transition-transform" />
+                    Bắt đầu Mặc Thử
+                </button>
+                {!humanImageUrl && (
+                  <div className="mt-3 p-2.5 bg-red-50 border border-red-100 rounded-xl text-center">
+                    <p className="text-red-500 text-[11px] font-medium tracking-wide">Vui lòng thiết lập Hồ sơ AI trước</p>
                   </div>
                 )}
-              </Droppable>
-            )}
-          </div>
-
-          {/* Mannequin / Workspace Pane */}
-          <div className="bg-white p-6 rounded-xl border shadow-sm flex flex-col items-center">
-            
-            <div className="w-full max-w-sm flex flex-col gap-4 relative">
-                
-                {/* Result Overlay */}
-                {activeContext === 'wardrobe' && (status === 'pending' || status === 'processing_next_step' || status === 'completed') && (
-                    <div className="absolute inset-0 bg-white/95 z-10 flex flex-col items-center p-4 border rounded-xl">
-                        {status === 'completed' && resultImageUrl ? (
-                            <>
-                                <img src={resultImageUrl} alt="VTON Result" className="w-full h-auto rounded-lg shadow-md mb-4" />
-                                <div className="flex gap-2 w-full">
-                                    <button onClick={() => useVTONStore.getState().reset()} className="flex-1 px-4 py-2 border rounded-md hover:bg-gray-50 transition-colors">Mix lại</button>
-                                    <button onClick={handleSaveResult} disabled={isSavingResult} className="flex-1 px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50 transition-colors">
-                                        {isSavingResult ? "Đang lưu..." : "Lưu Kết Quả"}
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-full">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mb-4"></div>
-                                <p className="text-center font-medium animate-pulse">{progressMessage || "Đang xử lý..."}</p>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Top Slot */}
-                <Droppable droppableId="top">
-                    {(provided, snapshot) => (
-                        <div 
-                            ref={provided.innerRef} 
-                            {...provided.droppableProps}
-                            className={`w-full h-40 border-2 border-dashed rounded-xl flex items-center justify-center relative transition-colors ${snapshot.isDraggingOver ? 'bg-blue-50 border-blue-400' : 'bg-gray-50 border-gray-300'}`}
-                        >
-                            {selectedOutfit.top ? (
-                                <>
-                                    <img src={selectedOutfit.top.startsWith('http') ? selectedOutfit.top : `http://localhost:9000${selectedOutfit.top}`} className="h-full object-contain p-2" />
-                                    <button onClick={() => setOutfitItem('top', null)} className="absolute top-2 right-2 p-1 bg-white rounded-full shadow hover:bg-red-50 text-red-500"><X size={16} /></button>
-                                </>
-                            ) : (
-                                <span className="text-gray-400 text-sm font-medium">Drop Top Here</span>
-                            )}
-                            {provided.placeholder}
-                        </div>
-                    )}
-                </Droppable>
-
-                {/* Bottom Slot */}
-                <Droppable droppableId="bottom">
-                    {(provided, snapshot) => (
-                        <div 
-                            ref={provided.innerRef} 
-                            {...provided.droppableProps}
-                            className={`w-full h-48 border-2 border-dashed rounded-xl flex items-center justify-center relative transition-colors ${snapshot.isDraggingOver ? 'bg-blue-50 border-blue-400' : 'bg-gray-50 border-gray-300'}`}
-                        >
-                            {selectedOutfit.bottom ? (
-                                <>
-                                    <img src={selectedOutfit.bottom.startsWith('http') ? selectedOutfit.bottom : `http://localhost:9000${selectedOutfit.bottom}`} className="h-full object-contain p-2" />
-                                    <button onClick={() => setOutfitItem('bottom', null)} className="absolute top-2 right-2 p-1 bg-white rounded-full shadow hover:bg-red-50 text-red-500"><X size={16} /></button>
-                                </>
-                            ) : (
-                                <span className="text-gray-400 text-sm font-medium">Drop Bottom Here</span>
-                            )}
-                            {provided.placeholder}
-                        </div>
-                    )}
-                </Droppable>
-                
-                {/* OR Dress Slot Overlay (Simplification: if dress is selected, hide top/bottom) */}
-                 <Droppable droppableId="dress">
-                    {(provided, snapshot) => (
-                        <div 
-                            ref={provided.innerRef} 
-                            {...provided.droppableProps}
-                            className={`w-full h-32 border-2 border-dashed rounded-xl flex items-center justify-center relative transition-colors ${snapshot.isDraggingOver ? 'bg-pink-50 border-pink-400' : 'bg-gray-50 border-gray-300'}`}
-                        >
-                             {selectedOutfit.dress ? (
-                                <>
-                                    <img src={`http://localhost:9000${selectedOutfit.dress}`} className="h-full object-contain p-2" />
-                                    <button onClick={() => setOutfitItem('dress', null)} className="absolute top-2 right-2 p-1 bg-white rounded-full shadow hover:bg-red-50 text-red-500"><X size={16} /></button>
-                                </>
-                            ) : (
-                                <span className="text-gray-400 text-sm font-medium">Or Drop Dress Here</span>
-                            )}
-                            {provided.placeholder}
-                        </div>
-                    )}
-                </Droppable>
+              </div>
             </div>
 
-            <button 
-                onClick={handleStartVTON}
-                className="mt-8 w-full py-3 bg-black text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 hover:shadow-xl transition-all flex items-center justify-center gap-2"
-            >
-                <Play fill="currentColor" size={20} />
-                START VTON
-            </button>
-            {!humanImageUrl && <p className="text-red-500 text-xs mt-2 text-center">Requires AI Profile setup first</p>}
           </div>
+        </DragDropContext>
 
-        </div>
-      </DragDropContext>
-
-      {/* Upload Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto relative">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Upload New Garment</h2>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="p-1 hover:bg-gray-100 rounded-full text-gray-500 hover:text-gray-800 transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleUpload} className="space-y-4">
-              <ImageUploader onImageCropped={setFile} />
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Category</label>
-                <select 
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
-                >
-                  <option value="upper_body">Top / Upper Body</option>
-                  <option value="lower_body">Bottom / Lower Body</option>
-                  <option value="dress">Dress / One-piece</option>
-                  <option value="accessory">Accessory</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Mô tả ngắn (giúp AI gợi ý tốt hơn)</label>
-                <textarea 
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-sm"
-                  rows={2}
-                  placeholder="Ví dụ: Áo thun cotton màu trắng tay ngắn đi chơi mùa hè"
-                ></textarea>
-              </div>
-
-              <div className="flex space-x-3 pt-4">
+        {/* Upload Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-zinc-900/40 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-opacity">
+            <div className="bg-white rounded-[2rem] p-8 sm:p-10 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl border border-zinc-100 relative animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-black tracking-tight text-zinc-900">Thêm trang phục</h2>
                 <button 
-                  type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-2 border rounded-md hover:bg-gray-50"
+                  className="p-2.5 bg-zinc-50 hover:bg-zinc-100 text-zinc-500 hover:text-zinc-800 rounded-full transition-all"
                 >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  disabled={!file || isUploading}
-                  className="flex-1 py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50"
-                >
-                  {isUploading ? "Processing..." : "Upload & Remove BG"}
+                  <X size={20} />
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+              <form onSubmit={handleUpload} className="space-y-7">
+                <div className="bg-white rounded-3xl p-2 border border-zinc-100 shadow-sm">
+                  <ImageUploader onImageCropped={setFile} />
+                </div>
+                
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Loại trang phục</label>
+                    <select 
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="block w-full rounded-2xl border-zinc-200 bg-zinc-50 shadow-inner border p-4 text-[15px] font-medium focus:bg-white focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 outline-none transition-all"
+                    >
+                      <option value="upper_body">Áo / Thân trên</option>
+                      <option value="lower_body">Quần / Thân dưới</option>
+                      <option value="dress">Đầm / Váy liền</option>
+                      <option value="accessory">Phụ kiện</option>
+                    </select>
+                  </div>
 
-      {/* Lightbox Modal */}
-      {previewImage && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4" onClick={() => setPreviewImage(null)}>
-          <div className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-             <button 
-                onClick={() => setPreviewImage(null)}
-                className="absolute -top-12 right-0 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
-              >
-                <X size={24} />
-             </button>
-             <img src={previewImage} alt="Enlarged Preview" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" />
+                  <div>
+                    <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Mô tả ngắn (Tuỳ chọn)</label>
+                    <textarea 
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="block w-full rounded-2xl border-zinc-200 bg-zinc-50 shadow-inner border p-4 text-[15px] font-medium focus:bg-white focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 outline-none transition-all resize-none"
+                      rows={2}
+                      placeholder="Ví dụ: Áo thun cotton màu trắng đi dạo phố"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div className="flex space-x-4 pt-6 border-t border-zinc-100">
+                  <button 
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 py-4 text-[14px] font-bold bg-zinc-100 text-zinc-600 rounded-full hover:bg-zinc-200 transition-colors"
+                  >
+                    Hủy
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={!file || isUploading}
+                    className="flex-1 py-4 text-[14px] font-bold bg-zinc-900 text-white rounded-full shadow-md hover:bg-zinc-800 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 transition-all"
+                  >
+                    {isUploading ? "Đang tách nền..." : "Tải lên"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Lightbox Modal */}
+        {previewImage && (
+          <div className="fixed inset-0 bg-zinc-900/95 backdrop-blur-md flex items-center justify-center z-[9999] transition-opacity animate-in fade-in duration-200 pt-[100px] pb-10 px-4" onClick={() => setPreviewImage(null)}>
+            <div className="relative animate-in zoom-in-95 duration-200 rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] ring-1 ring-white/10 shrink-0" onClick={(e) => e.stopPropagation()}>
+               <button 
+                  onClick={() => setPreviewImage(null)}
+                  className="absolute top-4 right-4 p-2.5 bg-black/40 hover:bg-rose-500 rounded-full text-white backdrop-blur-md transition-all z-[10000] cursor-pointer"
+                >
+                  <X size={20} strokeWidth={2.5} />
+               </button>
+               <img src={previewImage} alt="Enlarged Preview" className="max-w-[90vw] max-h-[75vh] object-contain block bg-zinc-800/50" />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -9,16 +9,11 @@ export const metadata: Metadata = {
 
 export default function AIStylistPage() {
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-4xl text-center mb-8">
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-2">Trợ lý Phối đồ Thông minh</h1>
-        <p className="text-lg text-gray-600">
-          Hãy mô tả phong cách bạn muốn, AI sẽ tìm kiếm trong kho hàng và gợi ý những bộ trang phục phù hợp nhất.
-        </p>
-      </div>
-      
+    <div className="h-[calc(100vh-80px)] overflow-hidden bg-zinc-50/50 flex flex-col items-center p-4 sm:p-6 font-sans">
       {/* Khung chat Component */}
-      <ChatBox />
+      <div className="w-full flex-1 min-h-0">
+        <ChatBox />
+      </div>
       
       {/* Popup Thử đồ ảo */}
       <VTONModal />

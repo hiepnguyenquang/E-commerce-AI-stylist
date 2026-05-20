@@ -1,99 +1,123 @@
 import Link from 'next/link';
+import { ArrowRight, Sparkles, Shirt, Zap } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="bg-white">
+    <div className="bg-white min-h-[calc(100vh-80px)] font-sans selection:bg-zinc-900 selection:text-white">
       <main>
-        {/* Hero section */}
-        <div className="relative pt-14 pb-20 lg:pt-24 lg:pb-28">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl lg:text-7xl">
-              <span className="block xl:inline">Tương lai của</span>{' '}
-              <span className="block text-indigo-600 xl:inline">Thời trang E-commerce</span>
+        {/* Hero Section */}
+        <section className="relative pt-24 pb-32 overflow-hidden flex flex-col items-center justify-center">
+          {/* Subtle background element */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-zinc-100 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
+          
+          <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 text-zinc-800 text-sm font-medium mb-8">
+              <Sparkles size={16} /> 
+              <span>Trải nghiệm phòng thử đồ ảo thế hệ mới</span>
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-zinc-900 leading-[1.1] mb-8">
+              Định hình lại <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-900 to-zinc-500">
+                Thế giới Thời trang
+              </span>
             </h1>
-            <p className="mt-4 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-8 md:text-xl md:max-w-3xl">
-              Trải nghiệm tư vấn phối đồ thông minh với AI Stylist và ướm thử trang phục ngay lập tức với công nghệ Virtual Try-On tiên tiến nhất.
+            
+            <p className="text-lg md:text-xl text-zinc-600 max-w-2xl mx-auto font-light leading-relaxed mb-12">
+              Khám phá Studio Thời trang Ảo. Trò chuyện cùng AI Stylist chuyên nghiệp và ướm thử trang phục lên chính cơ thể bạn chỉ trong chớp mắt.
             </p>
-            <div className="mt-10 max-w-sm mx-auto sm:max-w-none sm:flex sm:justify-center gap-4">
-              <div className="space-y-4 sm:space-y-0 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5">
-                <Link
-                  href="/ai-profile"
-                  className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 md:py-4 md:text-lg px-10"
-                >
-                  1. Thiết lập Hồ sơ AI
-                </Link>
-                <Link
-                  href="/ai-stylist"
-                  className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg px-10"
-                >
-                  2. Chat với AI Stylist
-                </Link>
-              </div>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href="/ai-stylist"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-zinc-900 text-white font-medium rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-zinc-800 hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)] hover:-translate-y-1 transition-all duration-300"
+              >
+                Gặp AI Stylist <ArrowRight size={18} />
+              </Link>
+              <Link
+                href="/wardrobe"
+                className="w-full sm:w-auto flex items-center justify-center px-8 py-4 bg-white text-zinc-900 font-medium rounded-full border border-zinc-200 shadow-sm hover:border-zinc-300 hover:bg-zinc-50 transition-all duration-300"
+              >
+                Vào Phòng Thử Đồ
+              </Link>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Feature section */}
-        <div className="py-16 bg-gray-50 overflow-hidden lg:py-24">
-          <div className="relative max-w-xl mx-auto px-4 sm:px-6 lg:px-8 lg:max-w-7xl">
-            <div className="relative mt-12 lg:mt-24 lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
-              <div className="relative">
-                <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight sm:text-3xl">
-                  Thử đồ ảo (Virtual Try-On)
-                </h3>
-                <p className="mt-3 text-lg text-gray-500">
-                  Không còn lo lắng mặc không hợp. Công nghệ AI (CatVTON) giúp bạn "mặc thử" sản phẩm từ cửa hàng lên chính ảnh thật của mình trong nháy mắt. Đảm bảo bạn đưa ra quyết định mua hàng chính xác nhất.
-                </p>
+        {/* Feature Section */}
+        <section className="py-24 bg-zinc-50 border-t border-zinc-100">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-20">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 mb-4">Mua sắm không còn là phỏng đoán</h2>
+              <p className="text-zinc-600 font-light text-lg">Quy trình 3 bước đơn giản để tìm thấy phong cách hoàn hảo của bạn.</p>
+            </div>
 
-                <dl className="mt-10 space-y-10">
-                  <div className="relative">
-                    <dt>
-                      <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
-                        1
-                      </div>
-                      <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Thiết lập vóc dáng</p>
-                    </dt>
-                    <dd className="mt-2 ml-16 text-base text-gray-500">
-                      Cung cấp chiều cao, cân nặng và 1 bức ảnh cơ thể. Hệ thống sẽ tối ưu hóa để ghép đồ chuẩn xác.
-                    </dd>
-                  </div>
-
-                  <div className="relative">
-                    <dt>
-                      <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
-                        2
-                      </div>
-                      <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Tìm kiếm với AI</p>
-                    </dt>
-                    <dd className="mt-2 ml-16 text-base text-gray-500">
-                      Chat với AI để tìm kiếm đồ theo hoàn cảnh, phong cách.
-                    </dd>
-                  </div>
-
-                  <div className="relative">
-                    <dt>
-                      <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
-                        3
-                      </div>
-                      <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Thêm Giỏ Hàng</p>
-                    </dt>
-                    <dd className="mt-2 ml-16 text-base text-gray-500">
-                      Nếu vừa ý sau khi thử đồ, bạn có thể thêm ngay vào giỏ hàng và thanh toán.
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="mt-10 -mx-4 relative lg:mt-0" aria-hidden="true">
-                {/* Decoration */}
-                <div className="bg-gray-200 rounded-xl h-96 w-full flex items-center justify-center border-4 border-dashed border-gray-300">
-                  <p className="text-gray-500 font-medium">Bắt đầu bằng việc chọn chức năng trên Menu</p>
+            <div className="grid md:grid-cols-3 gap-10">
+              {/* Feature 1 */}
+              <div className="bg-white p-10 rounded-[2rem] border border-zinc-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.03)] hover:-translate-y-2 transition-transform duration-500">
+                <div className="w-14 h-14 bg-zinc-100 rounded-2xl flex items-center justify-center text-zinc-900 mb-8">
+                  <User size={24} />
                 </div>
+                <h3 className="text-xl font-bold text-zinc-900 tracking-tight mb-4">1. Hồ sơ Cá nhân hóa</h3>
+                <p className="text-zinc-600 leading-relaxed font-light">
+                  Chỉ cần chiều cao, cân nặng và một bức ảnh toàn thân. AI sẽ tự động phân tích vóc dáng để chuẩn bị cho việc thử đồ.
+                </p>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="bg-white p-10 rounded-[2rem] border border-zinc-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.03)] hover:-translate-y-2 transition-transform duration-500">
+                <div className="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center text-white mb-8 shadow-lg shadow-zinc-900/20">
+                  <Sparkles size={24} />
+                </div>
+                <h3 className="text-xl font-bold text-zinc-900 tracking-tight mb-4">2. Tư vấn Thông minh</h3>
+                <p className="text-zinc-600 leading-relaxed font-light">
+                  Trò chuyện tự nhiên như với một Stylist thật. Tìm trang phục đi tiệc, đi biển hay dạo phố chỉ bằng vài dòng tin nhắn.
+                </p>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="bg-white p-10 rounded-[2rem] border border-zinc-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.03)] hover:-translate-y-2 transition-transform duration-500">
+                <div className="w-14 h-14 bg-zinc-100 rounded-2xl flex items-center justify-center text-zinc-900 mb-8">
+                  <Shirt size={24} />
+                </div>
+                <h3 className="text-xl font-bold text-zinc-900 tracking-tight mb-4">3. Thử đồ Virtual Try-On</h3>
+                <p className="text-zinc-600 leading-relaxed font-light">
+                  Kéo thả trang phục vào người mẫu ảo. Công nghệ AI (CatVTON) sẽ ghép trang phục lên cơ thể bạn một cách chân thực nhất.
+                </p>
               </div>
             </div>
           </div>
-        </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-32 relative overflow-hidden">
+          <div className="absolute inset-0 bg-zinc-900 -z-20"></div>
+          <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-6">
+              Bạn đã sẵn sàng nâng cấp phong cách?
+            </h2>
+            <p className="text-xl text-zinc-400 font-light mb-10">
+              Thiết lập hồ sơ AI ngay hôm nay và trải nghiệm không gian mua sắm thời trang đỉnh cao.
+            </p>
+            <Link
+              href="/ai-profile"
+              className="inline-flex items-center justify-center gap-2 px-10 py-5 bg-white text-zinc-900 font-bold rounded-full shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform duration-300"
+            >
+              Tạo Hồ Sơ AI Ngay <Zap size={20} />
+            </Link>
+          </div>
+        </section>
       </main>
     </div>
+  );
+}
+
+// User placeholder component since it's used in features
+function User({ size }: { size: number }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
   );
 }

@@ -1,10 +1,8 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { AI_PERSONALIZATION_MODULE } from "../../../../modules/ai-personalization"
 import AiPersonalizationModuleService from "../../../../modules/ai-personalization/service"
-import { removeBackground } from "@imgly/background-removal-node"
 import fs from "fs"
 import path from "path"
-import { pathToFileURL } from "url"
 import { AmqplibAdapter } from "../../../../services/queue/AmqplibAdapter"
 import sharp from "sharp"
 
@@ -27,22 +25,11 @@ export async function POST(
 
   try {
     const inputPath = file.path
-    const fileUrl = pathToFileURL(inputPath).href
-    console.log("Bắt đầu tiến trình xóa nền bằng AI cho ảnh:", fileUrl)
+    console.log("Bắt đầu chuẩn hóa định dạng ảnh (không xóa nền):", inputPath)
     
-    // Xóa nền trực tiếp từ File URL và ép tải mô hình bằng CDN để chống lỗi pnpm symlink
-    const resultBlob = await removeBackground(fileUrl, {
-      publicPath: "https://staticimgly.com/@imgly/background-removal-data/1.4.5/dist/"
-    })
-    console.log("Xóa nền thành công!")
-    
-    // Save the processed image
-    const arrayBuffer = await resultBlob.arrayBuffer()
-    const rawBuffer = Buffer.from(arrayBuffer)
-    
-    // Sử dụng sharp để chuẩn hóa hình ảnh thành định dạng RGBA/RGB tiêu chuẩn
-    // Việc này sẽ triệt tiêu cảnh báo "Palette images with Transparency..." bên Python
-    const processedBuffer = await sharp(rawBuffer)
+    // Sử dụng sharp để chuẩn hóa hình ảnh gốc (không cắt nền)
+    // Việc này sẽ triệt tiêu cảnh báo "Palette images with Transparency..." bên Python và tối ưu kích thước
+    const processedBuffer = await sharp(inputPath)
       .toFormat("png")
       .toBuffer()
     
@@ -54,7 +41,7 @@ export async function POST(
     // URL remains /uploads/ as we serve it via static middleware in middlewares.ts
     finalImageUrl = `/uploads/${processedFileName}`
   } catch (error) {
-    console.error("Background removal failed:", error)
+    console.error("Image processing failed:", error)
     return res.status(500).json({ status: "error", message: "Failed to process image" })
   }
 

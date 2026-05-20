@@ -20,6 +20,17 @@ export async function POST(
 
     const customer_id = (req as any).auth_context?.actor_id || req.headers["x-customer-id"] || "mock-customer-id"
 
+    // Lấy giới tính từ AI Profile
+    let userGender = "unisex";
+    try {
+      const profiles = await aiPersonalizationModuleService.listAiProfiles({ customer_id });
+      if (profiles && profiles.length > 0 && profiles[0].gender) {
+        userGender = profiles[0].gender;
+      }
+    } catch (e) {
+      console.warn("Could not fetch user profile for gender", e);
+    }
+
     const aiResponse = await fetch(`${AI_SERVICE_URL}/api/v1/stylist/search`, {
       method: "POST",
       headers: {
@@ -29,7 +40,8 @@ export async function POST(
       body: JSON.stringify({
         query_text,
         limit_options: limit_options || 2,
-        user_id: customer_id
+        user_id: customer_id,
+        gender: userGender
       }),
     })
 
@@ -39,6 +51,17 @@ export async function POST(
     }
 
     const aiData = await aiResponse.json()
+
+    if (aiData.refusal) {
+      return res.json({
+        status: "success",
+        data: {
+            refusal: true,
+            message: aiData.message,
+            options: []
+        }
+      })
+    }
 
     // Lưu session vào DB
     const session = await aiPersonalizationModuleService.createStylistSessions({
@@ -82,15 +105,28 @@ export async function POST(
     if (productIds.length > 0) {
         const products = await productModuleService.listProducts(
             { id: productIds },
-            { relations: ["variants"] }
+            { relations: ["variants", "categories"] }
         )
         products.forEach(p => {
+            let catName = ""
+            if (p.categories && p.categories.length > 0) {
+                catName = p.categories[0].name.toLowerCase()
+            }
+            let cType = "upper_body"
+            if (catName.includes("quần") || catName.includes("váy") || catName.includes("bottom") || catName.includes("skirt")) cType = "lower_body"
+            if (catName.includes("đầm") || catName.includes("dress") || catName.includes("liền")) cType = "dress"
+            
+            const lowerTitle = (p.title || "").toLowerCase()
+            if (lowerTitle.includes("quần") || lowerTitle.includes("chân váy") || lowerTitle.includes("skirt") || lowerTitle.includes("bottom") || lowerTitle.includes("jeans") || lowerTitle.includes("shorts")) cType = "lower_body"
+            if (lowerTitle.includes("đầm") || lowerTitle.includes("dress") || (lowerTitle.includes("váy") && !lowerTitle.includes("chân váy"))) cType = "dress"
+
             productsMap[p.id] = {
                 id: p.id,
                 title: p.title,
                 thumbnail: p.thumbnail,
                 variants: p.variants || [],
-                type: 'store'
+                type: 'store',
+                clothing_type: cType
             }
         })
     }
@@ -105,7 +141,8 @@ export async function POST(
                 title: `Trang phục cá nhân (${c.category || 'unknown'})`,
                 thumbnail: c.image_url,
                 variants: [],
-                type: 'closet'
+                type: 'closet',
+                clothing_type: c.category || 'upper_body'
             }
         })
     }
@@ -131,7 +168,8 @@ export async function POST(
                                 title: "Sản phẩm không khả dụng",
                                 thumbnail: null,
                                 variants: [],
-                                type: id.startsWith("prod_") ? 'store' : 'closet'
+                                type: id.startsWith("prod_") ? 'store' : 'closet',
+                                clothing_type: 'upper_body'
                             })
                         }
                     }

@@ -60,7 +60,7 @@ export async function POST(
   const aiPersonalizationService: AiPersonalizationModuleService = req.scope.resolve(AI_PERSONALIZATION_MODULE)
 
   // 2. Parse body (form-data or json)
-  const { height, weight, base_body_image_url } = req.body as any
+  const { height, weight, gender, base_body_image_url } = req.body as any
   const file = (req as any).file
 
   const customer_id = (req as any).auth_context?.actor_id || req.headers["x-customer-id"] || "mock-customer-id"
@@ -78,33 +78,34 @@ export async function POST(
     })
 
     let profile;
-    const parsedHeight = height ? parseFloat(height) : null;
-    const parsedWeight = weight ? parseFloat(weight) : null;
+    const parsedHeight = height != null && height !== "" && !isNaN(Number(height)) ? Number(height) : undefined;
+    const parsedWeight = weight != null && weight !== "" && !isNaN(Number(weight)) ? Number(weight) : undefined;
+    const parsedGender = gender != null && gender !== "" ? String(gender) : undefined;
 
     if (existingProfiles && existingProfiles.length > 0) {
       // Cập nhật profile đã có
       const existing = existingProfiles[0];
-      const updateData: any = {
-        height: parsedHeight,
-        weight: parsedWeight,
-      }
-      if (imageUrl) {
+      const updateData: any = { id: existing.id }
+      if (parsedHeight !== undefined) updateData.height = parsedHeight;
+      if (parsedWeight !== undefined) updateData.weight = parsedWeight;
+      if (parsedGender !== undefined) updateData.gender = parsedGender;
+      if (imageUrl !== undefined) {
         updateData.base_body_image_url = imageUrl;
       }
 
-      profile = await aiPersonalizationService.updateAiProfiles({
-        id: existing.id,
-        ...updateData
-      })
+      profile = await aiPersonalizationService.updateAiProfiles(updateData)
       console.log(`[POST /v1/ai-profile] Updated profile for ${customer_id}`)
     } else {
       // Tạo profile mới
-      profile = await aiPersonalizationService.createAiProfiles({
-        customer_id,
-        height: parsedHeight,
-        weight: parsedWeight,
-        base_body_image_url: imageUrl
-      })
+      const createData: any = { customer_id }
+      if (parsedHeight !== undefined) createData.height = parsedHeight;
+      if (parsedWeight !== undefined) createData.weight = parsedWeight;
+      if (parsedGender !== undefined) createData.gender = parsedGender;
+      if (imageUrl !== undefined) {
+        createData.base_body_image_url = imageUrl;
+      }
+
+      profile = await aiPersonalizationService.createAiProfiles(createData)
       console.log(`[POST /v1/ai-profile] Created new profile for ${customer_id}`)
     }
 
@@ -115,6 +116,7 @@ export async function POST(
         processed_image_url: profile.base_body_image_url,
         height: profile.height,
         weight: profile.weight,
+        gender: profile.gender,
         vector_status: "pending" // Giả sử nếu có đồng bộ thì cập nhật
       }
     })

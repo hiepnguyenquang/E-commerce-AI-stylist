@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Guide & Project Synthesis - AI Fashion E-commerce</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              900: '#4c1d95',
+            },
+            accent: {
+              500: '#10b981',
+              600: '#059669',
+            },
+            darkBg: '#09090b',
+            darkCard: '#18181b',
+            darkBorder: '#27272a',
+          },
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Highlight.js for Syntax Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/tokyo-night-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+
+  <!-- Mermaid.js for Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      securityLevel: 'loose',
+      themeVariables: {
+        background: '#18181b',
+        primaryColor: '#7c3aed',
+        primaryTextColor: '#fff',
+        lineColor: '#52525b',
+        secondaryColor: '#10b981',
+      }
+    });
+  </script>
+
+  <style>
+    body {
+      background-color: #09090b;
+      color: #f4f4f5;
+    }
+    /* Glassmorphism custom styles */
+    .glass-panel {
+      background: rgba(24, 24, 27, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .glass-nav {
+      background: rgba(9, 9, 11, 0.8);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #09090b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #7c3aed;
+    }
+    /* Neon Glows */
+    .neon-glow-violet {
+      box-shadow: 0 0 40px -10px rgba(124, 58, 237, 0.2);
+    }
+    .neon-glow-emerald {
+      box-shadow: 0 0 40px -10px rgba(16, 185, 129, 0.2);
+    }
+    /* Active Link Indicator */
+    .active-nav-link {
+      background: linear-gradient(90deg, rgba(124, 58, 237, 0.15) 0%, rgba(124, 58, 237, 0) 100%);
+      border-left: 3px solid #8b5cf6;
+      color: #fff;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased overflow-x-hidden">
+
+  <!-- Top Navigation Header -->
+  <header class="glass-nav fixed top-0 left-0 right-0 h-16 z-50 px-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-9 w-9 bg-gradient-to-tr from-brand-600 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/20">
+        <i class="fa-solid fa-wand-magic-sparkles text-white text-base"></i>
+      </div>
+      <div>
+        <span class="font-black tracking-tight text-white text-lg">AI FASHION</span>
+        <span class="text-xs text-zinc-500 block -mt-1 uppercase tracking-widest font-bold">Monorepo Portal</span>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-4">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-zinc-800 text-zinc-300 text-xs font-bold rounded-full border border-zinc-700">
+        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        STAGE 5 MVP COMPLETED
+      </span>
+      <a href="https://github.com" target="_blank" class="text-zinc-400 hover:text-white transition-colors text-lg">
+        <i class="fa-brands fa-github"></i>
+      </a>
+    </div>
+  </header>
+
+  <div class="flex pt-16 min-h-screen">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 fixed top-16 bottom-0 left-0 border-r border-zinc-800/80 bg-zinc-950/80 overflow-y-auto px-4 py-6 hidden lg:block z-40">
+      <div class="space-y-8">
+        <div>
+          <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-3">Tổng quan & Kiến trúc</span>
+          <div class="mt-2 space-y-1">
+            <a href="#introduction" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-medium">
+              <i class="fa-solid fa-rocket w-4"></i> Giới thiệu dự án
+            </a>
+            <a href="#architecture" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-medium">
+              <i class="fa-solid fa-sitemap w-4"></i> Sơ đồ kiến trúc E2E
+            </a>
+            <a href="#monorepo-structure" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-medium">
+              <i class="fa-solid fa-folder-open w-4"></i> Cấu trúc Monorepo
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-3">Quy trình nghiệp vụ</span>
+          <div class="mt-2 space-y-1">
+            <a href="#wf-profile" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-medium">
+              <i class="fa-solid fa-user-gear w-4"></i> 1. Hồ sơ AI & Upload đồ
+            </a>
+            <a href="#wf-stylist" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-medium">
+              <i class="fa-solid fa-comments w-4"></i> 2. Chat Stylist & Replace
+            </a>
+            <a href="#wf-vton" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-medium">
+              <i class="fa-solid fa-shirt w-4"></i> 3. Virtual Try-On (SSE)
+            </a>
+            <a href="#wf-checkout" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-medium">
+              <i class="fa-solid fa-cart-shopping w-4"></i> 4. Checkout Saga
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-3">API & Tương tác</span>
+          <div class="mt-2 space-y-1">
+            <a href="#api-contracts" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-medium">
+              <i class="fa-solid fa-plug w-4"></i> Danh sách API chuẩn
+            </a>
+            <a href="#model-VRAM" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-medium">
+              <i class="fa-solid fa-microchip w-4"></i> Model AI & GPU Tuning
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-3">Khởi chạy dự án</span>
+          <div class="mt-2 space-y-1">
+            <a href="#installation" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-medium">
+              <i class="fa-solid fa-terminal w-4"></i> Hướng dẫn cài đặt
+            </a>
+            <a href="#troubleshooting" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-medium">
+              <i class="fa-solid fa-circle-exclamation w-4"></i> Troubleshooting
+            </a>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 lg:ml-64 px-4 sm:px-8 py-8 overflow-y-auto max-w-7xl">
+      
+      <!-- Introduction Banner -->
+      <section id="introduction" class="relative rounded-[2.5rem] p-8 sm:p-12 overflow-hidden glass-panel neon-glow-violet mb-12">
+        <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-brand-500/10 blur-[120px] pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none"></div>
+        
+        <div class="relative z-10 max-w-3xl">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-500/15 text-brand-200 text-xs font-bold rounded-full border border-brand-500/30 uppercase tracking-widest mb-6">
+            <i class="fa-solid fa-circle-nodes"></i> NEXT-GEN AI RETAIL SYSTEM
+          </div>
+          <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight leading-none mb-6">
+            AI Fashion E-commerce <br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 via-violet-400 to-emerald-400">Architecture & Specs</span>
+          </h1>
+          <p class="text-zinc-400 text-lg leading-relaxed mb-8">
+            Hệ thống Thương mại điện tử Thời trang thông minh tích hợp trí tuệ nhân tạo (AI Stylist RAG, Virtual Try-On) xây dựng trên mô hình <strong>Monorepo hiện đại</strong>. Tự động đề xuất trang phục cá nhân hóa, cho phép thử đồ trực tuyến bất đồng bộ thông qua hàng đợi tin nhắn tốc độ cao.
+          </p>
+          <div class="flex flex-wrap gap-4">
+            <a href="#architecture" class="px-6 py-3.5 bg-gradient-to-r from-brand-600 to-brand-500 text-white text-sm font-bold tracking-wide uppercase rounded-full hover:shadow-lg hover:shadow-brand-500/25 hover:-translate-y-0.5 transition-all duration-300">
+              Khám phá Kiến trúc <i class="fa-solid fa-arrow-right ml-1"></i>
+            </a>
+            <a href="#installation" class="px-6 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-bold tracking-wide uppercase rounded-full border border-zinc-700/60 hover:-translate-y-0.5 transition-all duration-300">
+              Chạy dự án ngay
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: E2E Architecture -->
+      <section id="architecture" class="mb-16">
+        <h2 class="text-3xl font-black text-white tracking-tight flex items-center gap-3 mb-2">
+          <span class="h-8 w-1 bg-brand-500 rounded"></span> Sơ đồ kiến trúc E2E của hệ thống
+        </h2>
+        <p class="text-zinc-500 mb-8 text-sm">
+          Sự kết hợp tối ưu giữa luồng Đồng bộ (Next.js & MedusaJS) và Bất đồng bộ (RabbitMQ & FastAPI AI Worker) giúp tối ưu hóa tải trọng GPU và trải nghiệm thời gian thực.
+        </p>
+
+        <!-- Dynamic Mermaid Diagram Container -->
+        <div class="p-6 rounded-3xl bg-zinc-950/80 border border-zinc-800 shadow-inner mb-8 overflow-x-auto">
+          <div class="mermaid text-center">
+graph TD
+    %% Define Styles
+    classDef client fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff;
+    classDef bff fill:#7c3aed,stroke:#5b21b6,stroke-width:2px,color:#fff;
+    classDef queue fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff;
+    classDef ai fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff;
+    classDef db fill:#1f2937,stroke:#374151,stroke-width:2px,color:#fff;
+
+    %% Nodes
+    Client["Client (Next.js 14 App Router)"]:::client
+    Medusa["BFF (MedusaJS v2 Node Core)"]:::bff
+    RabbitMQ["Message Broker (RabbitMQ)"]:::queue
+    FastAPI["AI Service (FastAPI / Python)"]:::ai
+    Postgres[("Main DB (PostgreSQL 15)")]:::db
+    Redis[("Cache/Session (Redis)")]:::db
+    LanceDB[("Vector Storage (LanceDB)")]:::db
+    CatVTON["CatVTON Persistent Worker"]:::ai
+
+    %% Connections
+    Client -- "1. Yêu cầu phối đồ / Thử đồ" --> Medusa
+    Client -- "2. Lắng nghe SSE Kết quả" --> Medusa
+    
+    Medusa -- "Lưu trữ cấu trúc & Trạng thái" --> Postgres
+    Medusa -- "Cơ chế Lock/Cache" --> Redis
+    
+    Medusa -- "3. Publish Job (vton_jobs/closet_sync)" --> RabbitMQ
+    RabbitMQ -- "4. Consume Job" --> FastAPI
+    
+    FastAPI -- "Truy vấn Vector Phối đồ (CLIP)" --> LanceDB
+    FastAPI -- "Tách nền & Vẽ trang phục (VRAM)" --> CatVTON
+    CatVTON -- "5. Lưu trữ kết quả thử đồ" --> Medusa
+    
+    Medusa -- "6. Đẩy sự kiện Server-Sent Events" --> Client
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="p-6 rounded-2xl glass-panel border border-zinc-800 hover:border-zinc-700 transition-all">
+            <div class="h-10 w-10 bg-brand-500/10 rounded-xl flex items-center justify-center text-brand-400 mb-4">
+              <i class="fa-solid fa-bolt"></i>
+            </div>
+            <h3 class="font-bold text-white mb-2">BFF & Microservice Hybrid</h3>
+            <p class="text-zinc-400 text-xs leading-relaxed">
+              Next.js tương tác trực tiếp với MedusaJS đóng vai trò BFF (Backend-for-Frontend). Medusa xử lý nghiệp vụ thương mại nặng và điều phối công việc cho FastAPI AI thông qua RabbitMQ.
+            </p>
+          </div>
+          <div class="p-6 rounded-2xl glass-panel border border-zinc-800 hover:border-zinc-700 transition-all">
+            <div class="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 mb-4">
+              <i class="fa-solid fa-arrows-spin"></i>
+            </div>
+            <h3 class="font-bold text-white mb-2">Asynchronous Queue & SSE</h3>
+            <p class="text-zinc-400 text-xs leading-relaxed">
+              Tiến trình ghép đồ AI (CatVTON) tốn 3-5 giây trên GPU được đưa vào RabbitMQ bất đồng bộ. Client duy trì một kết nối Server-Sent Events (SSE) để nhận cập nhật trạng thái vẽ thời gian thực.
+            </p>
+          </div>
+          <div class="p-6 rounded-2xl glass-panel border border-zinc-800 hover:border-zinc-700 transition-all">
+            <div class="h-10 w-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 mb-4">
+              <i class="fa-solid fa-magnifying-glass-chart"></i>
+            </div>
+            <h3 class="font-bold text-white mb-2">Hybrid Vector Search</h3>
+            <p class="text-zinc-400 text-xs leading-relaxed">
+              Tìm kiếm ngữ nghĩa (RAG) sử dụng kho sản phẩm nhúng CLIP vector được lưu trữ ngay trong LanceDB (Serverless Vector Database), mang lại phản hồi đề xuất trang phục vượt trội.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Monorepo Structure -->
+      <section id="monorepo-structure" class="mb-16">
+        <h2 class="text-3xl font-black text-white tracking-tight flex items-center gap-3 mb-2">
+          <span class="h-8 w-1 bg-brand-500 rounded"></span> Cấu trúc Monorepo Dự án
+        </h2>
+        <p class="text-zinc-500 mb-8 text-sm">
+          Dự án được quản lý tập trung bằng Turborepo (`pnpm`) với tính phân tách cấu trúc rõ ràng giữa 3 dịch vụ chính và các thư viện dùng chung.
+        </p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div class="lg:col-span-5 bg-zinc-950 p-6 rounded-3xl border border-zinc-800/80 shadow-inner font-mono text-xs leading-relaxed text-zinc-300">
+            <div class="text-emerald-400 font-bold mb-4">// Cây thư mục Monorepo</div>
+            <div class="space-y-1">
+              <div>fundamental-project/</div>
+              <div>├── <span class="text-blue-400">apps/</span></div>
+              <div class="pl-4">├── <span class="text-violet-400">web/</span> <span class="text-zinc-500"># Next.js 14 Frontend</span></div>
+              <div class="pl-4">├── <span class="text-violet-400">api-medusa/</span> <span class="text-zinc-500"># MedusaJS v2 Backend</span></div>
+              <div class="pl-4">└── <span class="text-violet-400">ai-service/</span> <span class="text-zinc-500"># FastAPI Python AI</span></div>
+              <div>├── <span class="text-blue-400">packages/</span></div>
+              <div class="pl-4">├── <span class="text-teal-400">shared-types/</span> <span class="text-zinc-500"># Type definitions, Schemas</span></div>
+              <div class="pl-4">├── <span class="text-teal-400">ui-components/</span> <span class="text-zinc-500"># Core styles, UI atoms</span></div>
+              <div class="pl-4">└── <span class="text-teal-400">eslint-config/</span> <span class="text-zinc-500"># Linting rules</span></div>
+              <div>├── <span class="text-orange-400">docker/</span> <span class="text-zinc-500"># Docker-compose (PG, Redis, MQ)</span></div>
+              <div>├── <span class="text-amber-400">.ai-knowledge/</span> <span class="text-zinc-500"># System specifications (Truths)</span></div>
+              <div>├── pnpm-workspace.yaml</div>
+              <div>├── turbo.json</div>
+              <div>└── package.json</div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-4">
+            <div class="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40">
+              <span class="font-bold text-white text-sm block mb-1">apps/web (Next.js 14 App Router)</span>
+              <p class="text-zinc-400 text-xs">
+                Giao diện người dùng thời trang, trang bị Zustand quản lý state cục bộ. Tương tác SSE thời gian thực. Hỗ trợ Kéo-thả phối đồ nâng cao (Mix & Match). Tích hợp Toast Notifications và Error Boundaries ở cấp độ trang (`error.tsx`, `global-error.tsx`).
+              </p>
+            </div>
+            <div class="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40">
+              <span class="font-bold text-white text-sm block mb-1">apps/api-medusa (MedusaJS v2 - Node v20)</span>
+              <p class="text-zinc-400 text-xs">
+                Bộ não thương mại, quản lý Postgres DB qua Medusa Data Modules. Tích hợp Module tùy biến `ai-personalization` để quản lý Closet của User. Tự phục vụ file upload qua Middleware tĩnh để tránh xung đột hot-reload.
+              </p>
+            </div>
+            <div class="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40">
+              <span class="font-bold text-white text-sm block mb-1">apps/ai-service (FastAPI / Python 3.10+)</span>
+              <p class="text-zinc-400 text-xs">
+                Dịch vụ AI đảm nhiệm: Trích xuất nhúng CLIP của sản phẩm, Phân tích ý định & Tìm kiếm Vector (LanceDB), Phối đồ Outfit gợi ý (Gemini API 1.5 Flash 8b), và chạy Model CatVTON để sinh ảnh ghép đồ chân thực gửi về Medusa qua RabbitMQ.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Core Workflows -->
+      <section id="workflows" class="mb-16">
+        <h2 class="text-3xl font-black text-white tracking-tight flex items-center gap-3 mb-2">
+          <span class="h-8 w-1 bg-brand-500 rounded"></span> Quy trình Nghiệp vụ Cốt lõi
+        </h2>
+        <p class="text-zinc-500 mb-8 text-sm">
+          Các chuỗi hành động tích hợp sâu giúp thực thi các Use Case phức tạp từ lúc người dùng thiết lập hồ sơ đến khi đặt hàng.
+        </p>
+
+        <!-- Tabs Navigation for Workflows -->
+        <div class="flex gap-2 border-b border-zinc-800 pb-px mb-6 overflow-x-auto">
+          <button onclick="switchWFTab('wf-profile')" id="btn-wf-profile" class="px-5 py-3 text-sm font-semibold border-b-2 border-brand-500 text-white transition-all">
+            1. AI Profile & Tủ đồ
+          </button>
+          <button onclick="switchWFTab('wf-stylist')" id="btn-wf-stylist" class="px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-white transition-all">
+            2. AI Stylist & Đổi đồ
+          </button>
+          <button onclick="switchWFTab('wf-vton')" id="btn-wf-vton" class="px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-white transition-all">
+            3. Thử đồ VTON (SSE)
+          </button>
+          <button onclick="switchWFTab('wf-checkout')" id="btn-wf-checkout" class="px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-white transition-all">
+            4. Saga Checkout
+          </button>
+        </div>
+
+        <!-- Workflow Content 1 -->
+        <div id="content-wf-profile" class="space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="space-y-4">
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <span class="bg-brand-500/10 text-brand-400 h-7 w-7 rounded-full flex items-center justify-center text-xs">1</span>
+                Thiết lập thông số & Tải trang phục
+              </h3>
+              <p class="text-zinc-400 text-sm leading-relaxed">
+                Người dùng thiết lập chiều cao, cân nặng và tải lên ảnh cá thể để làm nền thử đồ. Dữ liệu được quản lý đồng bộ nhờ cơ chế Hydration API mới:
+              </p>
+              <ul class="space-y-2.5 text-zinc-400 text-xs pl-4 list-disc">
+                <li>Giao diện Canvas thực hiện crop tỷ lệ <strong>3:4</strong>, nén ảnh xuống dưới <strong>2MB</strong> để tối ưu băng thông.</li>
+                <li>API `GET /api/v1/ai-profile` tự động nạp lại thông số người dùng từ Database mỗi khi tải lại trang, chấm dứt phụ thuộc LocalStorage.</li>
+                <li>Tủ đồ cá nhân hỗ trợ tải lên trang phục, tự động gọi thư viện tách nền xử lý đưa về dạng trong suốt (`PNG`).</li>
+                <li><strong>Đồng bộ Xóa hoàn chỉnh:</strong> Khi click xóa trang phục, hệ thống xóa DB record, xóa file vật lý trong `.medusa/uploads` và gửi RabbitMQ để dọn dẹp Vector nhúng của trang phục đó trong LanceDB.</li>
+              </ul>
+            </div>
+            <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800">
+              <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2 font-mono">Backend Route xử lý DELETE Closet Item:</span>
+              <pre><code class="language-typescript">// apps/api-medusa/src/api/v1/user/garments/[id]/route.ts
+// 1. Kiểm tra quyền sở hữu
+if (item.customer_id !== customer_id) {
+  return res.status(403).json({ error: "Forbidden" });
+}
+// 2. Xóa file vật lý tránh rác bộ nhớ
+if (item.image_url.startsWith('/uploads/')) {
+  const filePath = path.join(process.cwd(), ".medusa", "uploads", filename);
+  if (fs.existsSync(filePath)) await fs.promises.unlink(filePath);
+}
+// 3. Xóa Database & Đồng bộ Queue AI để xóa Vector
+await aiPersonalizationService.deleteUserClosetItems([garment_id]);
+await queueService.publish("closet_metadata_sync", {
+  event_type: "closet_item_deleted",
+  data: { id: garment_id, user_id: customer_id }
+});</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workflow Content 2 (Hidden by default) -->
+        <div id="content-wf-stylist" class="space-y-6 hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="space-y-4">
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <span class="bg-brand-500/10 text-brand-400 h-7 w-7 rounded-full flex items-center justify-center text-xs">2</span>
+                RAG AI Stylist & Thay thế Đồ (Replace Item)
+              </h3>
+              <p class="text-zinc-400 text-sm leading-relaxed">
+                Người dùng gửi câu hỏi thời trang dạng ngôn ngữ tự nhiên. AI phân tích, tìm kiếm vector sản phẩm trong LanceDB và kết hợp Gemini LLM gợi ý Set đồ (Outfit).
+              </p>
+              <ul class="space-y-2.5 text-zinc-400 text-xs pl-4 list-disc">
+                <li><strong>Bộ lọc Ý định (Intent Guardrail):</strong> AI lọc trước câu hỏi của user. Nếu không liên quan thời trang (VD: thời tiết), hệ thống từ chối khéo bằng JSON `{"refusal": true, "message": "..."}` và bỏ qua tìm kiếm Vector để tiết kiệm tài nguyên.</li>
+                <li><strong>Hydration Sản phẩm:</strong> Dữ liệu thô gửi từ AI Python (chỉ gồm mảng ID) sẽ được backend Medusa chặn lại, tiến hành Hydrate chi tiết (Tên, Ảnh, Giá) từ Database PostgreSQL trước khi trả về Frontend, đảm bảo hiển thị tức thì không độ trễ.</li>
+                <li><strong>Đổi Món Đồ (Replace Item):</strong> Nút "Đổi món khác" trong thẻ Set đồ cho phép tìm các sản phẩm tương đồng về Style/Category bằng cách gọi API `/v1/stylist/replace` thực thi tìm kiếm tương đồng vector, thay thế phần tử đó trong Set đồ mà không phá vỡ tổng cục.</li>
+              </ul>
+            </div>
+            <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800">
+              <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2 font-mono">Frontend logic xử lý Replace Item:</span>
+              <pre><code class="language-typescript">// apps/web/src/components/features/ai-stylist/OutfitCard.tsx
+const handleReplaceItem = async (item: OutfitItem) => {
+  setReplacingItemId(item.id);
+  const res = await fetch(`${baseUrl}/v1/stylist/replace`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      current_option_id: option.option_id,
+      target_product_id: item.id,
+      context_items: option.items.map(i => i.id)
+    }),
+  });
+  const data = await res.json();
+  if (data.data && data.data.length > 0) {
+    // Cập nhật trực tiếp Zustand Store
+    replaceItemInMessage(messageId, option.option_id, item.id, data.data[0]);
+  }
+};</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workflow Content 3 (Hidden by default) -->
+        <div id="content-wf-vton" class="space-y-6 hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="space-y-4">
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <span class="bg-brand-500/10 text-brand-400 h-7 w-7 rounded-full flex items-center justify-center text-xs">3</span>
+                Ghép đồ bất đồng bộ qua Queue & SSE (Try-On)
+              </h3>
+              <p class="text-zinc-400 text-sm leading-relaxed">
+                Người dùng có thể chọn thử Set đồ (gồm 1 Áo + 1 Quần/Váy) lên ảnh nền cơ thể. Quá trình xử lý phức tạp của Model CatVTON được điều phối mượt mà:
+              </p>
+              <ul class="space-y-2.5 text-zinc-400 text-xs pl-4 list-disc">
+                <li><strong>Thử đồ đa lớp (Multi-step VTON):</strong> Hệ thống tạo luồng Job 1 (ghép Áo) đẩy vào RabbitMQ. Khi AI Service hoàn thành Job 1, nó lấy URL kết quả làm ảnh gốc (`human_image_url`) để tạo tiếp Job 2 (ghép Quần) có liên kết `parent_job_id` với Job 1.</li>
+                <li><strong>Không phụ thuộc SSE connection:</strong> Tiến trình lắng nghe hàng đợi RabbitMQ (`ai_vision_results`) được tách khỏi API SSE và chạy trực tiếp ở file Loader Node.js ngay khi bật server. Dù client mất mạng/mất kết nối SSE, job AI vẫn tự động hoàn tất và lưu DB.</li>
+                <li><strong>Server-Sent Events (SSE):</strong> Cung cấp cập nhật trạng thái thời gian thực đến Client (`pending` &rarr; `rendering` &rarr; `completed`).</li>
+                <li><strong>VTON Result Gallery:</strong> Người dùng có thể nhấn nút "Lưu kết quả" để lưu ảnh thử đồ vào danh mục Outfit riêng trong Tủ đồ.</li>
+              </ul>
+            </div>
+            <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800">
+              <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2 font-mono">AI Python Service Worker Consumer:</span>
+              <pre><code class="language-python"># apps/ai-service/src/worker.py (CatVTON Consumer)
+async def process_vton_job(ch, method, properties, body):
+    payload = json.loads(body)
+    job_id = payload["job_id"]
+    human_img = payload["human_image_url"]
+    garment_img = payload["garment_image_url"]
+    category = payload["category"] # upper_body / lower_body / dress
+    
+    # 1. Chạy CatVTON Pipeline (Persistent in VRAM)
+    result_path = pipeline.predict(human_img, garment_img, category)
+    result_url = upload_to_medusa_storage(result_path)
+    
+    # 2. Publish kết quả lại RabbitMQ
+    publish_result_to_queue({
+        "job_id": job_id,
+        "status": "completed",
+        "result_image_url": result_url
+    })</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workflow Content 4 (Hidden by default) -->
+        <div id="content-wf-checkout" class="space-y-6 hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="space-y-4">
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <span class="bg-brand-500/10 text-brand-400 h-7 w-7 rounded-full flex items-center justify-center text-xs">4</span>
+                Đặt hàng nâng cao (Saga Checkout Workflow)
+              </h3>
+              <p class="text-zinc-400 text-sm leading-relaxed">
+                Đảm bảo tính nhất quán dữ liệu thương mại bằng cách sử dụng cơ chế MedusaJS v2 Workflows (Saga Pattern) để quản lý luồng thanh toán và tồn kho:
+              </p>
+              <ul class="space-y-2.5 text-zinc-400 text-xs pl-4 list-disc">
+                <li><strong>Bước 1 (reserveInventory):</strong> Khóa (tạm giữ) số lượng tồn kho sản phẩm trong giỏ hàng để tránh bán vượt mức.</li>
+                <li><strong>Bước 2 (createOrder):</strong> Khởi tạo đơn hàng chính thức kèm metadata theo dõi xuất xứ từ AI (được gợi ý bởi Stylist hay thử đồ).</li>
+                <li><strong>Bước 3 (processPayment):</strong> Gọi cổng thanh toán hoặc giả lập thanh toán an toàn. Nếu thất bại, kích hoạt cơ chế bù trừ (Compensating action) để mở khóa tồn kho.</li>
+                <li><strong>Đồng bộ Chuyển đổi (Conversion Tracking):</strong> Đơn hàng thành công sẽ tự động cập nhật lại lịch sử `stylist_sessions` để ghi nhận và tối ưu hóa các đề xuất AI tương lai.</li>
+              </ul>
+            </div>
+            <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800">
+              <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2 font-mono">Cơ cấu Workflow Saga trên Medusa v2:</span>
+              <pre><code class="language-typescript">// apps/api-medusa/src/workflows/checkout-saga.ts
+import { createWorkflow, StepResponse } from "@medusajs/framework/workflows-sdk";
+
+export const checkoutSagaWorkflow = createWorkflow(
+  "checkout-saga",
+  function (input: CheckoutInput) {
+    // 1. Giữ tồn kho
+    const inventory = reserveInventoryStep(input.items);
+    
+    // 2. Tạo hóa đơn đơn hàng
+    const order = createOrderStep(input);
+    
+    // 3. Tiến hành thanh toán
+    const payment = processPaymentStep({ order, paymentInfo: input.payment });
+    
+    return { order, payment };
+  }
+);</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: API Contracts -->
+      <section id="api-contracts" class="mb-16">
+        <h2 class="text-3xl font-black text-white tracking-tight flex items-center gap-3 mb-2">
+          <span class="h-8 w-1 bg-brand-500 rounded"></span> Danh sách API Contracts chính
+        </h2>
+        <p class="text-zinc-500 mb-8 text-sm">
+          Các cổng giao tiếp I/O chuẩn hóa giữa các Instance trong hệ sinh thái Monorepo.
+        </p>
+
+        <div class="overflow-x-auto rounded-2xl border border-zinc-800 bg-zinc-950">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-zinc-800 bg-zinc-900/40 text-zinc-400 font-bold uppercase">
+                <th class="p-4">Phương thức</th>
+                <th class="p-4">Đường dẫn Endpoint</th>
+                <th class="p-4">Nhiệm vụ chính</th>
+                <th class="p-4">Bảo mật / Headers</th>
+                <th class="p-4">Payload Đầu vào / Kết quả</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-800/60 text-zinc-300">
+              <tr>
+                <td class="p-4 font-bold text-emerald-400">POST</td>
+                <td class="p-4 font-mono font-bold text-white">/v1/ai-profile</td>
+                <td class="p-4">Tạo/cập nhật thông số cơ thể, lưu ảnh gốc người mẫu.</td>
+                <td class="p-4"><span class="px-2 py-1 bg-zinc-800 rounded">x-customer-id</span></td>
+                <td class="p-4"><code>{ height: 175, weight: 65, gender: "male" }</code></td>
+              </tr>
+              <tr>
+                <td class="p-4 font-bold text-blue-400">GET</td>
+                <td class="p-4 font-mono font-bold text-white">/v1/ai-profile</td>
+                <td class="p-4">Lấy thông số cơ thể và ảnh nền hiện tại của khách hàng.</td>
+                <td class="p-4"><span class="px-2 py-1 bg-zinc-800 rounded">x-customer-id</span></td>
+                <td class="p-4">Trả về chi tiết profile DB hoặc <code>null</code> nếu chưa có.</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-bold text-emerald-400">POST</td>
+                <td class="p-4 font-mono font-bold text-white">/v1/user/garments</td>
+                <td class="p-4">Tải ảnh trang phục cá nhân, tự tách nền PNG và lưu Closet.</td>
+                <td class="p-4"><span class="px-2 py-1 bg-zinc-800 rounded">Multipart/Form</span></td>
+                <td class="p-4">Form: <code>garment_image</code> (file), <code>category</code>.</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-bold text-red-400">DELETE</td>
+                <td class="p-4 font-mono font-bold text-white">/v1/user/garments/:id</td>
+                <td class="p-4">Xóa trang phục trong tủ đồ ảo (dọn sạch file + DB + Vector DB).</td>
+                <td class="p-4"><span class="px-2 py-1 bg-zinc-800 rounded">x-customer-id</span></td>
+                <td class="p-4"><code>{ status: "success" }</code></td>
+              </tr>
+              <tr>
+                <td class="p-4 font-bold text-emerald-400">POST</td>
+                <td class="p-4 font-mono font-bold text-white">/v1/stylist/search</td>
+                <td class="p-4">Chat nhận tư vấn, tìm tương đồng vector RAG đề xuất Outfit.</td>
+                <td class="p-4"><span class="px-2 py-1 bg-zinc-800 rounded">x-customer-id</span></td>
+                <td class="p-4"><code>{ query: "Tìm set đi biển" }</code> &rarr; Trả về mảng Outfit Options.</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-bold text-emerald-400">POST</td>
+                <td class="p-4 font-mono font-bold text-white">/v1/stylist/replace</td>
+                <td class="p-4">Tìm sản phẩm tương đồng thay thế 1 phần tử trong Outfit.</td>
+                <td class="p-4"><span class="px-2 py-1 bg-zinc-800 rounded">Content-Type: JSON</span></td>
+                <td class="p-4"><code>{ current_option_id, target_product_id }</code></td>
+              </tr>
+              <tr>
+                <td class="p-4 font-bold text-emerald-400">POST</td>
+                <td class="p-4 font-mono font-bold text-white">/v1/vton/jobs</td>
+                <td class="p-4">Đăng ký job thử đồ ảo đa lớp VTON vào RabbitMQ.</td>
+                <td class="p-4"><span class="px-2 py-1 bg-zinc-800 rounded">Content-Type: JSON</span></td>
+                <td class="p-4"><code>{ human_image, garments: [{url, type}] }</code></td>
+              </tr>
+              <tr>
+                <td class="p-4 font-bold text-emerald-400">POST</td>
+                <td class="p-4 font-mono font-bold text-white">/v1/internal/products</td>
+                <td class="p-4">API nội bộ tạo nhanh sản phẩm mới lên Medusa.</td>
+                <td class="p-4"><span class="px-2 py-1 bg-brand-500/20 text-brand-300 rounded font-bold">x-internal-token</span></td>
+                <td class="p-4">Form: <code>title</code>, <code>price</code>, <code>image</code>, <code>category</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section: AI Models & GPU Tuning -->
+      <section id="model-VRAM" class="mb-16">
+        <h2 class="text-3xl font-black text-white tracking-tight flex items-center gap-3 mb-2">
+          <span class="h-8 w-1 bg-brand-500 rounded"></span> Chi tiết Model AI & GPU Optimization
+        </h2>
+        <p class="text-zinc-500 mb-8 text-sm">
+          Cấu hình tối ưu để chạy các tác vụ sinh ảnh VTON nặng trên GPU thế hệ mới một cách mượt mà.
+        </p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="space-y-6">
+            <div class="p-6 rounded-2xl glass-panel border border-zinc-800/80">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-full mb-3">
+                PERSISTENT LOADING
+              </span>
+              <h3 class="text-lg font-bold text-white mb-2">Persistent VRAM Configuration</h3>
+              <p class="text-zinc-400 text-xs leading-relaxed mb-4">
+                Do các tác vụ NLP đã được chuyển dịch hoàn toàn lên Cloud API (Gemini 1.5 Flash 8b), toàn bộ <strong>VRAM của RTX 5060</strong> được dành riêng cho mô hình sinh ảnh VTON.
+              </p>
+              <ul class="space-y-2 text-zinc-400 text-xs pl-4 list-disc">
+                <li>Mô hình <strong>CatVTON Adapter</strong> sử dụng định dạng <code>bfloat16</code> siêu nhẹ.</li>
+                <li>Model được nạp thẳng vào VRAM một lần duy nhất lúc khởi động Server Python (Persistent loading), loại bỏ hoàn toàn độ trễ 4-6 giây nạp/giải phóng model trên mỗi request.</li>
+              </ul>
+            </div>
+
+            <div class="p-6 rounded-2xl glass-panel border border-zinc-800/80">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-brand-500/10 text-brand-400 text-xs font-bold rounded-full mb-3">
+                WINDOWS & WSL2 IPC
+              </span>
+              <h3 class="text-lg font-bold text-white mb-2">WSL2 Networking Gateway</h3>
+              <p class="text-zinc-400 text-xs leading-relaxed">
+                Môi trường chạy AI Service là Python chạy trên WSL2 (Ubuntu), trong khi Medusa Core chạy trực tiếp trên Windows Host. Hai môi trường giao tiếp chéo qua địa chỉ Gateway của card mạng ảo WSL2 (lấy tự động bằng lệnh <code>ip route show default</code>) thay vì địa chỉ <code>127.0.0.1</code> cục bộ của Windows.
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2 font-mono">Tuning PyTorch/CUDA cho RTX 5060 (SM_120):</span>
+              <p class="text-zinc-400 text-xs leading-relaxed mb-4">
+                Các dòng card đồ họa Blackwell mới (RTX 5060 / SM120) chưa có file biên dịch sẵn cho PyTorch 2.6 ổn định. Hệ thống sử dụng cơ chế kích hoạt JIT biên dịch thời gian thực trong môi trường <code>.env</code>:
+              </p>
+              <pre><code class="language-bash"># Cấu hình biến môi trường ép chạy PTX JIT
+TORCH_CUDA_ARCH_LIST="12.0"
+CUDA_MODULE_LOADING=LAZY
+
+# Sử dụng UV cài đặt PyTorch Nightly hỗ trợ CUDA 12.8
+uv pip install --pre torch torchvision \
+  --index-url https://download.pytorch.org/whl/nightly/cu128</code></pre>
+            </div>
+            <div class="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800 mt-4">
+              <span class="font-bold text-white text-xs block mb-1">⚠️ Lưu ý symlink trên Windows:</span>
+              <span class="text-zinc-500 text-[11px] leading-relaxed">
+                Khi tải weights của các snapshot model HuggingFace về Windows Host, hãy chắc chắn hệ điều hành của anh đã bật **Windows Developer Mode** để cho phép Python tạo các file symlink liên kết, tránh lỗi phân quyền tải weights.
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Installation Guide -->
+      <section id="installation" class="mb-16">
+        <h2 class="text-3xl font-black text-white tracking-tight flex items-center gap-3 mb-2">
+          <span class="h-8 w-1 bg-brand-500 rounded"></span> Hướng dẫn Khởi chạy Dự án
+        </h2>
+        <p class="text-zinc-500 mb-8 text-sm">
+          Dành cho các lập trình viên mới bắt đầu tiếp cận và chạy dự án này trên máy cục bộ của mình.
+        </p>
+
+        <div class="space-y-6">
+          
+          <div class="glass-panel rounded-2xl p-6 border border-zinc-800/80">
+            <h3 class="font-bold text-white text-base mb-3 flex items-center gap-2">
+              <span class="bg-brand-500 text-white h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-black">1</span>
+              Chuẩn bị hạ tầng Docker
+            </h3>
+            <p class="text-zinc-400 text-xs mb-4">Khởi động cơ sở dữ liệu PostgreSQL, cache Redis và message queue RabbitMQ thông qua Docker Compose:</p>
+            <pre><code class="language-bash"># Di chuyển đến thư mục docker và khởi động
+cd docker
+docker-compose up -d
+
+# Xác minh các container đang chạy bình thường
+docker ps</code></pre>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-6 border border-zinc-800/80">
+            <h3 class="font-bold text-white text-base mb-3 flex items-center gap-2">
+              <span class="bg-brand-500 text-white h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-black">2</span>
+              Cài đặt Dependencies & Khởi chạy ứng dụng Node (Frontend + Medusa)
+            </h3>
+            <p class="text-zinc-400 text-xs mb-4">Sử dụng `pnpm` workspace để cài đặt tất cả thư viện Node.js và chạy đồng thời cả hai dịch vụ:</p>
+            <pre><code class="language-bash"># Cài đặt tất cả packages trong Monorepo
+pnpm install
+
+# Build các thư viện dùng chung trước
+pnpm build
+
+# Khởi chạy chế độ phát triển (Turborepo chạy song song Frontend + Medusa)
+pnpm dev</code></pre>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-6 border border-zinc-800/80">
+            <h3 class="font-bold text-white text-base mb-3 flex items-center gap-2">
+              <span class="bg-brand-500 text-white h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-black">3</span>
+              Khởi động AI Service (Python / WSL2)
+            </h3>
+            <p class="text-zinc-400 text-xs mb-4">Di chuyển vào thư mục `apps/ai-service`, thiết lập môi trường ảo bằng `uv` tốc độ cao và bật FastAPI Worker:</p>
+            <pre><code class="language-bash">cd apps/ai-service
+
+# Tạo và kích hoạt môi trường ảo Python
+uv venv
+source .venv/bin/activate  # Trên Linux/WSL2
+# Hoặc .venv\Scripts\activate trên Windows CMD
+
+# Cài đặt các thư viện Python
+uv pip install -r requirements.txt
+
+# Khởi chạy dịch vụ FastAPI AI Service
+python main.py</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Troubleshooting -->
+      <section id="troubleshooting" class="mb-16">
+        <h2 class="text-3xl font-black text-white tracking-tight flex items-center gap-3 mb-2">
+          <span class="h-8 w-1 bg-brand-500 rounded"></span> Xử lý Sự cố & Hỏi đáp nhanh (FAQ)
+        </h2>
+        <p class="text-zinc-500 mb-8 text-sm">
+          Danh sách các lỗi thường gặp trong quá trình tích hợp và giải pháp khắc phục triệt để.
+        </p>
+
+        <div class="space-y-4">
+          <div class="p-6 rounded-2xl border border-zinc-800 bg-zinc-900/30">
+            <h4 class="font-bold text-white text-sm mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-yellow-500"></i>
+              Lỗi: Backend Medusa bị crash hoặc restart liên tục khi có người dùng upload ảnh?
+            </h4>
+            <p class="text-zinc-400 text-xs leading-relaxed">
+              <strong>Nguyên nhân:</strong> Ban đầu, ảnh upload được lưu trong thư mục <code>public/uploads</code> của Next.js hoặc Medusa. Trình biên dịch Nodemon/File Watcher phát hiện có file mới được tạo và tự động kích hoạt tiến trình hot-reload khởi động lại server Node.
+              <br><strong class="text-emerald-400">Khắc phục:</strong> Đã chuyển thư mục lưu trữ sang <code>.medusa/uploads/</code> nằm ngoài vùng quét của File Watcher. Ảnh vẫn được phân phối bình thường qua static routing middleware của Medusa tại URL `/uploads/*`.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-2xl border border-zinc-800 bg-zinc-900/30">
+            <h4 class="font-bold text-white text-sm mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-yellow-500"></i>
+              Lỗi: Thư viện `@imgly/background-removal-node` báo lỗi "Unsupported protocol: d:" trên Windows?
+            </h4>
+            <p class="text-zinc-400 text-xs leading-relaxed">
+              <strong>Nguyên nhân:</strong> Thư viện tách nền WASM của Imgly không thể parse các đường dẫn tuyệt đối dạng ổ đĩa vật lý của Windows (VD: <code>D:\project\...</code>).
+              <br><strong class="text-emerald-400">Khắc phục:</strong> Sử dụng hàm <code>pathToFileURL</code> từ thư viện <code>url</code> của Node.js để ép kiểu đường dẫn về định dạng URI chuẩn quốc tế trước khi đưa vào hàm xử lý tách nền: <code>file:///D:/project/...</code>.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-2xl border border-zinc-800 bg-zinc-900/30">
+            <h4 class="font-bold text-white text-sm mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-yellow-500"></i>
+              Lỗi: AI Stylist Chat trả về các set đồ gợi ý bị vỡ ảnh hoặc không thể nhấn thêm vào giỏ hàng?
+            </h4>
+            <p class="text-zinc-400 text-xs leading-relaxed">
+              <strong>Nguyên nhân:</strong> Do AI Stylist trả về gợi ý phối đồ kết hợp cả sản phẩm của cửa hàng (Store Products) và trang phục cá nhân của tủ đồ người dùng (Closet Items). Đồ cá nhân không thể thêm vào giỏ hàng và có URL ảnh nội bộ của user.
+              <br><strong class="text-emerald-400">Khắc phục:</strong> Thẻ gợi ý <code>OutfitCard</code> đã được cập nhật logic kiểm tra phân loại `type`. Nếu là đồ cá nhân (`type === 'closet'`), giao diện sẽ hiển thị nhãn **"Tủ Đồ"**, tự động ghép đúng host URL backend để hiển thị ảnh, và **ẩn nút "Thêm vào giỏ"**.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="mt-20 pt-8 border-t border-zinc-800/80 text-center text-zinc-500 text-xs">
+        <p class="mb-2">AI Fashion E-commerce Monorepo Developer System Portal.</p>
+        <p>&copy; 2026. Designed with passion for Google DeepMind Advanced Agentic Coding.</p>
+      </footer>
+
+    </main>
+  </div>
+
+  <script>
+    // Trigger Highlight.js
+    document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code').forEach((el) => {
+        hljs.highlightElement(el);
+      });
+    });
+
+    // Workflow Tabs switching logic
+    function switchWFTab(tabId) {
+      // Hide all content areas
+      const contents = ['wf-profile', 'wf-stylist', 'wf-vton', 'wf-checkout'];
+      contents.forEach(id => {
+        document.getElementById('content-' + id).classList.add('hidden');
+        
+        // Remove active class from buttons
+        const btn = document.getElementById('btn-' + id);
+        btn.classList.remove('border-brand-500', 'text-white');
+        btn.classList.add('border-transparent', 'text-zinc-400');
+      });
+
+      // Show target content
+      document.getElementById('content-' + tabId).classList.remove('hidden');
+      
+      // Add active class to target button
+      const activeBtn = document.getElementById('btn-' + tabId);
+      activeBtn.classList.remove('border-transparent', 'text-zinc-400');
+      activeBtn.classList.add('border-brand-500', 'text-white');
+    }
+  </script>
+</body>
+</html>

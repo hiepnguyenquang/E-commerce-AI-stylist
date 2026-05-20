@@ -129,15 +129,87 @@ Tệp tin này lưu trữ lịch sử các lỗi đã được giải quyết đ
 - **Bài học (Lessons Learned):**
   Khi sử dụng Global State Management (như Zustand hoặc Redux) cho các tác vụ UI có thể được kích hoạt từ nhiều trang khác nhau (như modal, overlay), bắt buộc phải có thuộc tính đánh dấu ngữ cảnh (context) hoặc ID của phiên làm việc để tránh rò rỉ trạng thái (state leakage) làm sai lệch UI ở các trang không liên quan.
 
-## [2026-05-13] - [AI Stylist Logic Flaws: Item-level VTON and Duplicate Options]
+## [2026-05-13] - [AI Stylist Generating Duplicate Outfit Options]
 - **Triệu chứng (Symptoms):**
-  1. Trong giao diện kết quả AI Stylist, mỗi món đồ trong một bộ đồ (Outfit Option) đều có nút "Thử VTON" riêng lẻ. Điều này đi ngược lại với logic trải nghiệm vì người dùng muốn thử toàn bộ trang phục của set đồ đó cùng lúc.
-  2. AI đôi khi gợi ý 2 Option (Set đồ) giống hệt nhau về cả phong cách lẫn sản phẩm, gây lãng phí không gian hiển thị và giảm chất lượng tư vấn.
+  Khi lượng sản phẩm trong kho hoặc tủ đồ cá nhân quá ít, AI Stylist sinh ra 2 bộ đồ (Options) giống hệt nhau hoặc lặp lại cùng một phong cách thay vì đưa ra các lựa chọn khác biệt hoặc chỉ trả về 1 bộ đồ duy nhất.
 - **Nguyên nhân gốc rễ (Root Cause):**
-  1. Nút VTON được đặt cứng trong vòng lặp `.map` render từng `OutfitItem` thay vì ở cấp độ `OutfitOption`. Đồng thời nó gọi hàm `startTryOn` (chỉ hỗ trợ ghép 1 ảnh) thay vì `startMultiStepTryOn` (hỗ trợ ghép cả bộ).
-  2. Câu lệnh Prompt điều khiển LLM trong `llm_client.py` chưa có ràng buộc yêu cầu sự đa dạng (diversity) giữa các lựa chọn được sinh ra. LLM tự động lấy các sản phẩm tốt nhất từ Pool và do không bị cấm, nó tạo ra các Option trùng lặp.
+  Trong file `llm_client.py`, câu lệnh hệ thống (Prompt C) ép buộc LLM bằng câu lệnh `Hãy chọn ra các món đồ phù hợp nhất từ danh sách trên để kết hợp thành {limit_options} Options hoàn chỉnh.` Do hệ thống quy định cứng `limit_options = 2` từ Frontend, LLM bị ép buộc phải sinh ra đủ 2 bộ. Khi không có đủ sản phẩm phù hợp để tạo ra 2 bộ khác biệt, thay vì trả về 1 bộ duy nhất, LLM cố gắng "lách luật" bằng cách lặp lại kết quả hoặc ghép nối vô lý để đủ định mức.
 - **Giải pháp (Resolution):**
-  1. Tại `OutfitCard.tsx`: Xóa nút VTON ở từng món đồ. Thêm một nút "Thử Đồ (Toàn Set)" ở Header của thẻ Option. Nút này sẽ thu thập tất cả URL và suy luận loại trang phục (tops, bottoms, dress) dựa vào Tên (Title), sau đó gọi `startMultiStepTryOn(humanUrl, garments, 'modal')`.
-  2. Tại `llm_client.py`: Bổ sung chỉ thị nghiêm ngặt vào Prompt: `"CÁC OPTION PHẢI KHÁC BIỆT NHAU: Tuyệt đối không được tạo ra 2 Option giống hệt nhau. Mỗi Option nên mang một phong cách (style) khác nhau hoặc sử dụng các món đồ chính khác nhau"`.
+  - Chỉnh sửa Prompt C, định nghĩa lại `limit_options` là số lượng **TỐI ĐA** (maximum) thay vì bắt buộc.
+  - Bổ sung lệnh rõ ràng: `Nếu danh sách sản phẩm cung cấp không đủ đa dạng để tạo ra {limit_options} Set đồ hoàn toàn khác biệt, hãy chỉ trả về số lượng Option khả thi (ví dụ 1 Option duy nhất). TUYỆT ĐỐI KHÔNG được tạo ra các Option trùng lặp...`.
 - **Bài học (Lessons Learned):**
-  Khi thiết kế tính năng AI sinh nội dung (Generative UI), phải luôn dự đoán trường hợp AI lười biếng sinh ra nội dung trùng lặp. Prompt engineering cần có các quy tắc ràng buộc (constraints) rõ ràng về tính đa dạng của Output. Đối với luồng VTON đa bước (Mix & Match), cần đảm bảo Frontend có thể tự động phân loại đúng danh mục (category) của món đồ để gửi cho AI Worker xử lý mượt mà.
+  Khi thiết kế hệ thống Prompt để sinh mảng dữ liệu (Array of items), cần phải trù trừ trường hợp tập dữ liệu đầu vào (Context/Pool) quá nhỏ không đủ đáp ứng số lượng yêu cầu (Limit). Không nên ép buộc cứng (hard limit) số lượng kết quả trả về đối với LLM để tránh tình trạng ảo giác (Hallucination) hoặc lặp lại kết quả (Repetition).
+
+## [2026-05-13] - [AI Stylist Gender Confusion and Profile Hydration Failure]
+- **Triệu chứng (Symptoms):**
+  1. Khi người dùng thiết lập hồ sơ AI (AI Profile) là Nam (`male`), sau khi tải lại trang, giới tính bị hiển thị ngược về `Unisex`.
+  2. Khi người dùng chat với AI Stylist, AI thường xuyên xưng hô là "quý cô" hoặc tư vấn trang phục theo phong cách nữ tính bất chấp người dùng là nam.
+- **Nguyên nhân gốc rễ (Root Cause):**
+  1. **Lỗi Frontend/Backend Hydration:** File model của MedusaJS (`ai-profile.ts`) và cấu trúc schema CSDL ban đầu không hề có cột `gender`. Ở backend (`route.ts` của ai-profile), thông tin `gender` từ `formData` bị bỏ qua hoàn toàn và không được lưu vào Postgres. Do đó, khi Frontend (`page.tsx`) gọi API `GET /v1/ai-profile`, không có trường `gender` trả về, khiến React state bị fallback về giá trị mặc định là `unisex`.
+  2. **Thiếu Ngữ cảnh Giới tính trong LLM (Missing Context):** API AI Stylist (`/v1/stylist/search`) không hề gửi thông tin giới tính sang Python AI Service. Hàm `generate_outfit_options` trong `llm_client.py` cũng không có cơ chế nhận `gender`. Do thiếu ngữ cảnh, LLM tự động mặc định (bias) đối tượng mua sắm thời trang là nữ giới ("quý cô").
+- **Giải pháp (Resolution):**
+  1. **Sửa Model và API:** Bổ sung trường `gender: model.text().nullable()` vào file `models/ai-profile.ts`. Cập nhật `POST /v1/ai-profile` (MedusaJS) để trích xuất `gender` từ `req.body` và lưu vào DB. Cập nhật Frontend để hydrate biến state `gender` từ API trả về.
+  2. **Tiêm Ngữ cảnh Giới tính (Context Injection):** Sửa API proxy `POST /v1/stylist/search` để tự động truy vấn (fetch) `gender` từ bảng `ai_profiles` của người dùng hiện tại trước khi gửi request sang Python. Tại Python, thêm biến nội suy `audience` (dành cho nam giới / dành cho nữ giới) vào Prompt tùy thuộc vào giá trị `gender` nhận được, và bổ sung ràng buộc nghiêm ngặt cấm xưng hô sai giới tính.
+- **Bài học (Lessons Learned):**
+  Khi xây dựng các tính năng cá nhân hóa bằng AI (Personalized AI), mọi dữ liệu định danh cốt lõi (như giới tính, độ tuổi) phải được truyền xuyên suốt qua toàn bộ vòng đời của request (từ Frontend -> Core Backend -> AI Worker -> LLM Context Window). Nếu làm rơi rớt dữ liệu ở bất kỳ mắt xích nào, LLM sẽ tự động điền vào bằng định kiến (bias) có sẵn của nó, gây ra trải nghiệm tệ hại cho người dùng.
+
+## [2026-05-14] - [AI Stylist Over-Suggesting Items Unfriendly to VTON]
+- **Triệu chứng (Symptoms):**
+  AI Stylist thỉnh thoảng gợi ý những Set đồ bao gồm 3 món (ví dụ: Áo thun + Quần âu + Áo khoác ngoài) hoặc thêm giày dép, phụ kiện. Tuy nhiên, luồng VTON đa bước (Multi-step) hiện tại của hệ thống chỉ được thiết kế ổn định cho tối đa 2 lớp quần áo cơ bản (1 áo + 1 quần, hoặc 1 váy liền). Việc AI gọi thêm áo khoác ngoài (outerwear) hoặc phụ kiện khiến giao diện VTON bị lỗi hoặc gửi request không hợp lệ cho CatVTON worker.
+- **Nguyên nhân gốc rễ (Root Cause):**
+  Trong file `llm_client.py`, cấu trúc Prompt C của LLM cho phép AI Stylist có quyền tự do thêm các phụ kiện và áo khoác ngoài (Câu lệnh cũ: *"Bạn có thể thêm giày (shoes) hoặc phụ kiện (accessories) nếu có trong danh sách"*). LLM không tự biết được giới hạn kỹ thuật của hệ thống VTON phía sau.
+- **Giải pháp (Resolution):**
+  Cập nhật lại toàn bộ ngữ cảnh Ràng buộc (Constraints) trong Prompt C (`llm_client.py`) để nghiêm cấm AI gợi ý vượt quá khả năng xử lý của VTON:
+  1. Thêm chỉ thị `GIỚI HẠN SỐ LƯỢNG MÓN ĐỒ`: Khẳng định hệ thống hiện tại chỉ hỗ trợ thử đồ ảo tối đa 2 lớp.
+  2. Bắt buộc AI chia làm 2 trường hợp: Hoặc là chính xác 2 món (1 Áo + 1 Quần/Chân váy), Hoặc là chính xác 1 món (Váy liền/Đầm).
+  3. Bổ sung lệnh cấm ngặt nghèo: `TUYỆT ĐỐI KHÔNG gợi ý thêm Áo khoác ngoài (outerwear), Giày (shoes) hay Phụ kiện (accessories) trong thời điểm hiện tại`.
+- **Bài học (Lessons Learned):**
+  Đối với hệ thống AI kết hợp nhiều công nghệ (ví dụ LLM kết hợp với Computer Vision), sự sáng tạo của LLM phải luôn được kiểm soát và đồng bộ với giới hạn năng lực kỹ thuật của mô hình Vision. Không nên cho phép LLM gợi ý những tính năng/sản phẩm mà hệ thống backend (hay engine render ảnh) không có khả năng xử lý, để tránh tạo ra kỳ vọng sai và trải nghiệm lỗi cho người dùng.
+
+## [2026-05-14] - [MedusaJS invalid_data Error after adding columns to Model]
+- **Triệu chứng (Symptoms):**
+  Khi thêm trường (cột) mới vào Data Model của MedusaJS (ví dụ thêm gender vào AiProfile), nếu khởi động lại server và dùng API POST/PUT để lưu dữ liệu có chứa trường mới đó, Medusa sẽ trả về lỗi 500 Internal Server Error với `type: 'invalid_data'` và `code: undefined`.
+- **Nguyên nhân gốc rễ (Root Cause):**
+  Trong MedusaJS v2, việc thay đổi định nghĩa Model trong thư mục models/ chỉ là thay đổi mã nguồn ORM. Medusa không tự động Alter bảng (thêm cột) ở PostgreSQL khi chạy lệnh `medusa develop` (hoặc pnpm dev). Do bảng Postgres chưa có cột gender, hệ thống ORM của Medusa chặn việc lưu (validation error) hoặc ném ra exception invalid_data vì dữ liệu không khớp với Database schema.
+- **Giải pháp (Resolution):**
+  Mỗi khi thay đổi bất kỳ file Model nào, bắt buộc phải sinh file Migration và chạy Migrate. Cụ thể:
+  1. `npx medusa db:generate [tên_module]` (vd: `npx medusa db:generate aiPersonalization`).
+  2. `npx medusa db:migrate`.
+  Đã thực thi 2 lệnh này thành công, dữ liệu gender đã có thể được lưu bình thường.
+- **Bài học (Lessons Learned):**
+  Trong quá trình phát triển với MedusaJS (và các ORM nói chung), mã nguồn (Model) và cơ sở dữ liệu (Database Schema) là hai thực thể tách biệt. Mọi sự thay đổi về cấu trúc phải luôn đi kèm với quá trình Migration (Generate -> Migrate) để đảm bảo đồng bộ, tránh các lỗi `invalid_data` không rõ nguyên nhân.
+
+## [2026-05-14] - [AI Stylist VTON Try-On Generating Garbage Results]
+- **Triệu chứng (Symptoms):**
+  Khi người dùng nhấn 'Thử Đồ Toàn Set' trong AI Stylist, ảnh kết quả (VTON) bị biến dạng nghiêm trọng (ví dụ: quần bị mặc lên thân trên, áo bị mặc lên chân). Trong khi đó, luồng Mix & Match ở trang Tủ đồ (Wardrobe) lại hoạt động hoàn hảo.
+- **Nguyên nhân gốc rễ (Root Cause):**
+  1. **Thiếu Category Type:** Thuộc tính `type` (upper_body, lower_body, dress) của trang phục rất quan trọng để CatVTON phân tích và tạo mask. Ở luồng Tủ đồ, Frontend đã định tuyến sẵn loại quần áo. Nhưng ở AI Stylist, `OutfitCard.tsx` tự động đoán bừa `type` bằng cách tìm từ khóa (quần, váy) trong tên. Nếu tên sản phẩm là tiếng Anh hoặc thiếu từ khóa, thẻ tự động gắn mặc định `type = 'upper_body'`. Do đó, nếu AI gợi ý một chiếc quần, VTON sẽ che đi thân trên và cố vẽ cái quần lên ngực người mẫu.
+  2. **Thứ tự thực thi VTON (Order of Execution):** `OutfitCard.tsx` gửi danh sách quần áo lên API theo thứ tự ngẫu nhiên. Nếu áo được vẽ sau quần (hoặc ngược lại không đúng chuẩn) có thể gây lỗi xếp lớp (layering) trên CatVTON.
+- **Giải pháp (Resolution):**
+  1. **Hydrate chính xác Category:** Cập nhật API Proxy `api/v1/stylist/search/route.ts` ở MedusaJS, lấy thêm `categories` từ Database và map vào trường `clothing_type` (upper_body, lower_body, dress) truyền thẳng cho Frontend.
+  2. **Sort Logic ở Frontend:** Trong `OutfitCard.tsx`, ưu tiên lấy `item.clothing_type` thay vì đoán tên. Đồng thời, hàm `handleOutfitTryOn` đã được bổ sung thuật toán sắp xếp (sort) mảng `garmentsToProcess` theo thứ tự: `dress` -> `lower_body` -> `upper_body` trước khi gửi lên API để đảm bảo lớp vẽ được phân tầng chuẩn.
+- **Bài học (Lessons Learned):**
+  Khi truyền dữ liệu ảnh vào AI Vision Model phân chia theo bộ phận cơ thể (như CatVTON), tuyệt đối không đoán loại trang phục bằng chuỗi văn bản (string matching) trên Frontend nếu tên sản phẩm không được chuẩn hóa. Phải luôn lấy loại trang phục nguyên bản (category type) trực tiếp từ Database gốc để làm Input điều hướng cho AI.
+
+## [2026-05-14] - [AI Stylist Refusal UI and VTON Limits]
+- **Triệu chứng (Symptoms):**
+  1. Khi người dùng nhập "hello" (không liên quan đến thời trang), AI phản hồi đúng từ chối, nhưng UI hiển thị dưới dạng một "Outfit Card" (Thẻ trang phục) có tên "Chủ đề Không Hỗ Trợ" kèm theo nút "Thử Đồ Toàn Set".
+  2. Nếu AI gợi ý 3 món đồ (ví dụ: Áo + Quần + Phụ kiện), tính năng VTON đa bước có thể bị hỏng nếu gửi một loại món đồ mà AI Model (CatVTON) không hỗ trợ (chỉ hỗ trợ upper_body, lower_body, dress).
+- **Nguyên nhân gốc rễ (Root Cause):**
+  1. **UI Intent Guardrail:** API `stylist.py` trả về thông báo từ chối dưới dạng một mảng `options` giả (mock option). `ChatBox.tsx` mặc định thấy có `options` là lập tức lặp qua và render ra `OutfitCard.tsx`.
+  2. **VTON Item Limits:** Trong `OutfitCard.tsx`, mảng `garmentsToProcess` được đẩy tất cả mọi item có thumbnail, dẫn đến việc các phụ kiện hoặc giày cũng bị gửi lên luồng VTON.
+- **Giải pháp (Resolution):**
+  1. **Sửa API và UI Guardrail:** Sửa `stylist.py` để trả về định dạng `{"refusal": True, "message": refusal}` thay vì trả mảng `options`. Sửa `route.ts` để forward trạng thái này. Sửa `ChatBox.tsx` để hiển thị `data.refusal` thành tin nhắn văn bản thông thường (text message) của Assistant, tránh kích hoạt render Card.
+  2. **Filter VTON Input:** Cập nhật `OutfitCard.tsx` để lọc (filter) mảng `garmentsToProcess`, chỉ đẩy lên `startMultiStepTryOn` các item có `clothing_type` thuộc danh sách cho phép là `['upper_body', 'lower_body', 'dress']`. Thêm thông báo Alert thân thiện nếu không có món nào hợp lệ.
+- **Bài học (Lessons Learned):**
+  Các luồng rẽ nhánh báo lỗi/từ chối từ AI (Guardrails) cần có chuẩn dữ liệu riêng biệt với luồng dữ liệu bình thường, không nên ép kiểu (mockup data) để tránh UI phải phỏng đoán và sinh ra các thành phần giao diện thừa thãi. Đối với các tác vụ gọi Model nặng (Vision), bắt buộc phải có whitelist filter ở Frontend trước khi gọi API để tránh phí tài nguyên cho các input không hợp lệ.
+
+## [2026-05-20] - [CatVTON Garment Length Alteration due to Background Removal]
+- **Triệu chứng (Symptoms):**
+  CatVTON sinh ảnh bị thay đổi độ dài trang phục so với ý muốn. Cụ thể, khi người dùng đang mặc quần dài nhưng tải lên quần ngắn để thử, mô hình CatVTON tự động kéo giãn quần ngắn thành quần dài.
+- **Nguyên nhân gốc rễ (Root Cause):**
+  Việc sử dụng công cụ cắt nền (Background Removal) trước khi truyền ảnh trang phục vào CatVTON làm mất đi các thông tin bao cảnh xung quanh viền áo/quần. Điều này khiến mô hình VTON không nhận diện được chính xác tỷ lệ và độ dài gốc của trang phục, dẫn đến việc bị ảnh hưởng bởi hình khối (silhouette) của trang phục gốc trên người mặc (ví dụ: chân đang mặc quần dài).
+- **Giải pháp (Resolution):**
+  Loại bỏ hoàn toàn bước xóa nền (`removeBackground`) trong API upload trang phục (`POST /v1/user/garments`). Hệ thống chỉ dùng `sharp` để chuẩn hóa định dạng ảnh gốc sang PNG tiêu chuẩn nhằm cung cấp tối đa bối cảnh cho mô hình CatVTON tự nội suy.
+- **Bài học (Lessons Learned):**
+  Các mô hình AI sinh ảnh thế hệ mới (như CatVTON, Diffusion) thường có khả năng phân tích hình ảnh tổng thể cực tốt. Việc can thiệp tiền xử lý (như xóa nền, làm mờ) đôi khi mang lại tác dụng ngược (phá hủy dữ liệu context của AI). Hãy luôn truyền ảnh nguyên bản nhất có thể cho các mô hình này thay vì cố gắng tinh chỉnh bằng thuật toán cổ điển.

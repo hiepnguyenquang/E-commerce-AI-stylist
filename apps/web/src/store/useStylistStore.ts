@@ -6,6 +6,7 @@ export interface OutfitItem {
   thumbnail: string | null;
   variants: any[];
   type: 'store' | 'closet';
+  clothing_type?: string;
 }
 
 export interface OutfitOption {

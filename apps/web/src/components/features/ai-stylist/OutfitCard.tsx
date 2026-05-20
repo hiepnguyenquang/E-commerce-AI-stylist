@@ -21,41 +21,54 @@ export default function OutfitCard({ option, messageId }: { option: OutfitOption
   };
 
   const handleOutfitTryOn = () => {
-    if (!vtonStore.humanImageUrl) {
+    const absoluteHumanUrl = getFullImageUrl(vtonStore.humanImageUrl) || vtonStore.humanImageUrl;
+    if (!absoluteHumanUrl) {
       alert("Bạn chưa thiết lập Hồ sơ AI (chưa có ảnh gốc). Vui lòng vào trang Hồ sơ AI để tải ảnh lên.");
       return;
     }
 
-    const garmentsToProcess: {url: string, type: string}[] = [];
+    let garmentsToProcess: {url: string, type: string}[] = [];
     
     option.items.forEach(item => {
       if (item.thumbnail) {
         const absoluteUrl = getFullImageUrl(item.thumbnail);
         if (!absoluteUrl) return;
 
-        const lowerTitle = (item.title || "").toLowerCase();
-        let type = 'upper_body'; // default
+        let type = item.clothing_type;
         
-        if (lowerTitle.includes("váy") || lowerTitle.includes("đầm") || lowerTitle.includes("dress")) {
-          type = 'dress';
-        } else if (lowerTitle.includes("quần") || lowerTitle.includes("chân váy") || lowerTitle.includes("skirt") || lowerTitle.includes("bottom") || lowerTitle.includes("jeans") || lowerTitle.includes("shorts")) {
-          type = 'lower_body';
+        // Fallback in case clothing_type is not provided by the backend
+        if (!type) {
+          const lowerTitle = (item.title || "").toLowerCase();
+          type = 'upper_body'; // default
+          if (lowerTitle.includes("đầm") || lowerTitle.includes("dress") || (lowerTitle.includes("váy") && !lowerTitle.includes("chân váy"))) {
+            type = 'dress';
+          } else if (lowerTitle.includes("quần") || lowerTitle.includes("chân váy") || lowerTitle.includes("skirt") || lowerTitle.includes("bottom") || lowerTitle.includes("jeans") || lowerTitle.includes("shorts") || lowerTitle.includes("lower_body")) {
+            type = 'lower_body';
+          }
         }
         
-        garmentsToProcess.push({ url: absoluteUrl, type });
+        if (['upper_body', 'lower_body', 'dress'].includes(type)) {
+          garmentsToProcess.push({ url: absoluteUrl, type });
+        }
       }
     });
 
     if (garmentsToProcess.length === 0) {
-      alert("Không có hình ảnh trang phục nào để thử.");
+      alert("Không có trang phục nào phù hợp để thử (hệ thống hiện chỉ hỗ trợ áo, quần, váy).");
       return;
     }
 
-    const absoluteHumanUrl = getFullImageUrl(vtonStore.humanImageUrl) || vtonStore.humanImageUrl;
-    startMultiStepTryOn(absoluteHumanUrl, garmentsToProcess);
-    // VTONModal now uses activeContext='modal'. By default startMultiStepTryOn sets 'wardrobe',
-    // wait, we just updated it to accept context. We should pass 'modal'.
-    // Let's fix that below.
+    // Sort to process lower_body first, then upper_body, to layer correctly in VTON pipeline
+    // For dress, just put it first
+    garmentsToProcess.sort((a, b) => {
+        if (a.type === 'dress') return -1;
+        if (b.type === 'dress') return 1;
+        if (a.type === 'lower_body' && b.type === 'upper_body') return -1;
+        if (a.type === 'upper_body' && b.type === 'lower_body') return 1;
+        return 0;
+    });
+
+    startMultiStepTryOn(absoluteHumanUrl, garmentsToProcess, 'modal');
   };
 
   const handleAddToCart = (product: OutfitItem) => {
@@ -112,90 +125,71 @@ export default function OutfitCard({ option, messageId }: { option: OutfitOption
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 mb-6">
-      <div className="bg-blue-50 px-4 py-3 border-b border-blue-100 flex justify-between items-center">
-        <h3 className="font-semibold text-blue-900 text-lg">{option.title}</h3>
+    <div className="relative bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100 mb-8 group/card hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-500 overflow-hidden">
+      
+      {/* Header */}
+      <div className="px-7 py-6 flex justify-between items-center bg-zinc-50/50 border-b border-zinc-100">
+        <h3 className="font-black text-zinc-900 text-xl tracking-tighter">{option.title}</h3>
         <button 
-          onClick={() => {
-            const absoluteHumanUrl = getFullImageUrl(vtonStore.humanImageUrl) || vtonStore.humanImageUrl;
-            if (!absoluteHumanUrl) {
-                alert("Bạn chưa thiết lập Hồ sơ AI (chưa có ảnh gốc).");
-                return;
-            }
-            const garmentsToProcess: {url: string, type: string}[] = [];
-            option.items.forEach(item => {
-                if (item.thumbnail) {
-                    const absoluteUrl = getFullImageUrl(item.thumbnail);
-                    if (!absoluteUrl) return;
-                    const lowerTitle = (item.title || "").toLowerCase();
-                    let type = 'upper_body';
-                    if (lowerTitle.includes("váy") || lowerTitle.includes("đầm") || lowerTitle.includes("dress")) {
-                        type = 'dress';
-                    } else if (lowerTitle.includes("quần") || lowerTitle.includes("chân váy") || lowerTitle.includes("skirt") || lowerTitle.includes("bottom") || lowerTitle.includes("jeans") || lowerTitle.includes("shorts")) {
-                        type = 'lower_body';
-                    }
-                    garmentsToProcess.push({ url: absoluteUrl, type });
-                }
-            });
-            if (garmentsToProcess.length === 0) {
-                alert("Không có hình ảnh trang phục nào để thử.");
-                return;
-            }
-            startMultiStepTryOn(absoluteHumanUrl, garmentsToProcess, 'modal');
-          }}
-          className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors font-medium shadow-sm"
+          onClick={handleOutfitTryOn}
+          className="text-[11px] bg-zinc-900 text-white px-6 py-3 rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] hover:scale-105 transition-all duration-300 font-bold tracking-widest uppercase"
         >
-          Thử Đồ (Toàn Set)
+          Thử Đồ Toàn Set
         </button>
       </div>
       
-      <div className="p-4">
-        <p className="text-gray-700 text-sm mb-4 italic">
+      <div className="p-7">
+        <p className="text-zinc-500 text-[15px] leading-relaxed mb-8 font-medium italic border-l-4 border-zinc-300 pl-4 bg-zinc-50/50 py-2">
           &quot;{option.reasoning}&quot;
         </p>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-6">
           {option.items && option.items.length > 0 ? (
             option.items.map((item: any, idx: number) => {
               const isCloset = item.type === 'closet' || (typeof item === 'string' && !item.startsWith('prod_'));
               const isReplacing = replacingItemId === item.id;
               
               return (
-                <div key={item.id || idx} className={`border ${isCloset ? 'border-purple-200 bg-purple-50/30' : 'border-gray-200'} rounded-lg p-2 flex flex-col items-center hover:shadow-sm transition-shadow relative ${isReplacing ? 'opacity-50' : ''}`}>
-                  {isCloset && (
-                    <span className="absolute top-0 left-0 bg-purple-100 text-purple-700 text-[9px] font-bold px-2 py-1 rounded-br-lg rounded-tl-lg z-10">TỦ ĐỒ</span>
-                  )}
-                  {item.thumbnail ? (
-                    <img 
-                      src={getFullImageUrl(item.thumbnail)} 
-                      alt={item.title} 
-                      className="w-full h-32 object-cover rounded-md mb-2 mt-2"
-                    />
-                  ) : (
-                    <div className="w-full h-32 bg-gray-100 flex items-center justify-center rounded-md mb-2 text-xs text-gray-400 text-center px-2 mt-2">
-                      No Image
-                    </div>
-                  )}
-                  <p className="text-xs font-medium text-center line-clamp-2 mb-2 h-8">{item.title}</p>
+                <div key={item.id || idx} className={`group flex flex-col transition-opacity duration-300 ${isReplacing ? 'opacity-40 scale-95' : 'opacity-100'}`}>
+                  <div className="relative aspect-[3/4] w-full bg-zinc-50 rounded-2xl overflow-hidden mb-4 shadow-sm border border-zinc-100 group-hover:shadow-[0_15px_35px_-5px_rgba(0,0,0,0.1)] transition-all duration-500">
+                    {isCloset && (
+                      <span className="absolute top-3 left-3 bg-zinc-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg z-10 shadow-md uppercase tracking-wider">
+                        Tủ Đồ
+                      </span>
+                    )}
+                    {item.thumbnail ? (
+                      <img 
+                        src={getFullImageUrl(item.thumbnail)} 
+                        alt={item.title} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 group-hover:rotate-1"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sm font-medium text-zinc-400 bg-zinc-50">
+                        No Image
+                      </div>
+                    )}
+                  </div>
                   
-                  <div className="w-full flex flex-col space-y-1 mt-auto">
-                    <div className="flex space-x-1">
-                      {!isCloset && item.thumbnail && (
-                        <button 
-                          onClick={() => handleAddToCart(item)}
-                          className="flex-1 text-[10px] bg-blue-600 text-white px-1 py-1 rounded hover:bg-blue-700 transition-colors"
-                        >
-                          Mua
-                        </button>
-                      )}
-                    </div>
+                  <h4 className="text-[14px] font-bold text-zinc-800 line-clamp-2 leading-snug mb-4 group-hover:text-zinc-600 transition-colors">
+                    {item.title}
+                  </h4>
+                  
+                  <div className="mt-auto flex flex-col gap-2">
+                    {!isCloset && item.thumbnail && (
+                      <button 
+                        onClick={() => handleAddToCart(item)}
+                        className="w-full text-[12px] bg-zinc-100 text-zinc-900 font-bold px-4 py-3 rounded-xl hover:bg-zinc-200 transition-all duration-300"
+                      >
+                        Thêm vào giỏ
+                      </button>
+                    )}
                     {messageId && (
                       <button 
                         onClick={() => handleReplaceItem(item)}
                         disabled={isReplacing}
-                        className="w-full text-[10px] border border-gray-300 text-gray-600 px-1 py-1 rounded hover:bg-gray-100 transition-colors"
+                        className="w-full text-[12px] text-zinc-500 font-bold px-4 py-3 rounded-xl border border-zinc-200 bg-white hover:border-zinc-300 hover:text-zinc-800 hover:bg-zinc-50 transition-all duration-300 shadow-sm"
                       >
-                        {isReplacing ? "Đang tìm..." : "Đổi món này"}
+                        {isReplacing ? "Đang tìm kiếm..." : "Đổi món khác"}
                       </button>
                     )}
                   </div>
@@ -203,7 +197,7 @@ export default function OutfitCard({ option, messageId }: { option: OutfitOption
               );
             })
           ) : (
-            <p className="col-span-full text-sm text-gray-500 text-center py-4">Không có sản phẩm nào được chọn.</p>
+            <p className="col-span-full text-sm font-medium text-zinc-400 text-center py-8">Không có sản phẩm nào được chọn.</p>
           )}
         </div>
       </div>

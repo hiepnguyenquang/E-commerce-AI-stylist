@@ -70,6 +70,22 @@
           "enumItems": [],
           "mappedType": "decimal"
         },
+        "gender": {
+          "name": "gender",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "text"
+        },
         "base_body_image_url": {
           "name": "base_body_image_url",
           "type": "text",

@@ -35,13 +35,8 @@ export default async function ProductsPage() {
   const products = data.products || [];
 
   return (
-    <div className="bg-gray-50 min-h-screen py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-4">Cửa hàng Thời trang</h1>
-          <p className="text-lg text-gray-600">Khám phá và thử trực tiếp bằng công nghệ AI.</p>
-        </div>
-
+    <div className="bg-zinc-50/50 min-h-[calc(100vh-80px)] pt-6 pb-12 font-sans">
+      <div className="w-full px-4 sm:px-8">
         <ProductGrid initialProducts={products} />
       </div>
 

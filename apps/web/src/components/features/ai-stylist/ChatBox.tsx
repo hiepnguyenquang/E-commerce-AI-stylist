@@ -69,15 +69,24 @@ export default function ChatBox() {
 
       const data = await res.json();
       
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `Tôi đã tìm thấy ${data.data.options?.length || 0} gợi ý phối đồ dành cho bạn:`,
-        options: data.data.options,
-      };
+      let assistantMessage: Message;
+      if (data.data.refusal) {
+        assistantMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: data.data.message,
+        };
+      } else {
+        assistantMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: `Tôi đã tìm thấy ${data.data.options?.length || 0} gợi ý tuyệt vời dành riêng cho bạn:`,
+          options: data.data.options,
+        };
+      }
 
       addMessage(assistantMessage);
-      fetchSessions(); // Làm mới lịch sử sau khi chat
+      fetchSessions();
     } catch (error) {
       console.error('Error fetching stylist suggestions:', error);
       const errorMessage: Message = {
@@ -106,8 +115,6 @@ export default function ChatBox() {
     };
     addMessage(userMessage);
     
-    // Lưu ý: Hiện tại API /sessions chưa join session_items (do db design phức tạp MVP).
-    // Tạm thời ở mức hiển thị lịch sử prompt đã hỏi để gợi nhớ.
     const assistantMessage: Message = {
       id: `ast_${session.id}`,
       role: 'assistant',
@@ -118,145 +125,158 @@ export default function ChatBox() {
   };
 
   return (
-    <div className="flex flex-row h-[600px] w-full max-w-5xl mx-auto bg-gray-50 rounded-2xl shadow-lg border border-gray-200 overflow-hidden relative">
-      
-      {/* Sidebar Lịch sử */}
-      <div className={`absolute inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-20 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex justify-between items-center p-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-700 flex items-center gap-2">
-            <History size={18} /> Lịch sử Chat
-          </h3>
-          <button onClick={() => setIsSidebarOpen(false)} className="text-gray-400 hover:text-red-500">
-            <X size={20} />
-          </button>
-        </div>
-        <div className="p-2 overflow-y-auto h-[calc(100%-60px)]">
-          {sessions.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center mt-4">Chưa có lịch sử.</p>
-          ) : (
-            sessions.map((s) => (
-              <div 
-                key={s.id} 
-                onClick={() => loadSession(s)}
-                className="p-3 mb-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-indigo-50 border border-transparent hover:border-indigo-100 transition-colors"
-              >
-                <p className="text-sm font-medium text-gray-800 line-clamp-2">{s.prompt}</p>
-                <p className="text-xs text-gray-400 mt-1">{new Date(s.created_at).toLocaleDateString()}</p>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+    <>
+      <div className="relative flex flex-row h-full w-full mx-auto bg-white/70 backdrop-blur-2xl rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
+        
+        {/* Clean Background inside ChatBox */}
+        <div className="absolute inset-0 bg-zinc-50/30 z-0 pointer-events-none"></div>
 
-      {/* Vùng Chat Chính */}
-      <div className="flex flex-col flex-1 w-full">
-        {/* Header */}
-        <div className="bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center shadow-sm z-10">
-          <div className="flex items-center space-x-2">
-            <div className="bg-blue-100 p-2 rounded-full">
-              <Sparkles className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <h2 className="font-bold text-gray-800">AI Stylist</h2>
-              <p className="text-xs text-gray-500">Sẵn sàng tư vấn trang phục cho bạn</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-sm text-gray-500 hover:text-indigo-600 transition-colors px-3 py-1 border border-gray-300 rounded hover:bg-indigo-50 flex items-center gap-1"
-            >
-              <History size={16} /> Lịch sử
-            </button>
-            <button 
-              onClick={clearChat}
-              className="text-sm text-gray-500 hover:text-gray-800 transition-colors px-3 py-1 border border-gray-300 rounded hover:bg-gray-100"
-            >
-              Làm mới (Clear)
+        {/* Sidebar Lịch sử */}
+        <div className={`absolute inset-y-0 left-0 w-72 bg-white/90 backdrop-blur-2xl border-r border-white z-30 transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] shadow-[10px_0_30px_rgba(0,0,0,0.03)] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="flex justify-between items-center p-6 border-b border-zinc-100">
+            <h3 className="font-bold text-zinc-900 flex items-center gap-2 tracking-tight">
+              <History size={18} className="text-zinc-500" /> Lịch sử Chat
+            </h3>
+            <button onClick={() => setIsSidebarOpen(false)} className="p-2 bg-zinc-50 hover:bg-zinc-100 text-zinc-400 hover:text-zinc-800 rounded-full transition-all">
+              <X size={16} />
             </button>
           </div>
-        </div>
-
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {messages.map((msg) => (
-            <div 
-              key={msg.id} 
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`flex max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className={`flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full ${
-                  msg.role === 'user' ? 'bg-blue-600 text-white ml-3' : 'bg-gray-200 text-gray-700 mr-3'
-                }`}>
-                  {msg.role === 'user' ? <User size={20} /> : <Bot size={20} />}
+          <div className="p-5 overflow-y-auto h-[calc(100%-80px)] space-y-3">
+            {sessions.length === 0 ? (
+              <p className="text-sm text-zinc-400 text-center mt-8 font-medium">Chưa có lịch sử nào.</p>
+            ) : (
+              sessions.map((s) => (
+                <div 
+                  key={s.id} 
+                  onClick={() => loadSession(s)}
+                  className="p-4 bg-white rounded-2xl cursor-pointer hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] border border-zinc-100 hover:border-zinc-300 transition-all duration-300"
+                >
+                  <p className="text-[13px] font-semibold text-zinc-800 line-clamp-2 leading-relaxed">{s.prompt}</p>
+                  <p className="text-[10px] font-bold text-zinc-400 mt-2 tracking-widest uppercase">{new Date(s.created_at).toLocaleDateString()}</p>
                 </div>
-                
-                <div className="flex flex-col">
-                  <div className={`px-5 py-3 rounded-2xl shadow-sm ${
-                    msg.role === 'user' 
-                      ? 'bg-blue-600 text-white rounded-tr-none' 
-                      : 'bg-white text-gray-800 border border-gray-200 rounded-tl-none'
-                  }`}>
-                    <p className="text-[15px] leading-relaxed">{msg.content}</p>
-                  </div>
-                  
-                  {/* Hiển thị Outfit Options nếu có */}
-                  {msg.options && msg.options.length > 0 && (
-                    <div className="mt-4 space-y-4">
-                      {msg.options.map((opt, idx) => (
-                        <OutfitCard key={idx} option={opt} messageId={msg.id} />
-                      ))}
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Vùng Chat Chính */}
+        <div className="flex flex-col flex-1 w-full relative z-10">
+          {/* Header */}
+          <div className="absolute top-0 w-full bg-white/70 backdrop-blur-xl px-8 py-5 border-b border-zinc-100/50 flex justify-between items-center z-20 shadow-sm">
+            <div className="flex items-center space-x-4">
+              <div className="bg-zinc-900 p-2.5 rounded-2xl shadow-[0_4px_15px_rgba(0,0,0,0.1)]">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="font-black text-zinc-900 text-2xl tracking-tighter">AI Stylist</h2>
+                <p className="text-[11px] text-zinc-600 font-light uppercase tracking-widest mt-0.5">Trợ lý Cá nhân</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="text-xs text-zinc-700 bg-white/80 backdrop-blur-md hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all px-4 py-2.5 border border-zinc-200 rounded-full flex items-center gap-2 font-bold tracking-wide"
+              >
+                <History size={14} className="text-zinc-500" /> Lịch sử
+              </button>
+              <button 
+                onClick={clearChat}
+                className="text-xs text-zinc-700 bg-white/80 backdrop-blur-md hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all px-4 py-2.5 border border-zinc-200 rounded-full font-bold tracking-wide"
+              >
+                Làm mới
+              </button>
+            </div>
+          </div>
+
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto px-8 pt-32 pb-8 space-y-8 scroll-smooth">
+            {messages.length === 0 && !isTyping && (
+              <div className="h-full flex flex-col items-center justify-center text-center">
+                <div className="w-24 h-24 bg-zinc-100 rounded-full flex items-center justify-center mb-6 shadow-inner border border-zinc-200">
+                  <Sparkles className="w-10 h-10 text-zinc-400" />
+                </div>
+                <h3 className="text-3xl font-black text-zinc-800 tracking-tighter mb-3">Sẵn sàng tỏa sáng?</h3>
+                <p className="text-[15px] text-zinc-600 font-light max-w-sm leading-relaxed">Mô tả phong cách, sự kiện hoặc món đồ bạn mong muốn. AI Stylist sẽ mang đến những set đồ hoàn hảo nhất.</p>
+              </div>
+            )}
+            {messages.map((msg) => (
+              <div 
+                key={msg.id} 
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}
+              >
+                <div className={`flex max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                  {msg.role !== 'user' && (
+                    <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-2xl bg-zinc-900 text-white mr-4 shadow-lg shadow-black/10">
+                      <Bot size={20} />
                     </div>
                   )}
+                  
+                  <div className="flex flex-col">
+                    <div className={`px-6 py-4 rounded-3xl ${
+                      msg.role === 'user' 
+                        ? 'bg-zinc-900 text-white rounded-tr-none shadow-[0_10px_25px_rgba(0,0,0,0.1)]' 
+                        : 'bg-white text-zinc-800 border border-zinc-100 rounded-tl-none shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)]'
+                    }`}>
+                      <p className={`text-[15px] leading-relaxed ${msg.role === 'user' ? 'font-medium' : 'font-semibold text-zinc-700'}`}>{msg.content}</p>
+                    </div>
+                    
+                    {msg.options && msg.options.length > 0 && (
+                      <div className="mt-8 space-y-8">
+                        {msg.options.map((opt, idx) => (
+                          <OutfitCard key={idx} option={opt} messageId={msg.id} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-          
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="flex flex-row max-w-[85%]">
-                <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-700 mr-3">
-                  <Bot size={20} />
-                </div>
-                <div className="bg-white border border-gray-200 px-5 py-4 rounded-2xl rounded-tl-none shadow-sm flex space-x-2 items-center">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+            ))}
+            
+            {isTyping && (
+              <div className="flex justify-start animate-in fade-in duration-300">
+                <div className="flex flex-row max-w-[85%]">
+                  <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-2xl bg-zinc-900 text-white mr-4 shadow-lg shadow-black/10">
+                    <Bot size={20} />
+                  </div>
+                  <div className="bg-white border border-zinc-100 px-6 py-5 rounded-3xl rounded-tl-none shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] flex space-x-2.5 items-center">
+                    <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-zinc-600 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
+                    <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Area */}
-        <div className="bg-white p-4 border-t border-gray-200">
-          <div className="relative flex items-center">
-            <input
-              type="text"
-              className="w-full pl-5 pr-14 py-4 bg-gray-100 border-transparent rounded-full focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900 font-medium"
-              placeholder="Nhập yêu cầu phối đồ (VD: đồ đi tiệc, phong cách vintage...)"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isTyping}
-            />
-            <button
-              className={`absolute right-2 p-2 rounded-full flex items-center justify-center transition-colors ${
-                inputValue.trim() && !isTyping ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isTyping}
-            >
-              <SendIcon size={18} className="ml-1" />
-            </button>
+            )}
+            <div ref={messagesEndRef} />
           </div>
-          <p className="text-center text-xs text-gray-400 mt-2">
-            AI Stylist có thể mất vài giây để phân tích và tìm kiếm sản phẩm phù hợp.
-          </p>
+
+          {/* Input Area */}
+          <div className="bg-white/80 backdrop-blur-2xl px-8 py-6 border-t border-zinc-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] z-20 relative">
+            <div className="relative flex items-center group">
+              <input
+                type="text"
+                className="relative w-full pl-8 pr-16 py-5 bg-zinc-50 border border-zinc-200 shadow-inner rounded-full focus:bg-white focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 outline-none transition-all text-zinc-900 font-medium text-[15px] placeholder:text-zinc-400"
+                placeholder="Gợi ý trang phục đi tiệc cưới phong cách vintage..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isTyping}
+              />
+              <button
+                className={`absolute right-3 p-3.5 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  inputValue.trim() && !isTyping 
+                    ? 'bg-zinc-900 text-white shadow-[0_4px_15px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.25)] hover:scale-110 hover:-rotate-12' 
+                    : 'bg-zinc-200 text-zinc-400 cursor-not-allowed scale-95'
+                }`}
+                onClick={handleSendMessage}
+                disabled={!inputValue.trim() || isTyping}
+              >
+                <SendIcon size={18} className="ml-0.5" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
+

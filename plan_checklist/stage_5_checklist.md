@@ -12,9 +12,9 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
 > 1. Thư mục upload đã được chuyển từ `public/uploads` sang `.medusa/uploads` để tránh việc File Watcher khởi động lại server khi có file mới. Ảnh vẫn được truy cập qua URL `/uploads/*` nhờ static middleware trong `middlewares.ts`.
 > 2. Thư viện `@imgly/background-removal-node` trên môi trường Windows sẽ báo lỗi `Unsupported protocol: d:` nếu truyền đường dẫn vật lý (absolute path). Cần sử dụng `pathToFileURL` để chuyển đổi path thành định dạng URI (`file:///D:/...`) trước khi xử lý.
 > 3. Cơ chế Routing của MedusaJS v2 sẽ cắt bớt `req.path`. Tuyệt đối không dùng `express.static` để phục vụ file mà phải tự parse `req.originalUrl` và dùng `res.sendFile()` để tránh lỗi 404 hoặc 301 tự động thêm trailing slash.
-> 4. **Tính năng Xóa ảnh (Chưa có):** Cần bổ sung API và UI cho phép người dùng xóa trang phục trong tủ đồ. Cơ chế xóa phải thực hiện đồng bộ 2 việc: xóa bản ghi trong DB (`user_closet_items`) và xóa file vật lý trong thư mục `.medusa/uploads`.
-> 5. **Nợ kỹ thuật (Tech Debt) - API lấy hồ sơ AI:** Hiện tại chưa có API `GET /api/v1/ai-profile` để Frontend tự động lấy lại thông tin và URL ảnh cơ thể từ Database sau khi tải lại trang (hiện đang dùng tạm LocalStorage của Zustand để bypass). Cần bổ sung API này để Frontend đồng bộ dữ liệu chuẩn với Backend.
-> 6. **Quản lý Sản phẩm (Admin API via Next.js):** Để hỗ trợ thêm sản phẩm nhanh từ Web mà không cần dựng luồng Login Admin phức tạp, sử dụng chiến lược: Tạo Custom API `POST /api/v1/internal/products` trên Medusa (bảo mật bằng `x-internal-token`). Next.js sẽ gọi API này để tạo sản phẩm. Sau này khi có hệ thống Login Admin, chỉ cần đổi URL gọi API từ Custom sang API chuẩn của Medusa (`POST /admin/products`) kèm Token Admin, không gây ra Tech Debt ở giao diện nhập liệu.
+> 4. **Tính năng Xóa ảnh (Đã hoàn thành):** Đã bổ sung API `DELETE /api/v1/user/garments/:id` và giao diện nút thùng rác cho phép người dùng xóa trang phục trong tủ đồ. Cơ chế xóa thực hiện đồng bộ 3 việc: xóa bản ghi trong DB (`user_closet_items`), xóa file vật lý trong `.medusa/uploads` và đẩy message qua RabbitMQ để dọn dẹp vector trong LanceDB.
+> 5. **Nợ kỹ thuật (Tech Debt) - API lấy hồ sơ AI (Đã hoàn thành):** Đã xây dựng API `GET /api/v1/ai-profile` và cập nhật logic frontend tự động đồng bộ hồ sơ từ Database ngay khi load trang.
+> 6. **Quản lý Sản phẩm (Admin API via Next.js - Đã hoàn thành):** Đã phát triển Custom API `POST /api/v1/internal/products` trên Medusa (bảo mật bằng `x-internal-token`) và trang `/admin-tools/add-product` trên Frontend để tạo nhanh sản phẩm.
 
 ### [Frontend - Instance 1]
 - [x] Xây dựng trang `AI Profile Setup` (`/ai-profile`):
@@ -24,9 +24,9 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
 - [x] Xây dựng giao diện `User Closet` (`/wardrobe`):
     - [x] Hiển thị danh sách trang phục đã tải lên (Grid View).
     - [x] Nút "Thêm trang phục mới" kèm logic tách nền (kết nối API).
-- [ ] Hoàn thiện Cửa hàng (`/products`):
-    - [ ] Thêm giao diện lọc (Filters) và sắp xếp (Sort).
-    - [ ] Giao diện Thêm sản phẩm nhanh (`/admin-tools/add-product`).
+- [x] Hoàn thiện Cửa hàng (`/products`):
+    - [x] Thêm giao diện lọc (Filters) và sắp xếp (Sort).
+    - [x] Giao diện Thêm sản phẩm nhanh (`/admin-tools/add-product`).
 
 ### [Backend/AI - Instance 2]
 - [x] Hiện thực hóa API-01 (`POST /api/v1/ai-profile`):
@@ -35,8 +35,8 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
 - [x] Hiện thực hóa API-06 (`POST /api/v1/user/garments`):
     - [x] AI Service: Tích hợp logic Remove Background (ví dụ dùng Rembg). (Đã chuyển sang Node.js MVP)
     - [x] Lưu metadata vào bảng `user_closet_items`.
-- [ ] Hiện thực hóa API thêm sản phẩm nội bộ:
-    - [ ] `POST /api/v1/internal/products` để tạo Product.
+- [x] Hiện thực hóa API thêm sản phẩm nội bộ:
+    - [x] `POST /api/v1/internal/products` để tạo Product.
 
 ---
 
@@ -50,7 +50,7 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
 - [x] Phát triển giao diện `AI Stylist Chat` (Floating Widget hoặc Page):
     - [x] Khung chat real-time.
     - [x] Hiển thị kết quả gợi ý dạng `Outfit Card` (Click để xem chi tiết sản phẩm).
-    - [ ] Logic "Đổi món đồ" (Replace Item) ngay trong khung chat (Tính năng API-03 sẽ làm sau).
+    - [x] Logic "Đổi món đồ" (Replace Item) ngay trong khung chat (API-03).
 
 ### [Backend/AI - Instance 2]
 - [x] Thiết lập LanceDB & Vector Search:
@@ -99,6 +99,6 @@ Trạng thái: `[ ]` - Chưa làm, `[working]` - Đang thực hiện, `[x]` - Đ
 ---
 
 ## ✅ GIAI ĐOẠN CUỐI: INTEGRATION TESTING & POLISHING
-- [ ] Kiểm thử luồng E2E: Chat Stylist -> Chọn đồ -> Thử đồ -> Mua hàng.
-- [ ] Tối ưu hóa hiệu suất (Caching ảnh kết quả).
-- [ ] Xử lý lỗi tập trung (Global Error Handler).
+- [x] Kiểm thử luồng E2E: Chat Stylist -> Chọn đồ -> Thử đồ -> Mua hàng.
+- [x] Tối ưu hóa hiệu suất (Caching ảnh kết quả & Persistent VRAM Model loading).
+- [x] Xử lý lỗi tập trung (Global Error Handler với error.tsx/global-error.tsx).

@@ -101,7 +101,7 @@ export function useVTONService(userId: string = "default_user") {
     }
   };
 
-  const startMultiStepTryOn = async (humanImageUrl: string, garments: {url: string, type: string}[]) => {
+  const startMultiStepTryOn = async (humanImageUrl: string, garments: {url: string, type: string}[], context: 'modal' | 'wardrobe' = 'wardrobe') => {
     if (!humanImageUrl || garments.length === 0) {
       store.setVTONError("Thiếu ảnh người mẫu hoặc trang phục.");
       return;
@@ -109,7 +109,7 @@ export function useVTONService(userId: string = "default_user") {
 
     try {
       // 1. Update State
-      store.startMultiStepVTON(humanImageUrl);
+      store.startMultiStepVTON(humanImageUrl, context);
 
       // 2. Initialize SSE BEFORE calling the API
       setupSSE();
