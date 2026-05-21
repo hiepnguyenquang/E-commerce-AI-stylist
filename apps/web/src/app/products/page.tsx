@@ -13,8 +13,8 @@ async function getProducts() {
     const baseUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000';
     const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || '';
     
-    // Fetch directly from Medusa Store API
-    const res = await fetch(`${baseUrl}/store/products`, { 
+    // Fetch directly from Medusa Store API with prices fields
+    const res = await fetch(`${baseUrl}/store/products?fields=*variants.prices`, { 
       headers: {
         'x-publishable-api-key': publishableKey
       },

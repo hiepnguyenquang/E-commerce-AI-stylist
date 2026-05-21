@@ -4,6 +4,7 @@ import React from 'react';
 import { useCartStore } from '@/store/useCartStore';
 import { useVTONService } from '@/hooks/useVTONService';
 import { useVTONStore } from '@/store/useVTONStore';
+import { Sparkles, ShoppingBag } from 'lucide-react';
 
 interface ProductProps {
   product: {
@@ -49,18 +50,20 @@ export default function ProductActionButtons({ product }: ProductProps) {
   };
 
   return (
-    <div className="flex flex-col space-y-2 w-full mt-4">
+    <div className="flex flex-col space-y-2.5 w-full mt-5">
       <button 
         onClick={handleAddToCart}
-        className="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+        className="w-full border border-zinc-200/80 text-zinc-800 bg-white font-bold py-3 px-4 rounded-xl hover:bg-zinc-50 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.02)] transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 group/btn"
       >
-        Thêm vào Giỏ
+        <ShoppingBag size={18} className="group-hover/btn:scale-110 transition-transform duration-300 text-zinc-700" />
+        <span>Thêm vào Giỏ</span>
       </button>
       <button 
         onClick={handleTryOn}
-        className="w-full bg-black text-white font-medium py-2 px-4 rounded-md hover:bg-gray-800 transition-colors shadow-sm flex items-center justify-center gap-2"
+        className="w-full bg-zinc-950 text-white font-black py-3 px-4 rounded-xl hover:bg-zinc-850 hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)] transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 group/btn2 shadow-md"
       >
-        <span>✨</span> Thử đồ ảo (VTON)
+        <Sparkles size={18} className="group-hover/btn2:animate-pulse text-zinc-200" />
+        <span>Thử đồ ảo (VTON)</span>
       </button>
     </div>
   );
