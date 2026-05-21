@@ -63,6 +63,48 @@ pnpm dev
 uv run uvicorn main:app --reload
 ```
 
+---
+
+## 🔗 Các đường link sử dụng hệ thống (Web URLs)
+
+Sau khi khởi động thành công toàn bộ hệ thống, bạn có thể truy cập các địa chỉ sau:
+
+### 💻 Client Frontend (Next.js - Port 3000)
+*   **Trang chủ (Landing Page):** [http://localhost:3000](http://localhost:3000)
+*   **Trò chuyện & Tư vấn với AI Stylist:** [http://localhost:3000/ai-stylist](http://localhost:3000/ai-stylist)
+*   **Phòng thử đồ ảo & Tủ đồ (Wardrobe):** [http://localhost:3000/wardrobe](http://localhost:3000/wardrobe)
+*   **Thiết lập Hồ sơ AI (AI Profile):** [http://localhost:3000/ai-profile](http://localhost:3000/ai-profile)
+*   **Giao diện Admin up đồ trực quan:** [http://localhost:3000/admin-tools/add-product](http://localhost:3000/admin-tools/add-product)
+
+### ⚙️ Backend & AI Services
+*   **MedusaJS Core API Port:** [http://localhost:9000](http://localhost:9000)
+*   **FastAPI AI Service Port:** [http://localhost:8000](http://localhost:8000)
+*   **Tài liệu API FastAPI (Swagger UI):** [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
+
+## 🛍️ Hướng dẫn Up đồ/Sản phẩm vào Cửa hàng
+
+Dự án cung cấp 2 phương thức để bạn đưa sản phẩm mới vào cửa hàng:
+
+### Cách 1: Qua Giao diện Web trực quan (Khuyến nghị cho 1 vài sản phẩm)
+1.  Khởi động toàn bộ hệ thống.
+2.  Mở trình duyệt truy cập đường dẫn: [http://localhost:3000/admin-tools/add-product](http://localhost:3000/admin-tools/add-product)
+3.  Điền các thông tin sản phẩm: **Tên**, **Giá (VNĐ)**, **Danh mục**, **Mô tả** và tải lên **Hình ảnh sản phẩm**.
+4.  Nhấn nút **Tạo Sản phẩm**. 
+    > **Cơ chế hoạt động:** Hệ thống tự động đẩy dữ liệu sang MedusaJS Backend (lưu trữ Postgres), đồng thời bắn sự kiện qua RabbitMQ đến AI Service để phân tích ngữ nghĩa, tạo vector nhúng và đồng bộ tự động vào LanceDB.
+
+### Cách 2: Seed hàng loạt dữ liệu mẫu (Khuyến nghị khi khởi tạo ban đầu)
+Nếu bạn muốn nạp sẵn hàng loạt sản phẩm mẫu thời trang cùng với cấu hình hoàn chỉnh vào Database:
+1.  Mở Terminal tại thư mục gốc dự án.
+2.  Chạy lệnh seed sau:
+    ```bash
+    pnpm -F @fundamental/api-medusa exec medusa db:seed ./src/migration-scripts/initial-data-seed.ts
+    ```
+3.  Đợi lệnh chạy hoàn tất, toàn bộ danh mục sản phẩm thời trang mẫu sẽ được khởi tạo trong Postgres và tự động đồng bộ sang LanceDB.
+
+---
+
 ## 🧪 Kiểm thử luồng giao tiếp (Integration Test)
 Để kiểm tra xem MedusaJS có gửi được tin nhắn sang FastAPI thông qua RabbitMQ hay không, hãy mở **Terminal thứ 3** và chạy lệnh cURL sau (trên Windows):
 
@@ -75,4 +117,4 @@ curl.exe -X POST http://localhost:9000/custom/internal/test-rmq -H "x-internal-t
 - Terminal của **AI Service** in ra log: `[RabbitMQ Consumer] Received product metadata sync event...`.
 
 ---
-*Dự án đang trong quá trình phát triển Giai đoạn 5.
+*Dự án đang trong quá trình phát triển Giai đoạn 5.*
