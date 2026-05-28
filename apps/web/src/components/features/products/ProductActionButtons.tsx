@@ -58,6 +58,25 @@ export default function ProductActionButtons({ product }: ProductProps) {
         <ShoppingBag size={18} className="group-hover/btn:scale-110 transition-transform duration-300 text-zinc-700" />
         <span>Thêm vào Giỏ</span>
       </button>
+      
+      <div className="w-full mt-2 p-2 bg-zinc-50/80 border border-zinc-100 rounded-xl flex items-center justify-between">
+        <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest px-2">AI Engine</span>
+        <div className="flex bg-zinc-200/50 p-1 rounded-lg">
+          <button 
+            onClick={() => vtonStore.setEngine('local')} 
+            className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all ${vtonStore.engine === 'local' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+          >
+            Local
+          </button>
+          <button 
+            onClick={() => vtonStore.setEngine('cloud')} 
+            className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all flex items-center gap-1 ${vtonStore.engine === 'cloud' ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+          >
+            FLUX <Sparkles size={10} className={vtonStore.engine === 'cloud' ? 'text-zinc-300' : ''}/>
+          </button>
+        </div>
+      </div>
+      
       <button 
         onClick={handleTryOn}
         className="w-full bg-zinc-950 text-white font-black py-3 px-4 rounded-xl hover:bg-zinc-850 hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)] transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 group/btn2 shadow-md"

@@ -164,6 +164,8 @@ Sau khi có ảnh, Python Worker báo kết quả qua webhook `/api/v1/internal/
 - Cập nhật hàm `try_on` của `IVirtualTryOnService` thành `async def try_on`.
 - Cài đặt `replicate`, tạo `flux_vton.py` và viết `CloudFluxVTONAdapter` dùng `async_run`.
 
-**Phase 3: Tinh chỉnh Frontend UI**
-- Cập nhật UI nút "Thử cả bộ" (Mix & Match).
-- Đảm bảo thanh Progress bar tương thích.
+**Phase 3: Tinh chỉnh Frontend UI (Đã hoàn thành)**
+- Cập nhật UI nút "Thử cả bộ" (Mix & Match) trong trang Wardrobe.
+- Bổ sung bộ chọn Engine (Cơ bản / Cao cấp) vào Card Sản phẩm (`ProductActionButtons`) trong Cửa hàng.
+- Bổ sung bộ chọn Engine (Local / FLUX.2) vào `OutfitCard` trong luồng AI Stylist.
+- Đảm bảo thanh Progress bar tương thích với cả 2 luồng.

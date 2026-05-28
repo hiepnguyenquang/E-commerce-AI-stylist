@@ -128,14 +128,30 @@ export default function OutfitCard({ option, messageId }: { option: OutfitOption
     <div className="relative bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100 mb-8 group/card hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-500 overflow-hidden">
       
       {/* Header */}
-      <div className="px-7 py-6 flex justify-between items-center bg-zinc-50/50 border-b border-zinc-100">
+      <div className="px-7 py-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-zinc-50/50 border-b border-zinc-100">
         <h3 className="font-black text-zinc-900 text-xl tracking-tighter">{option.title}</h3>
-        <button 
-          onClick={handleOutfitTryOn}
-          className="text-[11px] bg-zinc-900 text-white px-6 py-3 rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] hover:scale-105 transition-all duration-300 font-bold tracking-widest uppercase"
-        >
-          Thử Đồ Toàn Set
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center bg-zinc-200/40 rounded-full p-1 border border-zinc-200/50 w-full sm:w-auto justify-center">
+            <button 
+                onClick={() => vtonStore.setEngine('local')} 
+                className={`flex-1 sm:flex-none px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all ${vtonStore.engine === 'local' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200/50' : 'text-zinc-500 hover:text-zinc-700'}`}
+            >
+                Local
+            </button>
+            <button 
+                onClick={() => vtonStore.setEngine('cloud')} 
+                className={`flex-1 sm:flex-none px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all flex items-center justify-center gap-1.5 ${vtonStore.engine === 'cloud' ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+            >
+                FLUX.2
+            </button>
+          </div>
+          <button 
+            onClick={handleOutfitTryOn}
+            className="w-full sm:w-auto text-[11px] bg-zinc-900 text-white px-6 py-3 rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 transition-all duration-300 font-bold tracking-widest uppercase"
+          >
+            Thử Đồ Toàn Set
+          </button>
+        </div>
       </div>
       
       <div className="p-7">
