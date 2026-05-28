@@ -282,7 +282,10 @@ def start_vton_consumer():
                 
                 human_url = images.get("person_image_url")
                 garment_url = images.get("cloth_image_url")
+                garment_urls = images.get("garment_image_urls")
                 mask_url = images.get("mask_image_url")
+                
+                engine_pref = payload_data.get("engine", os.getenv("VTON_ENGINE", "local"))
                 
                 # Tham số CatVTON
                 cloth_type = params.get("cloth_type", "upper")
@@ -293,28 +296,40 @@ def start_vton_consumer():
                 height = params.get("height", 1024)
                 repaint = params.get("repaint", False)
                 
-                if not human_url or not garment_url:
-                    raise ValueError("Missing person_image_url or cloth_image_url in payload")
-                
                 # Đảm bảo thư mục lưu trữ tồn tại
                 output_dir = "./data/outputs/vton"
                 os.makedirs(output_dir, exist_ok=True)
                 output_path = os.path.join(output_dir, f"result_{job_id}.png")
                 
-                # Chạy inference
-                result_path = vton_service.try_on(
-                    human_image_url=human_url, 
-                    garment_image_url=garment_url, 
-                    output_path=output_path,
-                    mask_image_url=mask_url,
-                    cloth_type=cloth_type,
-                    num_inference_steps=num_inference_steps,
-                    guidance_scale=guidance_scale,
-                    seed=seed,
-                    width=width,
-                    height=height,
-                    repaint=repaint
-                )
+                if engine_pref == "cloud":
+                    if not human_url or not garment_urls:
+                        raise ValueError("Missing person_image_url or garment_image_urls for cloud engine")
+                        
+                    from src.ai.flux_vton import CloudFluxVTONAdapter
+                    cloud_service = CloudFluxVTONAdapter()
+                    result_path = cloud_service.try_on(
+                        human_image_url=human_url,
+                        output_path=output_path,
+                        garment_image_urls=garment_urls
+                    )
+                else:
+                    if not human_url or not garment_url:
+                        raise ValueError("Missing person_image_url or cloth_image_url for local engine")
+                        
+                    # Chạy inference Local
+                    result_path = vton_service.try_on(
+                        human_image_url=human_url, 
+                        output_path=output_path,
+                        garment_image_url=garment_url, 
+                        mask_image_url=mask_url,
+                        cloth_type=cloth_type,
+                        num_inference_steps=num_inference_steps,
+                        guidance_scale=guidance_scale,
+                        seed=seed,
+                        width=width,
+                        height=height,
+                        repaint=repaint
+                    )
                 
                 # Ở môi trường thực tế, ta cần upload result_path lên S3 hoặc Cloud Storage.
                 # MVP: ta trả về một static URL trỏ vào thư mục outputs hoặc truyền base64,

@@ -83,6 +83,7 @@ export function useVTONService(userId: string = "default_user") {
           human_image_url: humanImageUrl,
           garment_image_url: garmentImageUrl,
           user_id: userId,
+          engine: store.engine,
         }),
       });
 
@@ -124,6 +125,7 @@ export function useVTONService(userId: string = "default_user") {
           human_image_url: humanImageUrl,
           garments: garments,
           user_id: userId,
+          engine: store.engine,
         }),
       });
 

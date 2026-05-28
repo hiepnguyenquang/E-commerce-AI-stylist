@@ -7,7 +7,7 @@ export async function POST(
   res: MedusaResponse
 ): Promise<void> {
   try {
-    const { human_image_url, garment_image_url, garments, user_id } = req.body as any
+    const { human_image_url, garment_image_url, garments, user_id, engine } = req.body as any
 
     if (!user_id || !human_image_url) {
       res.status(400).json({
@@ -34,9 +34,46 @@ export async function POST(
         return
     }
 
+    const enginePref = engine || "local"
     const aiPersonalizationModuleService = req.scope.resolve(AI_PERSONALIZATION_MODULE)
 
-    // Pipeline generation: Create a chain of jobs
+    if (enginePref === "cloud") {
+        // FLUX.2 Single-shot logic
+        const garmentUrls = garmentsToProcess.map(g => g.url)
+        const vtonJob = await aiPersonalizationModuleService.createVtonJobs({
+            customer_id: user_id,
+            step: "outfit",
+            status: "pending",
+        })
+        
+        const payload = {
+            job_id: vtonJob.id,
+            user_id: user_id,
+            engine: "cloud",
+            payload: {
+                images: {
+                    person_image_url: human_image_url,
+                    garment_image_urls: garmentUrls, // mảng các trang phục
+                },
+                processing_params: {}
+            },
+            timestamp: new Date().toISOString()
+        }
+        
+        const published = await amqpAdapter.publish("ai_vision_jobs", payload)
+        if (!published) throw new Error("Failed to queue cloud vision job")
+
+        res.status(200).json({
+          status: "success",
+          data: {
+            job_id: vtonJob.id,
+            message: `Queued single-shot cloud job for ${garmentUrls.length} garments`
+          },
+        })
+        return
+    }
+
+    // Pipeline generation for LOCAL (CatVTON Multi-step): Create a chain of jobs
     let parentJobId: string | null = null
     let firstJobId: string | null = null
 

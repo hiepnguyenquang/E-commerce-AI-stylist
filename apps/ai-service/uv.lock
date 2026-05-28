@@ -54,6 +54,7 @@ dependencies = [
     { name = "pycocotools" },
     { name = "pydantic" },
     { name = "python-dotenv" },
+    { name = "replicate" },
     { name = "requests" },
     { name = "scikit-image", version = "0.25.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scikit-image", version = "0.26.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -87,6 +88,7 @@ requires-dist = [
     { name = "pycocotools", specifier = ">=2.0.11" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "replicate", specifier = ">=2.0.0b4" },
     { name = "requests", specifier = ">=2.33.1" },
     { name = "scikit-image", specifier = ">=0.25.2" },
     { name = "sentence-transformers", specifier = ">=5.4.1" },
@@ -2171,6 +2173,24 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/2a/5c/83e3b1d89fa4f6e5a1bc97b4abd4a9a97b3c1ac7854164f694f5f0ba98a0/regex-2026.4.4-cp313-cp313t-win32.whl", hash = "sha256:e014a797de43d1847df957c0a2a8e861d1c17547ee08467d1db2c370b7568baa", size = 269921, upload-time = "2026-04-03T20:55:09.62Z" },
     { url = "https://files.pythonhosted.org/packages/28/07/077c387121f42cdb4d92b1301133c0d93b5709d096d1669ab847dda9fe2e/regex-2026.4.4-cp313-cp313t-win_amd64.whl", hash = "sha256:b15b88b0d52b179712632832c1d6e58e5774f93717849a41096880442da41ab0", size = 281240, upload-time = "2026-04-03T20:55:11.521Z" },
     { url = "https://files.pythonhosted.org/packages/9d/22/ead4a4abc7c59a4d882662aa292ca02c8b617f30b6e163bc1728879e9353/regex-2026.4.4-cp313-cp313t-win_arm64.whl", hash = "sha256:586b89cdadf7d67bf86ae3342a4dcd2b8d70a832d90c18a0ae955105caf34dbe", size = 272440, upload-time = "2026-04-03T20:55:13.365Z" },
+]
+
+[[package]]
+name = "replicate"
+version = "2.0.0b4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "distro" },
+    { name = "httpx" },
+    { name = "packaging" },
+    { name = "pydantic" },
+    { name = "sniffio" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a8/e4/c8f132e1ef03b23521318b7d9e98dfa2d6ab92fffbc6a93a642d5c39d655/replicate-2.0.0b4.tar.gz", hash = "sha256:265e6aaa266388ddfff1aa30acb7d065bb41a5f17d1ff251732080f7a1140490", size = 304552, upload-time = "2025-12-18T19:51:39.506Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c9/a3/b26bdd152268d4954de573e5d0aaa0d85b293de1a79b1a5facd850e8446a/replicate-2.0.0b4-py3-none-any.whl", hash = "sha256:b065dd58a1f13278ebec575fedf4038960d3f6d569a92f912b5411720190268e", size = 175976, upload-time = "2025-12-18T19:51:37.78Z" },
 ]
 
 [[package]]

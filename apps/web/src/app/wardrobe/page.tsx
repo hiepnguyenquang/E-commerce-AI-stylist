@@ -26,7 +26,7 @@ export default function WardrobePage() {
   const [isSavingResult, setIsSavingResult] = useState(false)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
 
-  const { selectedOutfit, setOutfitItem, humanImageUrl, status, progressMessage, resultImageUrl, activeContext } = useVTONStore()
+  const { selectedOutfit, setOutfitItem, humanImageUrl, status, progressMessage, resultImageUrl, activeContext, engine, setEngine } = useVTONStore()
   const vtonService = useVTONService("mock-customer-id")
 
   const fetchGarments = async () => {
@@ -285,7 +285,25 @@ export default function WardrobePage() {
             {/* Workspace Pane */}
             <div className="lg:col-span-4 bg-white p-6 sm:p-8 rounded-[2rem] border border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col items-center justify-start h-full overflow-y-auto relative">
               
-              <h2 className="text-xl font-bold text-zinc-900 tracking-tight mb-6 w-full text-center relative z-10">Không gian Thử đồ</h2>
+              <h2 className="text-xl font-bold text-zinc-900 tracking-tight mb-4 w-full text-center relative z-10">Không gian Thử đồ</h2>
+              
+              <div className="w-full flex justify-center mb-6 relative z-10">
+                  <div className="bg-zinc-100 p-1 rounded-full flex gap-1 shadow-inner border border-zinc-200/50">
+                      <button 
+                        onClick={() => setEngine('local')}
+                        className={`px-4 py-1.5 text-[11px] uppercase tracking-wide font-bold rounded-full transition-all ${engine === 'local' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200' : 'text-zinc-500 hover:text-zinc-700'}`}
+                      >
+                         Cơ bản (Miễn phí)
+                      </button>
+                      <button 
+                        onClick={() => setEngine('cloud')}
+                        className={`px-4 py-1.5 text-[11px] uppercase tracking-wide font-bold rounded-full transition-all flex gap-1.5 items-center ${engine === 'cloud' ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                      >
+                         FLUX.2 (Cao cấp) <Sparkles size={12}/>
+                      </button>
+                  </div>
+              </div>
+
               
               <div className="w-full flex flex-col gap-5 flex-1 relative z-10">
                   

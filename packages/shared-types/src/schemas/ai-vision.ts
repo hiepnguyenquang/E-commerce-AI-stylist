@@ -5,11 +5,12 @@ import { z } from 'zod';
 export const AIVisionJobPayloadSchema = z.object({
   job_id: z.string().uuid(),
   parent_job_id: z.string().uuid().optional().nullable(),
-  step: z.string(), // VD: "mix_top", "mix_bottom", "full_body"
+  step: z.string(), // VD: "mix_top", "mix_bottom", "full_body", "outfit"
   user_id: z.string().uuid(),
   human_image_url: z.string().url("Must be a valid URL for human image"),
-  garment_image_url: z.string().url("Must be a valid URL for garment image"),
-  category: z.enum(['upper_body', 'lower_body', 'dress', 'accessory']),
+  garment_image_urls: z.array(z.string().url("Must be a valid URL for garment image")).min(1),
+  category: z.enum(['upper_body', 'lower_body', 'dress', 'accessory', 'outfit']),
+  engine: z.enum(['local', 'cloud', 'auto']).default('auto').optional(),
   options: z.object({
     prefetch: z.boolean().default(false),
     resolution: z.enum(['1024x768']).default('1024x768'), // Fix cứng theo chuẩn mô hình CatVTON (00_architecture_rules.md)

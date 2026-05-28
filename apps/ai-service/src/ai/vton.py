@@ -25,8 +25,9 @@ class IVirtualTryOnService(ABC):
     @abstractmethod
     def try_on(self, 
                human_image_url: str, 
-               garment_image_url: str, 
                output_path: str,
+               garment_image_url: str = None,
+               garment_image_urls: list[str] = None, 
                mask_image_url: str = None,
                cloth_type: str = "upper",
                num_inference_steps: int = 50,
@@ -96,8 +97,9 @@ class LocalCatVTONAdapter(IVirtualTryOnService):
 
     def try_on(self, 
                human_image_url: str, 
-               garment_image_url: str, 
                output_path: str,
+               garment_image_url: str = None,
+               garment_image_urls: list[str] = None,
                mask_image_url: str = None,
                cloth_type: str = "upper",
                num_inference_steps: int = 50,

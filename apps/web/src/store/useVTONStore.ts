@@ -20,6 +20,8 @@ interface VTONState {
   resultImageUrl: string | null;
   errorMessage: string | null;
   progressMessage: string | null;
+  engine: 'local' | 'cloud'; // Add engine preference
+  
   
   // Actions
   setStatus: (status: VTONStatus) => void;
@@ -32,6 +34,7 @@ interface VTONState {
   setProgress: (message: string) => void;
   setVTONResult: (url: string) => void;
   setVTONError: (message: string) => void;
+  setEngine: (engine: 'local' | 'cloud') => void;
   reset: () => void;
   resetOutfit: () => void;
 }
@@ -48,6 +51,7 @@ export const useVTONStore = create<VTONState>()(
       resultImageUrl: null,
       errorMessage: null,
       progressMessage: null,
+      engine: 'local',
 
       setStatus: (status) => set({ status }),
       setJobId: (jobId) => set({ currentJobId: jobId }),
@@ -56,6 +60,8 @@ export const useVTONStore = create<VTONState>()(
       setOutfitItem: (type, url) => set((state) => ({ 
           selectedOutfit: { ...state.selectedOutfit, [type]: url } 
       })),
+      setEngine: (engine) => set({ engine }),
+      
       
       startVTON: (humanImageUrl, garmentImageUrl) => 
         set({ 
@@ -114,10 +120,11 @@ export const useVTONStore = create<VTONState>()(
     }),
     {
       name: 'vton-storage',
-      // Lưu lại humanImageUrl và bộ đồ đang mix dang dở
+      // Lưu lại humanImageUrl, bộ đồ đang mix dang dở và engine
       partialize: (state) => ({ 
           humanImageUrl: state.humanImageUrl,
-          selectedOutfit: state.selectedOutfit
+          selectedOutfit: state.selectedOutfit,
+          engine: state.engine
       }),
     }
   )

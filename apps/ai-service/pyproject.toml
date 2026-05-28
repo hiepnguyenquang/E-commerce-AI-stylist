@@ -33,6 +33,7 @@ dependencies = [
     "matplotlib>=3.10.9",
     "av>=17.0.1",
     "peft>=0.19.1",
+    "replicate>=2.0.0b4",
 ]
 
 [[tool.uv.index]]
