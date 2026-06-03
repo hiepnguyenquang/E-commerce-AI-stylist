@@ -1,0 +1,1258 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Khung báo cáo đồ án cơ sở - AI Fashion E-commerce</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #5d6678;
+      --line: #d9deea;
+      --paper: #ffffff;
+      --soft: #f5f7fb;
+      --accent: #1667d9;
+      --green: #0b7a4b;
+      --amber: #9a5b00;
+      --red: #a83232;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #edf1f7;
+      color: var(--ink);
+      font-family: "Times New Roman", Times, serif;
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 28px auto;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 48px rgba(21, 31, 53, 0.08);
+    }
+
+    header {
+      padding: 42px 52px 30px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+    }
+
+    section {
+      padding: 28px 52px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      line-height: 1.25;
+      margin: 0 0 12px;
+    }
+
+    h1 {
+      font-size: 30px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 23px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--ink);
+      margin-top: 4px;
+    }
+
+    h3 {
+      font-size: 18px;
+      margin-top: 22px;
+    }
+
+    h4 {
+      font-size: 16px;
+      margin-top: 16px;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 12px 24px;
+      padding: 0;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.92em;
+      background: #eef2f8;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 18px;
+      font-size: 15px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #eef3fb;
+      text-align: left;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 8px 16px;
+      margin-top: 24px;
+      font-size: 16px;
+    }
+
+    .note {
+      background: var(--soft);
+      border-left: 4px solid var(--accent);
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+
+    .warning {
+      border-left-color: var(--amber);
+    }
+
+    .danger {
+      border-left-color: var(--red);
+    }
+
+    .badge {
+      display: inline-block;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+      margin-right: 5px;
+      white-space: nowrap;
+    }
+
+    .ok {
+      color: var(--green);
+    }
+
+    .mvp {
+      color: var(--amber);
+    }
+
+    .fix {
+      color: var(--red);
+    }
+
+    .toc {
+      columns: 2;
+      column-gap: 36px;
+    }
+
+    .toc a {
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .internal-only {
+      display: none;
+    }
+
+    .erd-wrap {
+      margin: 18px 0;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: #fbfcff;
+      padding: 14px;
+    }
+
+    .erd-svg {
+      min-width: 980px;
+      width: 100%;
+      height: auto;
+      display: block;
+      font-family: Arial, sans-serif;
+    }
+
+    .erd-title {
+      font-size: 15px;
+      font-weight: 700;
+      fill: #172033;
+    }
+
+    .erd-field {
+      font-size: 12px;
+      fill: #263247;
+    }
+
+    .erd-muted {
+      font-size: 11px;
+      fill: #5d6678;
+    }
+
+    .erd-box {
+      fill: #ffffff;
+      stroke: #b9c2d3;
+      stroke-width: 1.2;
+    }
+
+    .erd-head {
+      fill: #eaf1fb;
+      stroke: #b9c2d3;
+      stroke-width: 1.2;
+    }
+
+    .erd-core {
+      fill: #fff9eb;
+      stroke: #d6ae63;
+    }
+
+    .erd-vector {
+      fill: #eef9f3;
+      stroke: #78b894;
+    }
+
+    .erd-relation {
+      stroke: #172033;
+      stroke-width: 1.6;
+      fill: none;
+      marker-end: url(#arrow);
+    }
+
+    .erd-logical {
+      stroke: #8a93a6;
+      stroke-width: 1.4;
+      stroke-dasharray: 6 5;
+      fill: none;
+      marker-end: url(#arrow-muted);
+    }
+
+    .page-break {
+      break-before: page;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      main {
+        width: 100%;
+        margin: 0;
+        border: 0;
+        box-shadow: none;
+      }
+
+      header,
+      section {
+        padding: 22mm 24mm;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Khung báo cáo đồ án cơ sở: Xây dựng hệ thống E-commerce tích hợp AI Stylist và Virtual Try-On</h1>
+      <p class="subtitle">Bản khung đã đối chiếu với code hiện tại của dự án AI Fashion E-commerce.</p>
+      <div class="meta">
+        <strong>Loại tài liệu</strong><span>Khung triển khai báo cáo đồ án cơ sở</span>
+        <strong>Trạng thái</strong><span>Sẵn sàng để viết Chương 1-3; Chương 4 cần bổ sung số liệu đo thực nghiệm.</span>
+        <strong>Công nghệ chính</strong><span>Next.js 14, MedusaJS 2.14, FastAPI, PostgreSQL, LanceDB, RabbitMQ, SSE, CatVTON, FLUX.2 qua Replicate, Gemini</span>
+        <strong>Phạm vi</strong><span>MVP kỹ thuật có tích hợp AI thật, chưa phải bản production hoàn chỉnh.</span>
+      </div>
+    </header>
+
+    <section id="sync-summary" class="internal-only">
+      <h2>0. Ghi chú đồng bộ với code</h2>
+      <div class="note">
+        Khung này thay thế các điểm chưa khớp trong bản cũ: không ghi Kimi-k2.5 là LLM chính, không gọi cơ chế UI action là Function Calling, không mô tả Flux như pipeline local, và ghi rõ các phần còn ở mức MVP/mock.
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Nội dung báo cáo</th>
+            <th>Trạng thái trong code</th>
+            <th>Cách viết khuyến nghị</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>AI Stylist</td>
+            <td><span class="badge ok">Đã có</span> FastAPI route, Gemini analyzer, LanceDB search, Medusa route hydrate dữ liệu.</td>
+            <td>Mô tả là pipeline RAG: phân tích intent bằng Gemini, truy hồi sản phẩm/tủ đồ bằng LanceDB, sinh JSON outfit options.</td>
+          </tr>
+          <tr>
+            <td>Action-oriented UI</td>
+            <td><span class="badge ok">Đã có</span> Frontend render nút Thêm vào giỏ, Đổi món, Thử đồ dựa trên JSON.</td>
+            <td>Không gọi là Function Calling. Viết là JSON có cấu trúc để frontend ánh xạ thành hành động.</td>
+          </tr>
+          <tr>
+            <td>Virtual Try-On</td>
+            <td><span class="badge ok">Đã có</span> CatVTON local adapter, FLUX.2 cloud adapter, RabbitMQ job queue.</td>
+            <td>Phân biệt local engine CatVTON và cloud engine FLUX.2 qua Replicate.</td>
+          </tr>
+          <tr>
+            <td>Realtime result</td>
+            <td><span class="badge ok">Đã có</span> SSE endpoint và SSE manager.</td>
+            <td>Mô tả luồng AI worker gửi kết quả vào queue <code>ai_vision_results</code>, backend broadcast qua SSE.</td>
+          </tr>
+          <tr>
+            <td>Checkout</td>
+            <td><span class="badge mvp">MVP</span> Saga workflow có mock payment và rollback test.</td>
+            <td>Viết là workflow checkout mô phỏng thanh toán, chưa tích hợp VNPay/Stripe thật.</td>
+          </tr>
+          <tr>
+            <td>Lưu ảnh VTON</td>
+            <td><span class="badge mvp">MVP</span> Kết quả đang trả static URL local từ FastAPI.</td>
+            <td>Không viết là CDN/S3 production. Ghi định hướng tương lai là đưa lên object storage.</td>
+          </tr>
+          <tr>
+            <td>ERD</td>
+            <td><span class="badge ok">Đã cập nhật</span> ERD và SQL tài liệu đã bám theo model/migration thật của module AI Personalization.</td>
+            <td>ERD phân biệt khóa ngoại vật lý với tham chiếu logic sang Medusa core và LanceDB, tránh mô tả các bảng hoặc FK chưa tồn tại trong code.</td>
+          </tr>
+          <tr>
+            <td>Đánh giá hiệu năng</td>
+            <td><span class="badge fix">Cần đo</span> Chưa thấy số liệu latency/load test trong repo.</td>
+            <td>Chương 4 chỉ hoàn chỉnh sau khi đo thời gian AI, queue round-trip, API response và ghi cấu hình máy.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!--
+      Ghi chú nội bộ khi triển khai viết báo cáo:
+      - Không giữ nguyên lối trình bày dạng liệt kê trong bản chính thức.
+      - Phát triển các ý thành đoạn văn khoa học, có câu chủ đề, lập luận kỹ thuật,
+        dẫn chứng từ hệ thống đã triển khai và kết luận ngắn.
+      - Bảng, danh sách và sơ đồ chỉ dùng để tóm tắt dữ liệu hoặc cấu trúc; sau mỗi
+        bảng/hình cần có đoạn phân tích.
+      - Các phần chưa có ảnh/log/số liệu thực nghiệm có thể để trống chờ bổ sung,
+        nhưng không đưa ra kết luận định lượng trước khi có số đo.
+      - Trình bày trung thực trạng thái MVP: mock payment, static local VTON output,
+        default/mock user id, hack tạm error_message và phần benchmark chưa hoàn tất.
+    -->
+
+    <section id="toc">
+      <h2>Mục lục các phần</h2>
+      <ol class="toc">
+        <li><a href="#figures-list">Danh mục hình ảnh</a></li>
+        <li><a href="#tables-list">Danh mục bảng biểu</a></li>
+        <li><a href="#intro">Phần mở đầu</a></li>
+        <li><a href="#chapter-1">Chương 1: Cơ sở lý thuyết và tổng quan công nghệ</a></li>
+        <li><a href="#chapter-2">Chương 2: Phân tích và thiết kế hệ thống</a></li>
+        <li><a href="#chapter-3">Chương 3: Cài đặt và tích hợp hệ thống</a></li>
+        <li><a href="#chapter-4">Chương 4: Kết quả thực nghiệm và đánh giá</a></li>
+        <li><a href="#conclusion">Phần kết luận</a></li>
+        <li><a href="#references">Tài liệu tham khảo</a></li>
+        <li><a href="#appendix">Phụ lục</a></li>
+      </ol>
+    </section>
+
+    <section id="figures-list">
+      <h2>Danh mục hình ảnh</h2>
+      <p>Danh mục hình ảnh sẽ được hoàn thiện sau khi chèn ảnh chụp giao diện, sơ đồ kiến trúc, sơ đồ luồng xử lý và kết quả thử nghiệm thực tế. Khi triển khai bản báo cáo chính thức, mỗi hình cần có số thứ tự, tên hình, vị trí chương mục và số trang tương ứng.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Số hình</th>
+            <th>Tên hình dự kiến</th>
+            <th>Vị trí</th>
+            <th>Ghi chú cập nhật</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Hình 1.1</td>
+            <td>Sơ đồ nguyên lý Virtual Try-On: ảnh người dùng và ảnh trang phục đi qua mô hình AI để tạo ảnh thử đồ</td>
+            <td>Chương 1</td>
+            <td>Chèn sơ đồ minh họa khi viết phần cơ sở lý thuyết.</td>
+          </tr>
+          <tr>
+            <td>Hình 1.2</td>
+            <td>Sơ đồ pipeline RAG của AI Stylist</td>
+            <td>Chương 1</td>
+            <td>Minh họa User Query, Gemini, LanceDB và JSON Outfit Generator.</td>
+          </tr>
+          <tr>
+            <td>Hình 2.1</td>
+            <td>Use case diagram tổng quát của hệ thống</td>
+            <td>Chương 2</td>
+            <td>Vẽ khi hoàn thiện phần phân tích yêu cầu.</td>
+          </tr>
+          <tr>
+            <td>Hình 2.2</td>
+            <td>Sơ đồ kiến trúc tổng thể của hệ thống AI Fashion E-commerce</td>
+            <td>Chương 2</td>
+            <td>Thể hiện Web, Medusa API, FastAPI AI Service, RabbitMQ, PostgreSQL và LanceDB.</td>
+          </tr>
+          <tr>
+            <td>Hình 2.3</td>
+            <td>Sequence diagram luồng AI Stylist</td>
+            <td>Chương 2</td>
+            <td>Minh họa frontend, Medusa, FastAPI, Gemini và LanceDB.</td>
+          </tr>
+          <tr>
+            <td>Hình 2.4</td>
+            <td>Activity/sequence diagram luồng Virtual Try-On qua RabbitMQ và SSE</td>
+            <td>Chương 2</td>
+            <td>Minh họa queue job, AI worker, result queue và SSE broadcast.</td>
+          </tr>
+          <tr>
+            <td>Hình 2.5</td>
+            <td>ERD module AI Personalization theo model/migration thực tế</td>
+            <td>Chương 2</td>
+            <td>Đã chèn trong file HTML.</td>
+          </tr>
+          <tr>
+            <td>Hình 3.1</td>
+            <td>Giao diện trang chủ hoặc storefront</td>
+            <td>Chương 3</td>
+            <td>Chờ ảnh chụp UI thật.</td>
+          </tr>
+          <tr>
+            <td>Hình 3.2</td>
+            <td>Giao diện AI Stylist và OutfitCard</td>
+            <td>Chương 3</td>
+            <td>Chờ ảnh chụp UI thật.</td>
+          </tr>
+          <tr>
+            <td>Hình 3.3</td>
+            <td>Giao diện AI Profile, Wardrobe và VTON modal</td>
+            <td>Chương 3</td>
+            <td>Chờ ảnh chụp UI thật.</td>
+          </tr>
+          <tr>
+            <td>Hình 4.1</td>
+            <td>Kết quả thử đồ ảo before/after bằng CatVTON local</td>
+            <td>Chương 4</td>
+            <td>Chờ ảnh kết quả thực nghiệm.</td>
+          </tr>
+          <tr>
+            <td>Hình 4.2</td>
+            <td>Kết quả thử đồ ảo before/after bằng FLUX.2 cloud</td>
+            <td>Chương 4</td>
+            <td>Chờ ảnh kết quả thực nghiệm.</td>
+          </tr>
+          <tr>
+            <td>Hình 4.3</td>
+            <td>Biểu đồ latency của AI Stylist, VTON local, VTON cloud và queue round-trip</td>
+            <td>Chương 4</td>
+            <td>Chờ số liệu đo thực tế.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="tables-list">
+      <h2>Danh mục bảng biểu</h2>
+      <p>Danh mục bảng biểu được dùng để quản lý các bảng so sánh, bảng đặc tả kỹ thuật, bảng schema và bảng đánh giá kết quả. Khi chuyển sang báo cáo chính thức, cần cập nhật số trang sau khi dàn trang LaTeX hoặc trình soạn thảo hoàn tất.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Số bảng</th>
+            <th>Tên bảng dự kiến</th>
+            <th>Vị trí</th>
+            <th>Ghi chú cập nhật</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Bảng 0.1</td>
+            <td>Bảng đồng bộ nội dung báo cáo với code hiện tại</td>
+            <td>Phần 0</td>
+            <td>Đã có trong file HTML.</td>
+          </tr>
+          <tr>
+            <td>Bảng 1.1</td>
+            <td>Bảng tổng hợp công nghệ nền tảng và vai trò trong hệ thống</td>
+            <td>Chương 1</td>
+            <td>Đã có khung nội dung.</td>
+          </tr>
+          <tr>
+            <td>Bảng 1.2</td>
+            <td>Bảng so sánh Next.js với các lựa chọn frontend khác</td>
+            <td>Chương 1</td>
+            <td>Bổ sung khi viết phần tổng quan công nghệ.</td>
+          </tr>
+          <tr>
+            <td>Bảng 1.3</td>
+            <td>Bảng so sánh MedusaJS với Shopify, WooCommerce hoặc Magento</td>
+            <td>Chương 1</td>
+            <td>Bổ sung khi viết phần e-commerce headless.</td>
+          </tr>
+          <tr>
+            <td>Bảng 1.4</td>
+            <td>Bảng so sánh CatVTON local và FLUX.2 cloud</td>
+            <td>Chương 1 hoặc 3</td>
+            <td>Bổ sung tiêu chí tài nguyên, chất lượng ảnh, tốc độ và phụ thuộc hạ tầng.</td>
+          </tr>
+          <tr>
+            <td>Bảng 2.1</td>
+            <td>Bảng use case tổng quát theo actor và endpoint</td>
+            <td>Chương 2</td>
+            <td>Đã có khung nội dung.</td>
+          </tr>
+          <tr>
+            <td>Bảng 2.2</td>
+            <td>Bảng cấu trúc quan hệ của module AI Personalization</td>
+            <td>Chương 2</td>
+            <td>Đã cập nhật theo model/migration thật.</td>
+          </tr>
+          <tr>
+            <td>Bảng 2.3</td>
+            <td>Bảng schema LanceDB cho products_vector và closet_vector</td>
+            <td>Chương 2</td>
+            <td>Đã cập nhật theo PyArrow schema trong AI service.</td>
+          </tr>
+          <tr>
+            <td>Bảng 4.1</td>
+            <td>Bảng mức độ hoàn thiện chức năng</td>
+            <td>Chương 4</td>
+            <td>Đã có khung nội dung.</td>
+          </tr>
+          <tr>
+            <td>Bảng 4.2</td>
+            <td>Bảng kế hoạch đo hiệu năng</td>
+            <td>Chương 4</td>
+            <td>Chờ số liệu đo thực tế.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="intro" class="page-break">
+      <h2>Phần mở đầu</h2>
+
+      <h3>1. Lý do chọn đề tài</h3>
+      <ul>
+        <li>Thương mại điện tử thời trang gặp vấn đề lớn về thiếu trải nghiệm thử đồ và khó cá nhân hóa tư vấn.</li>
+        <li>Người dùng thường cần gợi ý phối đồ theo ngữ cảnh, vóc dáng, tủ đồ cá nhân và ngân sách.</li>
+        <li>Generative AI, vector search và hệ thống AI worker bất đồng bộ cho phép xây dựng trải nghiệm mua sắm mới: tư vấn, gợi ý, thử đồ và phản hồi kết quả gần thời gian thực.</li>
+      </ul>
+
+      <h3>2. Mục tiêu của đề tài</h3>
+      <ul>
+        <li>Xây dựng storefront thời trang có các chức năng mua sắm cơ bản.</li>
+        <li>Tích hợp AI Stylist để phân tích yêu cầu ngôn ngữ tự nhiên và đề xuất set đồ.</li>
+        <li>Tích hợp Virtual Try-On để sinh ảnh thử đồ từ ảnh người dùng và ảnh sản phẩm.</li>
+        <li>Thiết kế luồng xử lý bất đồng bộ bằng RabbitMQ để tách tác vụ AI nặng khỏi request web.</li>
+        <li>Đồng bộ metadata sản phẩm và tủ đồ cá nhân vào LanceDB để phục vụ truy hồi ngữ nghĩa.</li>
+      </ul>
+
+      <h3>3. Đối tượng sử dụng và phạm vi</h3>
+      <ul>
+        <li>Khách hàng mua sắm thời trang trực tuyến cần tư vấn phối đồ và thử đồ ảo.</li>
+        <li>Quản trị viên/cửa hàng cần thêm sản phẩm và đồng bộ dữ liệu sản phẩm vào hệ AI.</li>
+        <li>Phạm vi đồ án tập trung vào MVP kỹ thuật: chứng minh kiến trúc, luồng tích hợp, khả năng mở rộng và trải nghiệm chính.</li>
+      </ul>
+
+      <h3>4. Phương pháp thực hiện</h3>
+      <ol>
+        <li>Nghiên cứu công nghệ thương mại điện tử headless, RAG, vector database, VTON và queue-based architecture.</li>
+        <li>Phân tích yêu cầu và thiết kế kiến trúc microservices trong monorepo.</li>
+        <li>Cài đặt frontend, backend MedusaJS, AI service FastAPI, RabbitMQ consumers và LanceDB.</li>
+        <li>Kiểm thử tích hợp các luồng AI Stylist, VTON, SSE và checkout MVP.</li>
+        <li>Đánh giá kết quả triển khai, hạn chế và hướng phát triển.</li>
+      </ol>
+
+      <h3>5. Cấu trúc báo cáo</h3>
+      <p>Báo cáo gồm bốn chương chính: cơ sở lý thuyết, phân tích thiết kế, cài đặt tích hợp, và đánh giá thực nghiệm.</p>
+    </section>
+
+    <section id="chapter-1" class="page-break">
+      <h2>Chương 1: Cơ sở lý thuyết và tổng quan công nghệ</h2>
+
+      <h3>1.1. Cá nhân hóa trải nghiệm trong thương mại điện tử thời trang</h3>
+      <ul>
+        <li>Khái niệm personalization trong e-commerce.</li>
+        <li>Các bài toán đặc thù của thời trang: phối đồ, kích cỡ, màu sắc, dịp sử dụng, tủ đồ cá nhân.</li>
+        <li>Vai trò của AI trong giảm ma sát mua sắm và tăng niềm tin trước khi mua.</li>
+      </ul>
+
+      <h3>1.2. AI Stylist và hệ thống gợi ý dựa trên RAG</h3>
+      <ul>
+        <li>Trợ lý thời trang dùng LLM để hiểu intent, style, occasion, price preference và giới tính.</li>
+        <li>Retrieval-Augmented Generation: truy hồi pool sản phẩm từ LanceDB trước khi LLM chọn outfit.</li>
+        <li>Guardrails: từ chối yêu cầu ngoài miền thời trang và chỉ sinh JSON hợp lệ.</li>
+        <li>JSON action schema: kết quả AI có cấu trúc để frontend render các hành động như Thêm vào giỏ, Đổi món, Thử đồ.</li>
+      </ul>
+      <div class="note">
+        Hình đề xuất: sơ đồ RAG gồm User Query -> Gemini Intent Analyzer -> LanceDB Retrieval -> Outfit JSON Generator -> UI Actions.
+      </div>
+
+      <h3>1.3. Virtual Try-On trong thời trang số</h3>
+      <ul>
+        <li>Input: ảnh người dùng, ảnh trang phục, loại trang phục và tham số inference.</li>
+        <li>Output: ảnh người dùng sau khi mặc trang phục được sinh bởi mô hình AI.</li>
+        <li>Local engine: CatVTON dùng Stable Diffusion inpainting, automasker, DensePose/SCHP.</li>
+        <li>Cloud engine: FLUX.2 Pro thông qua Replicate để hỗ trợ thử nhiều trang phục một lượt.</li>
+      </ul>
+      <div class="note">
+        Hình đề xuất: pipeline VTON gồm Person Image + Garment Image + Mask/AutoMask -> CatVTON/FLUX.2 -> Result Image.
+      </div>
+
+      <h3>1.4. Kiến trúc microservices và xử lý bất đồng bộ</h3>
+      <ul>
+        <li>Lý do tách frontend, e-commerce core và AI service thành các service riêng.</li>
+        <li>RabbitMQ/AMQP cho tác vụ AI nặng: durable queue, persistent message, prefetch 1 để tránh quá tải VRAM.</li>
+        <li>Server-Sent Events cho kết quả một chiều từ backend về browser.</li>
+      </ul>
+
+      <h3>1.5. Công nghệ nền tảng</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Nhóm</th>
+            <th>Công nghệ</th>
+            <th>Vai trò trong hệ thống</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Frontend</td>
+            <td>Next.js 14, React 18, Zustand, Tailwind CSS</td>
+            <td>Storefront, AI Stylist UI, Wardrobe, AI Profile, VTON modal.</td>
+          </tr>
+          <tr>
+            <td>E-commerce core</td>
+            <td>MedusaJS 2.14, TypeScript, PostgreSQL</td>
+            <td>Quản lý sản phẩm, module AI personalization, API v1, workflow checkout MVP.</td>
+          </tr>
+          <tr>
+            <td>AI service</td>
+            <td>FastAPI, Python, Gemini SDK, sentence-transformers, LanceDB, Pika</td>
+            <td>Intent analysis, metadata extraction, vector search, AI worker consumers.</td>
+          </tr>
+          <tr>
+            <td>AI vision</td>
+            <td>CatVTON, Diffusers, PyTorch, FLUX.2 qua Replicate</td>
+            <td>Sinh ảnh thử đồ local hoặc cloud.</td>
+          </tr>
+          <tr>
+            <td>Infrastructure</td>
+            <td>Docker, RabbitMQ, Redis, PostgreSQL</td>
+            <td>Hạ tầng chạy dịch vụ nền và giao tiếp bất đồng bộ.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="chapter-2" class="page-break">
+      <h2>Chương 2: Phân tích và thiết kế hệ thống</h2>
+
+      <h3>2.1. Phân tích yêu cầu</h3>
+      <h4>2.1.1. Yêu cầu chức năng</h4>
+      <ul>
+        <li>Người dùng xem danh sách sản phẩm, thêm sản phẩm vào giỏ và thực hiện checkout MVP.</li>
+        <li>Người dùng thiết lập AI Profile gồm ảnh cơ sở, chiều cao, cân nặng và giới tính.</li>
+        <li>Người dùng tải trang phục cá nhân vào Wardrobe.</li>
+        <li>Người dùng chat với AI Stylist để nhận outfit options.</li>
+        <li>Người dùng đổi một món trong outfit bằng tìm kiếm tương tự.</li>
+        <li>Người dùng thử đồ ảo một món hoặc toàn set.</li>
+        <li>Admin tạo sản phẩm và hệ thống đồng bộ metadata vào LanceDB.</li>
+      </ul>
+
+      <h4>2.1.2. Yêu cầu phi chức năng</h4>
+      <ul>
+        <li>Tách tác vụ AI nặng khỏi request frontend để tránh timeout.</li>
+        <li>Queue VTON chỉ xử lý một job trên worker tại một thời điểm để bảo vệ VRAM.</li>
+        <li>Frontend nhận trạng thái và kết quả VTON qua SSE.</li>
+        <li>Hệ thống dễ mở rộng adapter AI local/cloud.</li>
+        <li>Dữ liệu vector có metadata filter để giảm kết quả không phù hợp.</li>
+      </ul>
+
+      <h3>2.2. Use case tổng quát</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Actor</th>
+            <th>Use case</th>
+            <th>Endpoint/module liên quan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Khách hàng</td>
+            <td>Thiết lập AI Profile</td>
+            <td><code>POST /v1/ai-profile</code></td>
+          </tr>
+          <tr>
+            <td>Khách hàng</td>
+            <td>Chat với AI Stylist</td>
+            <td><code>POST /v1/stylist/search</code>, <code>/api/v1/stylist/search</code></td>
+          </tr>
+          <tr>
+            <td>Khách hàng</td>
+            <td>Đổi món trong set đồ</td>
+            <td><code>POST /v1/stylist/replace</code></td>
+          </tr>
+          <tr>
+            <td>Khách hàng</td>
+            <td>Thử đồ ảo</td>
+            <td><code>POST /v1/vton/jobs</code>, <code>GET /v1/stream/vision-results</code></td>
+          </tr>
+          <tr>
+            <td>Khách hàng</td>
+            <td>Quản lý tủ đồ cá nhân</td>
+            <td><code>GET /v1/user/assets</code>, <code>POST /v1/user/garments</code></td>
+          </tr>
+          <tr>
+            <td>Admin</td>
+            <td>Tạo sản phẩm và đồng bộ AI metadata</td>
+            <td>Product sync workflow, queue <code>product_metadata_sync</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>2.3. Kiến trúc tổng thể</h3>
+      <p>Hệ thống được tổ chức theo monorepo gồm ba ứng dụng chính:</p>
+      <ul>
+        <li><code>apps/web</code>: frontend Next.js cho storefront, AI Stylist, Wardrobe, AI Profile.</li>
+        <li><code>apps/api-medusa</code>: backend e-commerce core, custom API, module AI personalization, queue adapter, SSE manager.</li>
+        <li><code>apps/ai-service</code>: FastAPI service cho LLM, LanceDB, CatVTON/FLUX worker và RabbitMQ consumers.</li>
+      </ul>
+      <div class="note">
+        Sơ đồ đề xuất: Browser -> Next.js UI -> Medusa API -> PostgreSQL/Medusa modules; Medusa -> RabbitMQ -> FastAPI AI Worker -> LanceDB/CatVTON/FLUX -> RabbitMQ result -> Medusa SSE -> Browser.
+      </div>
+
+      <h3>2.4. Thiết kế luồng AI Stylist</h3>
+      <ol>
+        <li>Người dùng nhập yêu cầu phối đồ trong chat UI.</li>
+        <li>Medusa route <code>/v1/stylist/search</code> chuyển request sang FastAPI bằng internal token.</li>
+        <li>FastAPI dùng Gemini analyzer để trích xuất intent và guardrail.</li>
+        <li>VectorSearch truy hồi sản phẩm từ <code>products_vector</code> và tủ đồ từ <code>closet_vector</code>.</li>
+        <li>Gemini sinh outfit options dạng JSON với danh sách item ID.</li>
+        <li>Medusa hydrate item ID thành dữ liệu sản phẩm/tủ đồ thật để frontend hiển thị.</li>
+        <li>Frontend render outfit cards kèm các nút Thêm vào giỏ, Đổi món, Thử đồ toàn set.</li>
+      </ol>
+      <div class="note warning">
+        Cách viết chính xác: đây là structured JSON output để frontend render hành động, không phải LLM Function Calling theo nghĩa gọi tool trực tiếp.
+      </div>
+
+      <h3>2.5. Thiết kế luồng Virtual Try-On</h3>
+      <ol>
+        <li>Frontend mở SSE trước khi gửi request tạo job.</li>
+        <li>Medusa tạo bản ghi <code>vton_job</code> và publish message vào <code>ai_vision_jobs</code>.</li>
+        <li>FastAPI VTON consumer nhận job, chọn engine local hoặc cloud.</li>
+        <li>Engine local dùng <code>LocalCatVTONAdapter</code>; engine cloud dùng <code>CloudFluxVTONAdapter</code>.</li>
+        <li>AI service lưu ảnh kết quả trong static output local và publish message vào <code>ai_vision_results</code>.</li>
+        <li>Medusa vision consumer cập nhật DB, orchestration bước kế tiếp nếu là multi-step, rồi broadcast SSE.</li>
+        <li>Frontend nhận event <code>vision_update</code> và hiển thị ảnh kết quả.</li>
+      </ol>
+
+      <h3>2.6. Thiết kế dữ liệu</h3>
+      <p>Cơ sở dữ liệu quan hệ của phần AI Personalization được xây dựng như một module tùy biến trong MedusaJS. Các bảng này không định nghĩa lại toàn bộ miền dữ liệu thương mại điện tử, mà chỉ bổ sung những thực thể cần thiết cho hồ sơ AI, tủ đồ cá nhân, phiên tư vấn stylist và tác vụ thử đồ ảo. Các bảng lõi như khách hàng, sản phẩm, biến thể, giỏ hàng và đơn hàng vẫn do MedusaJS quản lý. Vì vậy, trong ERD của báo cáo cần phân biệt rõ quan hệ vật lý được khai báo bằng khóa ngoại và các tham chiếu logic được lưu dưới dạng chuỗi định danh.</p>
+
+      <h4>2.6.1. ERD theo model và migration thực tế</h4>
+      <div class="erd-wrap" aria-label="ERD AI Personalization">
+        <svg class="erd-svg" viewBox="0 0 1180 760" role="img">
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L9,3 z" fill="#172033"></path>
+            </marker>
+            <marker id="arrow-muted" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L9,3 z" fill="#8a93a6"></path>
+            </marker>
+          </defs>
+
+          <rect x="30" y="36" width="210" height="90" rx="6" class="erd-box erd-core"></rect>
+          <text x="44" y="61" class="erd-title">Medusa Customer/Auth</text>
+          <text x="44" y="85" class="erd-field">id / actor_id</text>
+          <text x="44" y="105" class="erd-muted">managed by Medusa core</text>
+
+          <rect x="30" y="166" width="210" height="90" rx="6" class="erd-box erd-core"></rect>
+          <text x="44" y="191" class="erd-title">Medusa Product</text>
+          <text x="44" y="215" class="erd-field">id, title, thumbnail</text>
+          <text x="44" y="235" class="erd-muted">managed by Medusa core</text>
+
+          <rect x="300" y="28" width="260" height="172" rx="6" class="erd-box"></rect>
+          <rect x="300" y="28" width="260" height="34" rx="6" class="erd-head"></rect>
+          <text x="314" y="51" class="erd-title">ai_profile</text>
+          <text x="314" y="82" class="erd-field">PK id: text</text>
+          <text x="314" y="102" class="erd-field">customer_id: text</text>
+          <text x="314" y="122" class="erd-field">height, weight: numeric</text>
+          <text x="314" y="142" class="erd-field">raw_height, raw_weight: jsonb</text>
+          <text x="314" y="162" class="erd-field">gender: text nullable</text>
+          <text x="314" y="182" class="erd-field">base_body_image_url: text</text>
+
+          <rect x="300" y="238" width="280" height="172" rx="6" class="erd-box"></rect>
+          <rect x="300" y="238" width="280" height="34" rx="6" class="erd-head"></rect>
+          <text x="314" y="261" class="erd-title">user_closet_item</text>
+          <text x="314" y="292" class="erd-field">PK id: text</text>
+          <text x="314" y="312" class="erd-field">customer_id: text</text>
+          <text x="314" y="332" class="erd-field">image_url: text</text>
+          <text x="314" y="352" class="erd-field">category: text</text>
+          <text x="314" y="372" class="erd-field">metadata: jsonb nullable</text>
+          <text x="314" y="392" class="erd-field">vector_status: text</text>
+
+          <rect x="650" y="28" width="280" height="150" rx="6" class="erd-box"></rect>
+          <rect x="650" y="28" width="280" height="34" rx="6" class="erd-head"></rect>
+          <text x="664" y="51" class="erd-title">stylist_session</text>
+          <text x="664" y="82" class="erd-field">PK id: text</text>
+          <text x="664" y="102" class="erd-field">customer_id: text</text>
+          <text x="664" y="122" class="erd-field">prompt: text</text>
+          <text x="664" y="142" class="erd-field">reasoning: text nullable</text>
+          <text x="664" y="162" class="erd-field">status: text default processing</text>
+
+          <rect x="650" y="230" width="300" height="174" rx="6" class="erd-box"></rect>
+          <rect x="650" y="230" width="300" height="34" rx="6" class="erd-head"></rect>
+          <text x="664" y="253" class="erd-title">stylist_session_item</text>
+          <text x="664" y="284" class="erd-field">PK id: text</text>
+          <text x="664" y="304" class="erd-field">FK session_id -> stylist_session.id</text>
+          <text x="664" y="324" class="erd-field">product_id: text</text>
+          <text x="664" y="344" class="erd-field">replaces_item_id: text nullable</text>
+          <text x="664" y="364" class="erd-muted">only physical FK in AI module</text>
+          <text x="664" y="384" class="erd-muted">product_id is logical Medusa product id</text>
+
+          <rect x="650" y="454" width="300" height="172" rx="6" class="erd-box"></rect>
+          <rect x="650" y="454" width="300" height="34" rx="6" class="erd-head"></rect>
+          <text x="664" y="477" class="erd-title">vton_job</text>
+          <text x="664" y="508" class="erd-field">PK id: text</text>
+          <text x="664" y="528" class="erd-field">customer_id: text</text>
+          <text x="664" y="548" class="erd-field">parent_job_id: text nullable</text>
+          <text x="664" y="568" class="erd-field">step, status: text</text>
+          <text x="664" y="588" class="erd-field">result_image_url: text nullable</text>
+          <text x="664" y="608" class="erd-field">error_message, retry_count</text>
+
+          <rect x="1000" y="160" width="160" height="136" rx="6" class="erd-box erd-vector"></rect>
+          <text x="1014" y="185" class="erd-title">products_vector</text>
+          <text x="1014" y="209" class="erd-field">product_id</text>
+          <text x="1014" y="229" class="erd-field">vector[512]</text>
+          <text x="1014" y="249" class="erd-field">category, gender</text>
+          <text x="1014" y="269" class="erd-field">style, occasion</text>
+          <text x="1014" y="287" class="erd-muted">LanceDB table</text>
+
+          <rect x="1000" y="354" width="160" height="136" rx="6" class="erd-box erd-vector"></rect>
+          <text x="1014" y="379" class="erd-title">closet_vector</text>
+          <text x="1014" y="403" class="erd-field">id, user_id</text>
+          <text x="1014" y="423" class="erd-field">vector[512]</text>
+          <text x="1014" y="443" class="erd-field">category, color</text>
+          <text x="1014" y="463" class="erd-field">style, material</text>
+          <text x="1014" y="481" class="erd-muted">LanceDB table</text>
+
+          <path d="M240 82 C270 82 270 86 300 86" class="erd-logical"></path>
+          <path d="M240 92 C270 92 270 310 300 310" class="erd-logical"></path>
+          <path d="M240 72 C500 72 500 102 650 102" class="erd-logical"></path>
+          <path d="M240 112 C510 112 510 528 650 528" class="erd-logical"></path>
+
+          <path d="M930 102 C970 102 970 204 1000 204" class="erd-logical"></path>
+          <path d="M240 206 C530 206 530 324 650 324" class="erd-logical"></path>
+          <path d="M240 216 C700 216 700 204 1000 204" class="erd-logical"></path>
+          <path d="M580 328 C740 328 740 402 1000 402" class="erd-logical"></path>
+
+          <path d="M790 178 L790 230" class="erd-relation"></path>
+          <text x="800" y="211" class="erd-muted">1 - n</text>
+
+          <path d="M950 548 C992 548 992 620 950 620" class="erd-logical"></path>
+          <text x="974" y="594" class="erd-muted">parent_job_id</text>
+
+          <line x1="34" y1="700" x2="92" y2="700" class="erd-relation"></line>
+          <text x="104" y="704" class="erd-muted">physical foreign key</text>
+          <line x1="246" y1="700" x2="304" y2="700" class="erd-logical"></line>
+          <text x="316" y="704" class="erd-muted">logical reference / vector synchronization</text>
+        </svg>
+      </div>
+
+      <p>Sơ đồ trên phản ánh đúng trạng thái triển khai hiện tại. Bảng <code>stylist_session_item</code> là bảng duy nhất trong module AI Personalization có khóa ngoại vật lý, cụ thể là <code>session_id</code> tham chiếu đến <code>stylist_session.id</code>. Các trường như <code>customer_id</code>, <code>product_id</code>, <code>replaces_item_id</code> và <code>parent_job_id</code> được lưu dưới dạng <code>text</code> để liên kết logic với Medusa core hoặc với orchestration nội bộ, nhưng chưa được ràng buộc bằng khóa ngoại trong migration.</p>
+
+      <h4>2.6.2. Cấu trúc bảng quan hệ của module AI Personalization</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Bảng</th>
+            <th>Các trường chính</th>
+            <th>Vai trò trong hệ thống</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>ai_profile</code></td>
+            <td><code>id</code>, <code>customer_id</code>, <code>height</code>, <code>weight</code>, <code>raw_height</code>, <code>raw_weight</code>, <code>gender</code>, <code>base_body_image_url</code>, soft-delete columns</td>
+            <td>Lưu hồ sơ cơ thể và ảnh nền của người dùng để phục vụ cá nhân hóa và thử đồ ảo. Route hiện thực hiện upsert theo <code>customer_id</code>, nhưng database chưa khai báo unique constraint cho trường này.</td>
+          </tr>
+          <tr>
+            <td><code>user_closet_item</code></td>
+            <td><code>id</code>, <code>customer_id</code>, <code>image_url</code>, <code>category</code>, <code>metadata</code>, <code>vector_status</code>, soft-delete columns</td>
+            <td>Lưu trang phục cá nhân hoặc kết quả VTON được người dùng lưu lại. Khi tạo/xóa trang phục, backend phát sự kiện <code>closet_metadata_sync</code> để đồng bộ LanceDB.</td>
+          </tr>
+          <tr>
+            <td><code>stylist_session</code></td>
+            <td><code>id</code>, <code>customer_id</code>, <code>prompt</code>, <code>reasoning</code>, <code>status</code>, soft-delete columns</td>
+            <td>Lưu phiên tư vấn AI Stylist. Sau khi AI trả outfit options, route cập nhật <code>reasoning</code> bằng tóm tắt tiêu đề các option.</td>
+          </tr>
+          <tr>
+            <td><code>stylist_session_item</code></td>
+            <td><code>id</code>, <code>session_id</code>, <code>product_id</code>, <code>replaces_item_id</code>, soft-delete columns</td>
+            <td>Lưu các sản phẩm cửa hàng được AI Stylist chọn trong một phiên. Trường <code>product_id</code> không nullable nên code hiện chỉ lưu store product; closet item được hydrate cho UI nhưng không được lưu như một quan hệ riêng.</td>
+          </tr>
+          <tr>
+            <td><code>vton_job</code></td>
+            <td><code>id</code>, <code>customer_id</code>, <code>parent_job_id</code>, <code>step</code>, <code>status</code>, <code>result_image_url</code>, <code>error_message</code>, <code>retry_count</code>, soft-delete columns</td>
+            <td>Lưu tác vụ thử đồ ảo bất đồng bộ. Trường <code>parent_job_id</code> phục vụ chuỗi job multi-step. Trong MVP, <code>error_message</code> đôi khi được dùng tạm để giữ URL trang phục của bước kế tiếp.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>2.6.3. Cơ sở dữ liệu vector LanceDB</h4>
+      <p>Bên cạnh PostgreSQL, hệ thống sử dụng LanceDB như một kho đọc chuyên biệt cho truy hồi ngữ nghĩa. Bảng <code>products_vector</code> lưu embedding và metadata của sản phẩm cửa hàng, còn bảng <code>closet_vector</code> lưu embedding và metadata của tủ đồ cá nhân. Hai bảng này không phải bảng PostgreSQL; chúng được định nghĩa bằng PyArrow schema trong AI service và được cập nhật thông qua các consumer RabbitMQ.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Bảng LanceDB</th>
+            <th>Trường dữ liệu</th>
+            <th>Nguồn đồng bộ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>products_vector</code></td>
+            <td><code>product_id</code>, <code>vector[512]</code>, <code>category</code>, <code>gender</code>, <code>color</code>, <code>price</code>, <code>in_stock</code>, <code>style</code>, <code>occasion</code>, <code>material</code>, <code>name</code>, <code>image_url</code></td>
+            <td>Workflow product sync phát message vào <code>product_metadata_sync</code>, AI service phân tích metadata bằng Gemini và sinh embedding.</td>
+          </tr>
+          <tr>
+            <td><code>closet_vector</code></td>
+            <td><code>id</code>, <code>user_id</code>, <code>vector[512]</code>, <code>category</code>, <code>color</code>, <code>pattern</code>, <code>style</code>, <code>material</code>, <code>image_url</code></td>
+            <td>Route upload/delete tủ đồ phát message vào <code>closet_metadata_sync</code>, AI service phân tích ảnh trang phục và cập nhật LanceDB.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note warning">
+        File SQL tài liệu <code>.ai-knowledge/20_database_schema.sql</code> đã được chỉnh lại theo model và migration thật. Khi mở rộng production, nên bổ sung <code>metadata</code> cho <code>vton_job</code>, cân nhắc unique constraint cho <code>ai_profile.customer_id</code>, và chỉ thêm khóa ngoại vật lý sau khi cập nhật migration của module Medusa tương ứng.
+      </div>
+
+      <h3>2.7. Thiết kế interface và adapter</h3>
+      <ul>
+        <li><code>IVirtualTryOnService</code>: interface chung cho engine thử đồ.</li>
+        <li><code>LocalCatVTONAdapter</code>: triển khai local bằng CatVTON.</li>
+        <li><code>CloudFluxVTONAdapter</code>: triển khai cloud bằng Replicate FLUX.2 Pro.</li>
+        <li><code>IIntentAnalyzer</code>: interface phân tích intent và sinh outfit.</li>
+        <li><code>GeminiAnalyzerAdapter</code>: triển khai hiện tại cho phân tích ngôn ngữ và ảnh tủ đồ.</li>
+      </ul>
+    </section>
+
+    <section id="chapter-3" class="page-break">
+      <h2>Chương 3: Cài đặt và tích hợp hệ thống</h2>
+
+      <h3>3.1. Cài đặt Web Frontend</h3>
+      <ul>
+        <li>Storefront: trang chủ, danh sách sản phẩm, card sản phẩm và thao tác thêm vào giỏ.</li>
+        <li>AI Stylist UI: chat box, lịch sử session, outfit cards, nút đổi món và thử đồ.</li>
+        <li>Wardrobe: tải ảnh trang phục cá nhân, xem tài sản cá nhân và thử đồ.</li>
+        <li>AI Profile: lưu ảnh cơ sở, chiều cao, cân nặng và giới tính để phục vụ cá nhân hóa.</li>
+        <li>VTON modal: hiển thị trạng thái pending, processing_next_step, completed, failed.</li>
+      </ul>
+      <div class="note">
+        Hình đề xuất: chụp màn hình AI Stylist, OutfitCard, VTON modal, Wardrobe và AI Profile.
+      </div>
+
+      <h3>3.2. Cài đặt Backend MedusaJS</h3>
+      <ul>
+        <li>Custom API group <code>/v1</code> cho AI profile, stylist, user garments, VTON jobs, stream và checkout.</li>
+        <li>Module <code>ai-personalization</code> quản lý AI profile, closet item, stylist session và VTON job.</li>
+        <li>Queue adapter <code>AmqplibAdapter</code> triển khai publish/consume RabbitMQ với durable queue và prefetch 1.</li>
+        <li>Vision orchestrator cập nhật trạng thái job, kích hoạt bước VTON tiếp theo và trả payload cho SSE.</li>
+        <li>Product sync workflow publish metadata sản phẩm vào queue <code>product_metadata_sync</code>.</li>
+      </ul>
+
+      <h3>3.3. Cài đặt AI Service FastAPI</h3>
+      <ul>
+        <li>FastAPI expose health check, ping LanceDB và routes AI Stylist.</li>
+        <li>RabbitMQ consumers: <code>product_metadata_sync</code>, <code>closet_metadata_sync</code>, <code>ai_vision_jobs</code>.</li>
+        <li>Embedding service tạo vector 512 chiều cho sản phẩm và trang phục cá nhân.</li>
+        <li>Gemini analyzer xử lý intent, metadata sản phẩm, metadata ảnh tủ đồ và sinh outfit options.</li>
+        <li>VectorSearch truy vấn LanceDB với metadata filter và similarity search.</li>
+      </ul>
+
+      <h3>3.4. Cài đặt pipeline Virtual Try-On</h3>
+      <h4>3.4.1. Local CatVTON</h4>
+      <ul>
+        <li>Tải model từ HuggingFace nếu chưa có.</li>
+        <li>Resize ảnh người và ảnh trang phục theo kích thước inference.</li>
+        <li>Sinh mask tự động nếu client không cung cấp mask.</li>
+        <li>Chạy CatVTON pipeline và lưu ảnh PNG kết quả.</li>
+      </ul>
+
+      <h4>3.4.2. Cloud FLUX.2 qua Replicate</h4>
+      <ul>
+        <li>Chuyển ảnh input thành data URI/base64 để gửi lên cloud API.</li>
+        <li>Hỗ trợ một hoặc nhiều ảnh trang phục trong cùng request.</li>
+        <li>Tải kết quả từ URL output của Replicate và lưu vào output local.</li>
+      </ul>
+
+      <h3>3.5. Cài đặt luồng realtime bằng SSE</h3>
+      <ul>
+        <li>Frontend dùng <code>EventSource</code> kết nối <code>/v1/stream/vision-results?user_id=...</code>.</li>
+        <li>Backend giữ danh sách client theo user_id trong <code>VisionSSEManager</code>.</li>
+        <li>Khi consumer nhận kết quả từ <code>ai_vision_results</code>, backend broadcast event <code>vision_update</code>.</li>
+      </ul>
+
+      <h3>3.6. Checkout MVP và Saga workflow</h3>
+      <ul>
+        <li>Workflow gồm reserve inventory, create pending order, process payment, complete order.</li>
+        <li>Payment hiện là mock gateway, có thể truyền <code>payment_method = fail</code> để kiểm thử rollback.</li>
+        <li>Tracking chuyển đổi từ AI Stylist/VTON vào order đang là TODO, cần nêu trong hạn chế.</li>
+      </ul>
+
+      <h3>3.7. Tổ chức mã nguồn và khả năng bảo trì</h3>
+      <ul>
+        <li>Monorepo dùng pnpm workspace và Turborepo.</li>
+        <li>Ứng dụng tách theo domain: web, api-medusa, ai-service.</li>
+        <li>Shared packages gồm shared types, UI components và eslint config.</li>
+        <li>Adapter pattern giúp thay đổi engine AI mà không đổi toàn bộ luồng nghiệp vụ.</li>
+      </ul>
+    </section>
+
+    <section id="chapter-4" class="page-break">
+      <h2>Chương 4: Kết quả thực nghiệm và đánh giá</h2>
+
+      <h3>4.1. Kết quả triển khai thực tế</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Chức năng</th>
+            <th>Mức hoàn thiện</th>
+            <th>Bằng chứng cần đưa vào báo cáo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Storefront và sản phẩm</td>
+            <td>Đã triển khai MVP</td>
+            <td>Ảnh trang chủ, product grid, thao tác thêm vào giỏ.</td>
+          </tr>
+          <tr>
+            <td>AI Stylist</td>
+            <td>Đã triển khai pipeline chính</td>
+            <td>Ảnh chat, JSON response, outfit cards, lịch sử session.</td>
+          </tr>
+          <tr>
+            <td>Đổi món</td>
+            <td>Đã triển khai tìm tương tự</td>
+            <td>Ảnh trước/sau khi đổi item, endpoint replace.</td>
+          </tr>
+          <tr>
+            <td>VTON local/cloud</td>
+            <td>Đã có adapter và queue</td>
+            <td>Ảnh before/after, log job queue, kết quả SSE.</td>
+          </tr>
+          <tr>
+            <td>Wardrobe và closet vector</td>
+            <td>Đã triển khai MVP</td>
+            <td>Ảnh upload garment, record trong LanceDB, kết quả search có source closet.</td>
+          </tr>
+          <tr>
+            <td>Checkout</td>
+            <td>MVP/mock</td>
+            <td>Ảnh checkout, log mock payment success/fail rollback.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>4.2. Kế hoạch đo hiệu năng</h3>
+      <div class="note danger">
+        Phần này tạm thời để trống trong bản triển khai nội dung hiện tại. Các chức năng đã được xác nhận vận hành ổn định, nhưng ảnh chụp giao diện, kết quả truy vấn kiểm thử, ảnh before/after VTON, log RabbitMQ/SSE và số liệu latency sẽ được người thực hiện bổ sung sau. Không nên viết kết luận định lượng trước khi có số đo và log cụ thể.
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Chỉ số</th>
+            <th>Cách đo</th>
+            <th>Kết quả cần điền</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Latency AI Stylist</td>
+            <td>Đo từ khi frontend gửi query đến khi nhận outfit response.</td>
+            <td>Trung bình, min, max trên 10-20 câu truy vấn.</td>
+          </tr>
+          <tr>
+            <td>Latency CatVTON local</td>
+            <td>Đo thời gian xử lý một ảnh upper/lower/dress với cùng kích thước.</td>
+            <td>Thời gian theo giây, cấu hình CPU/GPU/RAM.</td>
+          </tr>
+          <tr>
+            <td>Latency FLUX.2 cloud</td>
+            <td>Đo từ lúc publish job đến lúc tải xong output từ Replicate.</td>
+            <td>Thời gian theo giây và biến động do network/API.</td>
+          </tr>
+          <tr>
+            <td>Queue round-trip</td>
+            <td>Đo thời gian từ publish <code>ai_vision_jobs</code> đến consume <code>ai_vision_results</code>.</td>
+            <td>Trung bình và p95 nếu có nhiều job.</td>
+          </tr>
+          <tr>
+            <td>SSE delivery</td>
+            <td>Đo từ khi backend nhận result queue đến khi frontend nhận event.</td>
+            <td>Thời gian mili giây hoặc mô tả định tính nếu không có tooling.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>4.3. Đánh giá kiến trúc</h3>
+      <ul>
+        <li>Ưu điểm: tách service rõ, queue giảm blocking, adapter dễ thay engine, RAG giảm hallucination sản phẩm.</li>
+        <li>Khả năng mở rộng: thêm worker VTON, chuyển output sang S3/CDN, thêm retry/dead-letter queue, thêm provider LLM khác.</li>
+        <li>Khả năng bảo trì: monorepo rõ vai trò, API route tách domain, module AI personalization độc lập trong Medusa.</li>
+      </ul>
+
+      <h3>4.4. Hạn chế hiện tại</h3>
+      <ul>
+        <li>Thanh toán còn là mock payment, chưa tích hợp cổng thanh toán thật.</li>
+        <li>Ảnh VTON result đang lưu static local, chưa dùng object storage production.</li>
+        <li>Một số user_id còn dùng mock/default trong frontend và route fallback.</li>
+        <li>Multi-step VTON local có hack lưu garment URL tạm trong <code>error_message</code>, nên cần bổ sung metadata field nếu production hóa.</li>
+        <li>Chưa có benchmark hiệu năng chính thức và chưa có load test.</li>
+        <li>Chưa có retry/dead-letter queue đầy đủ cho RabbitMQ.</li>
+        <li>Tracking chuyển đổi từ AI Stylist/VTON sang order còn là TODO.</li>
+      </ul>
+
+      <h3>4.5. Định hướng cải tiến</h3>
+      <ul>
+        <li>Chuẩn hóa auth thay cho mock/default user ID.</li>
+        <li>Thêm metadata JSONB cho VTON job để bỏ hack <code>error_message</code>.</li>
+        <li>Đưa ảnh output lên S3-compatible storage và trả CDN URL.</li>
+        <li>Bổ sung DLQ, retry policy và dashboard quan sát queue.</li>
+        <li>Tích hợp payment gateway thật và conversion tracking.</li>
+        <li>Viết benchmark script cho AI Stylist, CatVTON, FLUX và SSE.</li>
+      </ul>
+    </section>
+
+    <section id="conclusion" class="page-break">
+      <h2>Phần kết luận</h2>
+      <h3>1. Kết luận chung</h3>
+      <p>Đề tài đã xây dựng được nền tảng AI Fashion E-commerce theo hướng microservices, tích hợp AI Stylist, vector search, Virtual Try-On, RabbitMQ và SSE. Hệ thống chứng minh được khả năng kết hợp thương mại điện tử với AI để tạo trải nghiệm tư vấn và thử đồ số.</p>
+
+      <h3>2. Mức độ hoàn thành so với mục tiêu</h3>
+      <ul>
+        <li>Hoàn thành kiến trúc monorepo và các service chính.</li>
+        <li>Hoàn thành AI Stylist pipeline ở mức MVP có RAG và guardrails.</li>
+        <li>Hoàn thành VTON job pipeline local/cloud ở mức MVP.</li>
+        <li>Hoàn thành realtime result bằng SSE.</li>
+        <li>Checkout và production hardening còn cần phát triển thêm.</li>
+      </ul>
+
+      <h3>3. Hướng phát triển tương lai</h3>
+      <ul>
+        <li>Tối ưu hiệu năng model và queue worker.</li>
+        <li>Cải thiện UI/UX cho quá trình thử đồ và tư vấn.</li>
+        <li>Thêm dữ liệu đo thực nghiệm, monitoring và observability.</li>
+        <li>Nâng cấp bảo mật, xác thực, lưu trữ ảnh và thanh toán thật.</li>
+      </ul>
+    </section>
+
+    <section id="references" class="page-break">
+      <h2>Tài liệu tham khảo đề xuất</h2>
+      <ul>
+        <li>Tài liệu chính thức MedusaJS 2.x.</li>
+        <li>Tài liệu chính thức Next.js App Router.</li>
+        <li>Tài liệu FastAPI.</li>
+        <li>Tài liệu RabbitMQ AMQP 0-9-1.</li>
+        <li>Tài liệu LanceDB.</li>
+        <li>Bài báo hoặc repository CatVTON.</li>
+        <li>Tài liệu Replicate và FLUX.2 Pro.</li>
+        <li>Tài liệu Google Gemini API.</li>
+      </ul>
+      <div class="note">
+        Khi viết bản chính thức, cần trích dẫn link cụ thể và ngày truy cập cho từng nguồn.
+      </div>
+    </section>
+
+    <section id="appendix" class="page-break">
+      <h2>Phụ lục đề xuất</h2>
+      <h3>A. Danh sách endpoint chính</h3>
+      <ul>
+        <li><code>POST /v1/ai-profile</code>: tạo/cập nhật AI profile.</li>
+        <li><code>POST /v1/stylist/search</code>: truy vấn AI Stylist qua Medusa.</li>
+        <li><code>POST /api/v1/stylist/search</code>: FastAPI AI Stylist nội bộ.</li>
+        <li><code>POST /v1/stylist/replace</code>: đổi món tương tự.</li>
+        <li><code>POST /v1/vton/jobs</code>: tạo VTON job.</li>
+        <li><code>GET /v1/stream/vision-results</code>: SSE nhận kết quả VTON.</li>
+        <li><code>POST /v1/user/garments</code>: upload trang phục cá nhân.</li>
+        <li><code>POST /v1/checkout</code>: checkout MVP.</li>
+      </ul>
+
+      <h3>B. Danh sách queue chính</h3>
+      <ul>
+        <li><code>product_metadata_sync</code>: đồng bộ metadata sản phẩm sang LanceDB.</li>
+        <li><code>closet_metadata_sync</code>: đồng bộ trang phục cá nhân sang LanceDB.</li>
+        <li><code>ai_vision_jobs</code>: yêu cầu xử lý VTON.</li>
+        <li><code>ai_vision_results</code>: kết quả VTON trả về Medusa.</li>
+      </ul>
+
+      <h3>C. Cấu trúc hình ảnh/bảng biểu cần chuẩn bị</h3>
+      <ol>
+        <li>Sơ đồ kiến trúc tổng thể.</li>
+        <li>Use case diagram.</li>
+        <li>Sequence diagram AI Stylist.</li>
+        <li>Activity/sequence diagram VTON queue + SSE.</li>
+        <li>ERD Medusa core + AI personalization module.</li>
+        <li>Bảng schema LanceDB.</li>
+        <li>Bảng so sánh CatVTON local và FLUX.2 cloud.</li>
+        <li>Ảnh giao diện thực tế.</li>
+        <li>Biểu đồ latency sau khi đo.</li>
+      </ol>
+
+      <h3>D. Checklist trước khi viết báo cáo chính thức</h3>
+      <p>Các mục dưới đây được giữ lại như vị trí chờ dữ liệu thực nghiệm. Khi viết bản thảo hiện tại, có thể để trống phần minh chứng tương ứng và ghi chú “sẽ bổ sung sau” cho đến khi có ảnh chụp, log và số liệu đo từ quá trình vận hành hệ thống.</p>
+      <ul>
+        <li>Sửa tiêu đề bìa LaTeX cho đúng tên đề tài AI Fashion E-commerce.</li>
+        <li>Chụp màn hình UI thật ở các trang chính.</li>
+        <li>Chạy thử AI Stylist với ít nhất 5 truy vấn thời trang và 2 truy vấn ngoài miền để chứng minh guardrail.</li>
+        <li>Chạy thử VTON local và cloud, lưu ảnh before/after.</li>
+        <li>Ghi lại log RabbitMQ và SSE cho một job hoàn chỉnh.</li>
+        <li>Đo latency và điền số liệu vào Chương 4.</li>
+        <li>Vẽ lại ERD từ migration/model thật.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
