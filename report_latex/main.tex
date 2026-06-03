@@ -1,16 +1,88 @@
 \documentclass[12pt,a4paper]{report}
 
-\usepackage[vietnamese]{babel}
 \usepackage[top=3.5cm, bottom=3.0cm, left=3.5cm, right=2.0cm]{geometry}
 \usepackage{fontspec}
 \setmainfont{Times New Roman}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{fancybox}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{xurl}
+
+\renewcommand{\contentsname}{Mục lục}
+\renewcommand{\listfigurename}{Danh mục hình vẽ}
+\renewcommand{\listtablename}{Danh mục bảng}
+\renewcommand{\chaptername}{Chương}
+\renewcommand{\appendixname}{Phụ lục}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+\renewcommand{\bibname}{Tài liệu tham khảo}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+\setlist[itemize]{leftmargin=1.2cm}
+\setlist[enumerate]{leftmargin=1.2cm}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{3pt}
+\newcolumntype{L}[1]{>{\hspace{0pt}\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\hspace{0pt}\arraybackslash}X}
+\newcommand{\code}[1]{{\small\ttfamily\urlstyle{same}\nolinkurl{#1}}}
+\newcommand{\placeholderfigure}[2]{
+    \begin{figure}[H]
+        \centering
+        \fbox{\parbox[c][5cm][c]{0.86\textwidth}{\centering #2}}
+        \caption{#1}
+    \end{figure}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{AI Fashion E-commerce}
+\rhead{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{15pt}
+\emergencystretch=3em
+\hbadness=10000
+\hfuzz=2pt
+\vfuzz=2pt
+\sloppy
 
 \begin{document}
 
 \pagenumbering{gobble}
 \input{contents/phenikaa_template_cover}
+
+\input{contents/pledge}
+\input{contents/acknowledgement}
+\input{contents/abstract}
+
+\tableofcontents
+\listoffigures
+\listoftables
+\clearpage
+
+\pagenumbering{arabic}
+\input{contents/sections/01_introduction}
+\input{contents/sections/02_chapter_1_theory}
+\input{contents/sections/03_chapter_2_analysis_design}
+\input{contents/sections/04_chapter_3_implementation}
+\input{contents/sections/05_chapter_4_evaluation}
+\input{contents/sections/06_conclusion}
+
+\input{contents/references}
+\input{contents/appendix}
 
 \end{document}

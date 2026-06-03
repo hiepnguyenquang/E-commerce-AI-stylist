@@ -1,0 +1,43 @@
+\chapter*{Phần kết luận}
+\phantomsection
+\addcontentsline{toc}{chapter}{Phần kết luận}
+
+\section*{1. Kết luận chung}
+\phantomsection
+\addcontentsline{toc}{section}{1. Kết luận chung}
+
+Đề tài đã xây dựng được một hệ thống thương mại điện tử thời trang tích hợp AI ở mức MVP kỹ thuật. Hệ thống không chỉ có các chức năng mua sắm cơ bản như xem sản phẩm, thêm giỏ và checkout mô phỏng, mà còn tích hợp các chức năng AI có tính tương tác cao như AI Stylist, tủ đồ cá nhân và VTON.
+
+\medskip
+
+Về kiến trúc, hệ thống được tổ chức theo mô hình monorepo và tách thành ba service chính: Next.js frontend, MedusaJS backend và FastAPI AI service. MedusaJS đóng vai trò backend core, quản lý dữ liệu thương mại điện tử và điều phối nghiệp vụ AI. FastAPI đảm nhận các tác vụ AI như phân tích ngôn ngữ, tìm kiếm vector, phân tích metadata và sinh ảnh thử đồ. RabbitMQ và SSE được dùng để xử lý bất đồng bộ và cập nhật kết quả thời gian thực.
+
+\medskip
+
+Về AI Stylist, hệ thống sử dụng luồng RAG gồm phân tích ý định bằng Gemini, truy hồi sản phẩm/tủ đồ từ LanceDB và sinh các phương án phối đồ có cấu trúc JSON. Về VTON, hệ thống hỗ trợ cả CatVTON local và FLUX.2 cloud qua dịch vụ Replicate, đồng thời sử dụng queue để tách tác vụ sinh ảnh khỏi yêu cầu web.
+
+\section*{2. Mức độ hoàn thành so với mục tiêu}
+\phantomsection
+\addcontentsline{toc}{section}{2. Mức độ hoàn thành so với mục tiêu}
+
+So với mục tiêu ban đầu, đề tài đã hoàn thành cấu trúc monorepo gồm frontend, backend, AI service và shared types. Frontend đã có các màn hình chính cho storefront, AI Stylist, AI Profile, Wardrobe, VTON modal, cart và checkout MVP. Backend Medusa đã có module AI personalization với các bảng AI profile, closet item, stylist session và VTON job. Hệ thống cũng đã có luồng đồng bộ metadata sản phẩm và tủ đồ cá nhân vào LanceDB, luồng AI Stylist ở mức MVP với guardrail, tìm kiếm vector và bổ sung dữ liệu thật, cũng như luồng VTON bất đồng bộ qua RabbitMQ và cập nhật kết quả bằng SSE.
+
+\medskip
+
+Một số mục tiêu production hóa chưa hoàn thành gồm xác thực người dùng đầy đủ, thanh toán thật, object storage, benchmark, retry/dead-letter queue, monitoring và tracking conversion đầy đủ từ AI Stylist/VTON sang checkout.
+
+\section*{3. Hướng phát triển tương lai}
+\phantomsection
+\addcontentsline{toc}{section}{3. Hướng phát triển tương lai}
+
+Trong giai đoạn tiếp theo, hệ thống nên được phát triển theo hướng ổn định hóa và đo lường. Trước hết cần chuẩn hóa auth để thay thế các ID mặc định, tích hợp cổng thanh toán thật và đưa ảnh lên object storage. Tiếp theo cần bổ sung retry policy, dead-letter queue, logging tập trung và dashboard quan sát cho RabbitMQ và AI service.
+
+\medskip
+
+Với AI Stylist, có thể cải thiện prompt, thêm đánh giá chất lượng gợi ý và triển khai tracking tỷ lệ chuyển đổi từ gợi ý phối đồ sang giỏ hàng hoặc đơn hàng bằng session id thật thay vì metadata mock. Với VTON, có thể mở rộng luồng hậu xử lý, tối ưu tốc độ inference, đánh giá chất lượng ảnh và cho phép người dùng so sánh nhiều kết quả.
+
+\medskip
+
+Nhìn chung, đề tài đã chứng minh được khả năng kết hợp thương mại điện tử, vector search, LLM, mô hình sinh ảnh và kiến trúc bất đồng bộ để tạo trải nghiệm mua sắm thời trang cá nhân hóa. Đây là nền tảng phù hợp để tiếp tục nâng cấp thành một sản phẩm hoàn chỉnh hơn.
+
+\clearpage

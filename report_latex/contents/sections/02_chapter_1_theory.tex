@@ -1,0 +1,159 @@
+\chapter{Cơ sở lý thuyết và tổng quan công nghệ}
+
+Chương này trình bày các nền tảng lý thuyết và công nghệ được sử dụng trong hệ thống. Nội dung được sắp xếp từ bài toán cá nhân hóa trong thương mại điện tử thời trang, luồng RAG của AI Stylist, bài toán thử đồ ảo, đến kiến trúc xử lý bất đồng bộ và các công nghệ triển khai chính.
+
+\medskip
+
+\section{Cá nhân hóa trải nghiệm trong thương mại điện tử thời trang}
+
+Cá nhân hóa là một yêu cầu quan trọng trong thương mại điện tử thời trang vì quyết định mua hàng không chỉ phụ thuộc vào thuộc tính sản phẩm mà còn phụ thuộc vào sở thích, vóc dáng, ngữ cảnh sử dụng và các món đồ người dùng đã có. Một hệ thống thời trang thông minh cần hiểu được cả dữ liệu sản phẩm lẫn tín hiệu cá nhân của người dùng.
+
+\medskip
+
+Trong đề tài này, cá nhân hóa được thể hiện qua ba lớp. Lớp thứ nhất là AI Profile, lưu thông tin chiều cao, cân nặng, giới tính và ảnh cơ thể để phục vụ VTON. Lớp thứ hai là tủ đồ cá nhân, cho phép người dùng tải ảnh trang phục riêng lên hệ thống. Lớp thứ ba là AI Stylist, nơi mô hình ngôn ngữ phân tích yêu cầu bằng tiếng Việt và kết hợp sản phẩm cửa hàng với trang phục cá nhân để đưa ra gợi ý phù hợp.
+
+\medskip
+
+Khác với các hệ thống gợi ý chỉ dựa trên lịch sử nhấp chuột hoặc lịch sử mua hàng, bài toán trong đề tài còn phải xử lý ngữ cảnh thời trang rất giàu nghĩa. Một câu hỏi như ``đi phỏng vấn nên mặc gì'' không chỉ là truy vấn tìm sản phẩm áo sơ mi, mà còn liên quan tới mức độ trang trọng, màu sắc an toàn, kiểu dáng ít gây phân tán và khả năng phối cùng những món đồ người dùng đã có. Vì vậy, hệ thống cần kết hợp dữ liệu có cấu trúc như category, price, gender với dữ liệu ngữ nghĩa như phong cách, chất liệu, hoàn cảnh sử dụng và lời diễn đạt tự nhiên của người dùng.
+
+\medskip
+
+Trong phạm vi MVP, cá nhân hóa được triển khai theo hướng ưu tiên tính khả thi kỹ thuật. Hồ sơ AI chưa cố gắng suy luận đầy đủ số đo cơ thể hoặc tư vấn size như một hệ thống fitting chuyên nghiệp. Thay vào đó, hồ sơ này cung cấp những tín hiệu cơ bản để phân biệt ngữ cảnh người dùng và lưu ảnh nền cho VTON. Tủ đồ cá nhân cũng chưa phải hệ thống quản lý wardrobe hoàn chỉnh, nhưng đủ để chứng minh ý tưởng kết hợp giữa sản phẩm cửa hàng và trang phục có sẵn của người dùng. Cách tiếp cận này phù hợp với bài tập lớn vì cho phép nhóm tập trung vào luồng tích hợp AI, dữ liệu và trải nghiệm thay vì mở rộng quá sớm sang những bài toán đo size có độ rủi ro cao.
+
+\medskip
+
+Từ yêu cầu cá nhân hóa trên, hệ thống cần một cơ chế vừa hiểu được yêu cầu tự nhiên của người dùng, vừa ràng buộc kết quả vào dữ liệu sản phẩm có thật. Đây là lý do luồng AI Stylist được thiết kế theo hướng RAG thay vì chỉ dựa vào câu trả lời tự do của mô hình ngôn ngữ.
+
+\section{AI Stylist và hệ thống RAG}
+
+AI Stylist trong hệ thống được xây dựng theo tư tưởng RAG, tức truy hồi thông tin trước rồi mới sinh câu trả lời. Thay vì để mô hình ngôn ngữ tự sinh gợi ý từ tri thức chung, hệ thống trước hết truy hồi một tập sản phẩm có thật trong kho dữ liệu. Mô hình ngôn ngữ chỉ được phép chọn từ tập sản phẩm đã truy hồi, nhờ đó giảm nguy cơ đề xuất sản phẩm không tồn tại. Cách tiếp cận này kế thừa tư tưởng RAG trong xử lý ngôn ngữ tự nhiên và được triển khai bằng sự kết hợp giữa Gemini và LanceDB \cite{rag,gemini,lancedb}.
+
+\medskip
+
+Luồng xử lý AI Stylist gồm ba pha liên tiếp. Trước hết, Gemini phân tích ý định từ câu hỏi của người dùng và trả về JSON gồm nhóm sản phẩm, hoàn cảnh sử dụng, phong cách, khoảng giá và từ khóa tìm kiếm. Từ kết quả này, hệ thống tạo vector nhúng 512 chiều từ từ khóa rồi tìm kiếm trên LanceDB với bộ lọc metadata và cosine similarity \cite{sentence-transformers,lancedb}. Cuối cùng, Gemini nhận danh sách sản phẩm hoặc trang phục đã truy hồi để sinh danh sách phương án phối đồ, trong đó mỗi phương án có tiêu đề, lời giải thích phối đồ và danh sách item.
+
+\medskip
+
+Điểm quan trọng của luồng xử lý này là đầu ra được chuẩn hóa dưới dạng JSON có cấu trúc. Frontend không chỉ hiển thị đoạn tư vấn, mà còn ánh xạ từng item thành hành động cụ thể như thêm vào giỏ, đổi món tương tự hoặc thử đồ bằng VTON. Đây là cơ chế giao diện điều khiển bằng JSON (JSON-driven UI), không phải Function Calling theo nghĩa của các nền tảng LLM.
+
+\medskip
+
+RAG phù hợp với bài toán AI Stylist vì kho sản phẩm thay đổi theo thời gian. Nếu chỉ dùng prompt tĩnh, mô hình ngôn ngữ có thể đưa ra tên sản phẩm không có trong cửa hàng, nhầm tồn kho hoặc gợi ý những item không có ảnh để thử đồ. Khi đặt bước truy hồi trước bước sinh câu trả lời, hệ thống kiểm soát được tập ứng viên và có thể dùng metadata filter để giới hạn danh mục, khoảng giá hoặc trạng thái còn hàng khi dữ liệu đồng bộ đầy đủ. Trong MVP hiện tại, schema và logic filter cho \code{price} và \code{in_stock} đã có trong LanceDB, nhưng consumer đồng bộ sản phẩm vẫn ghi giá và trạng thái tồn kho theo giá trị mặc định, nên phần lọc này cần được hoàn thiện thêm trước khi đánh giá như một bộ lọc nghiệp vụ chính xác. Việc này không loại bỏ hoàn toàn lỗi của mô hình, nhưng làm giảm phạm vi sai lệch và giúp backend có cơ sở kiểm tra lại kết quả trước khi trả về frontend.
+
+\medskip
+
+Một điểm cần phân biệt là RAG trong đề tài không chỉ dùng để trả lời câu hỏi dạng văn bản. Kết quả truy hồi được dùng như dữ liệu đầu vào cho một giao diện thương mại điện tử có hành động cụ thể. Vì vậy, chất lượng của RAG không chỉ được đánh giá bằng độ tự nhiên của câu trả lời, mà còn bằng việc item được chọn có tồn tại, có ảnh đại diện, có biến thể mua được, có phù hợp category VTON và có thể được frontend ánh xạ thành OutfitCard hay không. Đây là lý do backend Medusa vẫn phải bổ sung dữ liệu thật sau khi AI service trả kết quả, thay vì tin hoàn toàn vào payload sinh ra từ mô hình.
+
+\medskip
+
+Sơ đồ sau tóm tắt cách dữ liệu đi từ câu hỏi của người dùng qua bước phân tích ý định, truy hồi vector, sinh gợi ý và cuối cùng trở thành dữ liệu có thể hiển thị trên frontend.
+
+\placeholderfigure{Sơ đồ luồng RAG của AI Stylist}{Người dùng nhập câu hỏi. Gemini phân tích ý định. LanceDB truy hồi sản phẩm và tủ đồ. Gemini sinh JSON gợi ý phối đồ. Medusa bổ sung dữ liệu thật và frontend hiển thị OutfitCard.}
+
+\medskip
+
+Sau khi hệ thống có khả năng đề xuất item phù hợp, bước tiếp theo trong trải nghiệm mua sắm là giúp người dùng hình dung trang phục khi mặc lên ảnh của chính mình. Phần này dẫn tới bài toán thử đồ ảo trong thời trang số.
+
+\section{Virtual Try-On trong thời trang số}
+
+Thử đồ ảo (Virtual Try-On - VTON) là bài toán sinh ảnh người dùng mặc một trang phục tham chiếu. Đầu vào thường gồm ảnh người, ảnh trang phục và một số tham số xử lý như loại trang phục, mask hoặc độ phân giải. Đầu ra là ảnh mới giữ lại đặc điểm cơ thể, khuôn mặt, dáng đứng của người dùng và thay đổi vùng trang phục theo ảnh tham chiếu \cite{catvton}.
+
+\medskip
+
+Trong hệ thống, VTON được triển khai qua interface \code{IVirtualTryOnService}. Hai adapter chính là \code{LocalCatVTONAdapter} và \code{CloudFluxVTONAdapter}. Adapter thứ nhất chạy CatVTON local bằng PyTorch, Diffusers, DensePose và SCHP để xử lý thử đồ trên máy phát triển \cite{catvton}. Adapter thứ hai gọi FLUX.2 Pro qua dịch vụ Replicate và hỗ trợ gửi nhiều ảnh trang phục trong một lần gọi cloud \cite{replicate}.
+
+\medskip
+
+CatVTON phù hợp cho thử nghiệm local và có thể kiểm soát luồng suy luận (inference). FLUX.2 cloud có ưu điểm giảm tải phần cứng cục bộ và hỗ trợ kết quả tốt hơn trong một số tình huống, nhưng phụ thuộc mạng và API token.
+
+\medskip
+
+VTON là phần có ràng buộc kỹ thuật khác với AI Stylist. Trong khi AI Stylist chủ yếu xử lý text, VTON xử lý ảnh, mask, độ phân giải và tài nguyên GPU. Thời gian xử lý thường dài hơn yêu cầu web thông thường, nên hệ thống không nên giữ kết nối HTTP đồng bộ cho tới khi ảnh được sinh xong. Ngoài ra, kết quả VTON có tính bất định vì phụ thuộc chất lượng ảnh người dùng, góc chụp, ảnh trang phục, loại garment và model được chọn. Báo cáo vì vậy cần trình bày VTON như một luồng sinh ảnh hỗ trợ quyết định mua hàng, không khẳng định đây là phép đo size hoặc mô phỏng vật lý chính xác.
+
+\medskip
+
+Bảng dưới đây làm rõ vai trò của hai hướng xử lý VTON được cài đặt trong dự án, qua đó cho thấy vì sao hệ thống cần hỗ trợ cả engine local và engine cloud ở mức MVP.
+
+\begin{table}[H]
+\centering
+\caption{So sánh hai hướng xử lý Virtual Try-On trong hệ thống}
+\begin{tabularx}{\textwidth}{|L{3.1cm}|Y|Y|}
+\hline
+\textbf{Tiêu chí} & \textbf{CatVTON local} & \textbf{FLUX.2 cloud} \\
+\hline
+Môi trường xử lý & Chạy trong AI service local, dùng PyTorch và Diffusers & Gửi yêu cầu tới cloud, nhận URL kết quả trả về \\
+\hline
+Ưu điểm & Chủ động kiểm soát luồng xử lý, không phụ thuộc chi phí API mỗi lần gọi & Giảm tải GPU local, có thể xử lý nhiều ảnh tham chiếu trong một lần gọi \\
+\hline
+Hạn chế & Phụ thuộc VRAM, thời gian inference dài, cần quản lý model nặng & Phụ thuộc network, token API và chính sách dịch vụ cloud \\
+\hline
+Vai trò trong MVP & Engine mặc định cho thử đồ local & Engine cao cấp/tùy chọn cho thử đồ cloud \\
+\hline
+\end{tabularx}
+\end{table}
+
+\medskip
+
+Vì VTON là tác vụ nặng và có độ trễ cao, việc tích hợp nó vào hệ thống thương mại điện tử không chỉ là vấn đề chọn mô hình sinh ảnh. Hệ thống còn cần một kiến trúc xử lý phù hợp để tách các thao tác mua sắm nhanh khỏi các tác vụ AI bất đồng bộ.
+
+\section{Kiến trúc microservices và xử lý bất đồng bộ}
+
+Tác vụ thương mại điện tử và tác vụ AI có đặc điểm tải khác nhau. Các thao tác như xem sản phẩm, thêm vào giỏ hoặc lưu profile cần phản hồi nhanh. Ngược lại, sinh ảnh VTON có thể mất nhiều giây và tiêu tốn GPU. Vì vậy, hệ thống tách thành nhiều service và dùng RabbitMQ để xử lý bất đồng bộ.
+
+\medskip
+
+RabbitMQ đóng vai trò bộ trung gian hàng đợi giữa MedusaJS backend và FastAPI AI service \cite{rabbitmq}. Backend chỉ tạo tác vụ và phát thông điệp vào queue \code{ai_vision_jobs}. AI worker tiêu thụ thông điệp, xử lý ảnh, sau đó phát kết quả vào \code{ai_vision_results}. Backend nhận kết quả, cập nhật trạng thái tác vụ và gửi sự kiện tới frontend qua SSE.
+
+\medskip
+
+Sự kiện máy chủ gửi tới client (Server-Sent Events - SSE) được dùng vì luồng cập nhật chủ yếu đi một chiều từ server về client. Cơ chế này dựa trên \code{EventSource} và luồng phản hồi \code{text/event-stream} của trình duyệt \cite{sse-mdn}. So với polling, SSE giúp frontend nhận kết quả ngay khi backend có dữ liệu mới mà không cần lặp request liên tục.
+
+\medskip
+
+Trong thiết kế bất đồng bộ, queue không chỉ giúp tránh timeout mà còn tạo ranh giới trách nhiệm giữa các service. Backend Medusa biết cách tạo job, lưu trạng thái và phát sự kiện cho người dùng; AI service biết cách xử lý vector nhúng, metadata và inference ảnh. Khi một tác vụ AI bị chậm, frontend vẫn có thể hiển thị trạng thái đang xử lý thay vì bị treo yêu cầu. Ranh giới này cũng giúp việc thay đổi engine AI ít ảnh hưởng tới phần thương mại điện tử, miễn là payload thông điệp và trạng thái job vẫn được giữ ổn định.
+
+\medskip
+
+SSE được chọn thay vì WebSocket vì nhu cầu hiện tại chỉ là server đẩy kết quả VTON về client. WebSocket phù hợp hơn khi hai phía cần trao đổi liên tục hoặc cần kênh realtime hai chiều. Với MVP này, frontend chỉ cần biết job đang ở trạng thái nào và ảnh kết quả nằm ở đâu, nên SSE đơn giản hơn, dễ kiểm thử hơn và đủ đáp ứng yêu cầu. Trong tương lai, nếu hệ thống bổ sung chat realtime nhiều người dùng, thông báo tồn kho hoặc cộng tác trên outfit, WebSocket có thể được xem xét như một lựa chọn mở rộng.
+
+\medskip
+
+Các cơ sở lý thuyết trên được hiện thực bằng một tập công nghệ cụ thể trong mã nguồn dự án. Bảng sau tổng hợp từng nhóm công nghệ và vai trò của chúng trong hệ thống.
+
+\section{Tổng quan công nghệ nền tảng}
+
+\begin{longtable}{|L{3cm}|L{3.8cm}|L{6.7cm}|}
+\caption{Công nghệ nền tảng và vai trò trong hệ thống} \\
+\hline
+\textbf{Nhóm công nghệ} & \textbf{Công nghệ} & \textbf{Vai trò} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Nhóm công nghệ} & \textbf{Công nghệ} & \textbf{Vai trò} \\
+\hline
+\endhead
+Monorepo & pnpm workspace, Turborepo & Quản lý nhiều ứng dụng và package dùng chung trong một kho mã nguồn \cite{pnpm,turborepo}. \\
+\hline
+Frontend & Next.js 14, React 18, Tailwind CSS, Zustand & Xây dựng storefront, AI Stylist chat, AI Profile, Wardrobe, VTON modal và cart \cite{nextjs,react,tailwind,zustand}. \\
+\hline
+Backend core & MedusaJS 2.14, TypeScript & Quản lý sản phẩm, custom API, module cá nhân hóa AI, workflow và điều phối luồng xử lý \cite{medusa}. \\
+\hline
+Cơ sở dữ liệu quan hệ & PostgreSQL & Lưu dữ liệu thương mại điện tử và các bảng của module cá nhân hóa AI \cite{postgresql}. \\
+\hline
+Cache/hạ tầng & Redis, Docker & Hỗ trợ hạ tầng Medusa và môi trường chạy local \cite{redis,docker}. \\
+\hline
+Message broker & RabbitMQ & Truyền sự kiện đồng bộ metadata và job xử lý ảnh giữa backend và AI service \cite{rabbitmq}. \\
+\hline
+AI service & FastAPI, Pydantic, Pika & Cung cấp API nội bộ, tiêu thụ thông điệp từ queue và chạy luồng xử lý AI \cite{fastapi}. \\
+\hline
+Vector database & LanceDB, PyArrow & Lưu vector nhúng của sản phẩm và tủ đồ cá nhân để tìm kiếm ngữ nghĩa \cite{lancedb}. \\
+\hline
+Embedding & \code{sentence-transformers/clip-ViT-B-32-multilingual-v1} & Sinh vector 512 chiều cho text/image, hỗ trợ truy vấn tiếng Việt \cite{sentence-transformers}. \\
+\hline
+LLM/Vision analyzer & Google Gemini & Phân tích intent, trích xuất metadata sản phẩm/tủ đồ và sinh outfit options \cite{gemini}. \\
+\hline
+Virtual Try-On & CatVTON, FLUX.2 Pro qua Replicate & Sinh ảnh thử đồ local hoặc cloud \cite{catvton,replicate}. \\
+\hline
+\end{longtable}
+
+\clearpage

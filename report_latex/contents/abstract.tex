@@ -1,0 +1,21 @@
+\chapter*{Tóm tắt}
+\phantomsection
+\addcontentsline{toc}{chapter}{Tóm tắt}
+
+Đề tài xây dựng một hệ thống thương mại điện tử thời trang tích hợp các chức năng AI nhằm cải thiện trải nghiệm mua sắm trực tuyến. Bên cạnh các chức năng cơ bản như xem sản phẩm, thêm vào giỏ hàng và checkout MVP, hệ thống tập trung vào hai chức năng chính: trợ lý phối đồ AI (AI Stylist) và thử đồ ảo (Virtual Try-On - VTON).
+
+\medskip
+
+AI Stylist cho phép người dùng nhập yêu cầu bằng ngôn ngữ tự nhiên, ví dụ tìm trang phục theo dịp sử dụng, phong cách hoặc giới tính. Hệ thống sử dụng mô hình Gemini để phân tích ý định, kết hợp tìm kiếm vector trên LanceDB để truy hồi sản phẩm và trang phục cá nhân phù hợp, sau đó sinh danh sách phương án phối đồ (outfit options) có cấu trúc JSON để frontend hiển thị thành các thẻ gợi ý có hành động như thêm vào giỏ, đổi món và thử đồ.
+
+\medskip
+
+VTON cho phép người dùng thử trang phục trên ảnh cơ thể đã thiết lập trong AI Profile. Các tác vụ sinh ảnh được xử lý bất đồng bộ bằng RabbitMQ nhằm tránh chặn luồng yêu cầu web. AI service hỗ trợ hai hướng xử lý: CatVTON local và FLUX.2 cloud qua dịch vụ Replicate. Kết quả được gửi ngược về backend qua queue và đẩy tới frontend bằng sự kiện máy chủ gửi tới client (Server-Sent Events - SSE).
+
+\medskip
+
+Hệ thống được tổ chức theo monorepo gồm Next.js frontend, MedusaJS backend, FastAPI AI service và các package dùng chung. Báo cáo trình bày cơ sở lý thuyết, thiết kế hệ thống, quá trình cài đặt, kết quả đạt được, hạn chế hiện tại và định hướng phát triển tiếp theo.
+
+\textbf{Từ khóa:} thương mại điện tử thời trang, AI Stylist, VTON, RAG, LanceDB, RabbitMQ, SSE, MedusaJS, FastAPI.
+
+\clearpage

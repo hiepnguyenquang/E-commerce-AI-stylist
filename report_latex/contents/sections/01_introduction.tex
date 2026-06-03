@@ -1,0 +1,55 @@
+\chapter*{Phần mở đầu}
+\phantomsection
+\addcontentsline{toc}{chapter}{Phần mở đầu}
+
+\section*{1. Lý do chọn đề tài}
+\phantomsection
+\addcontentsline{toc}{section}{1. Lý do chọn đề tài}
+
+Thương mại điện tử thời trang là lĩnh vực có nhu cầu cá nhân hóa cao. Khi mua quần áo trực tuyến, người dùng thường phải đánh giá sản phẩm qua ảnh mẫu, mô tả ngắn và bảng kích thước. Cách tiếp cận này chưa giải quyết tốt các câu hỏi thực tế như trang phục có hợp vóc dáng hay không, nên phối với món nào, có phù hợp với hoàn cảnh sử dụng hay không và khi mặc lên cơ thể thật sẽ có cảm giác thị giác như thế nào.
+
+\medskip
+
+Trong khi đó, sự phát triển của mô hình ngôn ngữ lớn, tìm kiếm vector và mô hình sinh ảnh mở ra khả năng xây dựng một trải nghiệm mua sắm mới. Người dùng không chỉ duyệt danh sách sản phẩm, mà có thể trò chuyện với trợ lý AI để nhận gợi ý phối đồ, sử dụng tủ đồ cá nhân để phối cùng sản phẩm trong cửa hàng và thử đồ ảo trên ảnh của chính mình. Đề tài vì vậy hướng tới việc kết hợp thương mại điện tử truyền thống với các thành phần AI để tạo một hệ thống mua sắm thời trang có tính cá nhân hóa và tương tác cao hơn.
+
+\section*{2. Mục tiêu của đề tài}
+\phantomsection
+\addcontentsline{toc}{section}{2. Mục tiêu của đề tài}
+
+Mục tiêu tổng quát của đề tài là xây dựng một hệ thống AI Fashion E-commerce ở mức MVP kỹ thuật, trong đó các chức năng thương mại điện tử nền tảng được kết hợp với các luồng xử lý AI phục vụ tư vấn và thử đồ. Cụ thể, hệ thống cần có giao diện web để người dùng xem sản phẩm, thêm sản phẩm vào giỏ hàng, thiết lập hồ sơ AI và quản lý tủ đồ cá nhân. Trên nền tảng đó, đề tài tích hợp trợ lý phối đồ AI (AI Stylist) để phân tích yêu cầu ngôn ngữ tự nhiên và đề xuất các set đồ dựa trên sản phẩm cửa hàng cùng trang phục cá nhân. Đề tài cũng tích hợp thử đồ ảo (Virtual Try-On - VTON) để sinh ảnh thử đồ từ ảnh người dùng và ảnh trang phục.
+
+\medskip
+
+Về mặt kiến trúc, hệ thống cần xử lý bất đồng bộ các tác vụ AI nặng bằng RabbitMQ để tránh làm chậm request thương mại điện tử thông thường. LanceDB được sử dụng để lưu vector nhúng (embedding) của sản phẩm và tủ đồ cá nhân, phục vụ truy hồi ngữ nghĩa trong luồng gợi ý. Kết quả VTON được cập nhật về frontend bằng Server-Sent Events (SSE), giúp người dùng nhận kết quả ngay khi worker xử lý xong.
+
+\section*{3. Đối tượng sử dụng và phạm vi}
+\phantomsection
+\addcontentsline{toc}{section}{3. Đối tượng sử dụng và phạm vi}
+
+Đối tượng sử dụng chính của hệ thống là khách hàng mua sắm thời trang trực tuyến. Người dùng có thể xem sản phẩm, tạo hồ sơ cơ thể, tải lên trang phục cá nhân, trò chuyện với AI Stylist để nhận gợi ý phối đồ và thử đồ ảo trước khi thêm vào giỏ hàng.
+
+\medskip
+
+Hệ thống cũng có một giao diện công cụ quản trị đơn giản để thêm sản phẩm mới. Khi sản phẩm được tạo trong MedusaJS, backend phát sự kiện đồng bộ metadata qua RabbitMQ để AI service phân tích và cập nhật vào LanceDB.
+
+\medskip
+
+Phạm vi đề tài dừng ở mức MVP kỹ thuật. Hệ thống có tích hợp AI thật, có queue, vector database và realtime result, nhưng chưa phải bản production hoàn chỉnh. Một số phần như thanh toán, xác thực người dùng, lưu trữ ảnh cloud, đo hiệu năng chính thức, retry policy và dead-letter queue vẫn là các hướng phát triển tiếp theo.
+
+\section*{4. Phương pháp thực hiện}
+\phantomsection
+\addcontentsline{toc}{section}{4. Phương pháp thực hiện}
+
+Nhóm thực hiện theo hướng phân tích yêu cầu, thiết kế kiến trúc, triển khai từng service và tích hợp liên service. Kho mã nguồn được tổ chức dưới dạng monorepo để quản lý đồng thời frontend, backend, AI service và các package dùng chung. Các tài liệu nội bộ như \code{README.md}, \code{DESIGN.md}, \code{PRODUCT.md}, \code{.ai-knowledge} và file khung báo cáo HTML được dùng làm cơ sở đối chiếu với mã nguồn hiện tại.
+
+\medskip
+
+Về kỹ thuật, hệ thống được chia thành ba ứng dụng chính. Ứng dụng \code{apps/web} đảm nhận giao diện người dùng bằng Next.js 14, React và Zustand. Ứng dụng \code{apps/api-medusa} đóng vai trò backend thương mại điện tử bằng MedusaJS 2.14, TypeScript, PostgreSQL và RabbitMQ. Ứng dụng \code{apps/ai-service} là dịch vụ AI bằng FastAPI, LanceDB, Gemini, CLIP embedding, CatVTON và FLUX.2 qua Replicate.
+
+\section*{5. Cấu trúc báo cáo}
+\phantomsection
+\addcontentsline{toc}{section}{5. Cấu trúc báo cáo}
+
+Báo cáo gồm bốn chương chính. Chương 1 trình bày cơ sở lý thuyết và công nghệ nền tảng. Chương 2 phân tích yêu cầu, kiến trúc và thiết kế dữ liệu. Chương 3 mô tả quá trình cài đặt và tích hợp hệ thống. Chương 4 trình bày kết quả đạt được, đánh giá kiến trúc, hạn chế và hướng cải tiến. Cuối báo cáo là kết luận, tài liệu tham khảo và phụ lục về endpoint, queue, schema dữ liệu cùng các minh chứng cần bổ sung khi hoàn thiện thực nghiệm.
+
+\clearpage

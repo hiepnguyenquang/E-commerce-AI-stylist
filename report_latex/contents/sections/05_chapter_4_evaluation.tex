@@ -1,0 +1,175 @@
+\chapter{Kết quả thực nghiệm và đánh giá}
+
+Chương này tổng hợp kết quả đã đạt được sau khi đối chiếu báo cáo với mã nguồn dự án, đồng thời phân biệt rõ phần đã triển khai, phần cần bổ sung minh chứng khi chạy hệ thống và phần còn là định hướng hoàn thiện. Cách trình bày này giúp tránh đánh giá quá mức các chức năng chưa có số liệu thực nghiệm chính thức.
+
+\medskip
+
+\section{Kết quả triển khai chức năng}
+
+Qua đối chiếu mã nguồn dự án, hệ thống đã triển khai được các thành phần chính của một MVP AI Fashion E-commerce. Frontend có đủ các màn hình phục vụ mua sắm, tư vấn và thử đồ. Backend Medusa có module cá nhân hóa, custom API, workflow, queue adapter và SSE manager. AI service có luồng RAG cho AI Stylist, schema/tìm kiếm LanceDB, consumer đồng bộ metadata và consumer VTON.
+
+\medskip
+
+Mức độ hoàn thiện của hệ thống được đánh giá theo hai tiêu chí. Tiêu chí thứ nhất là khả năng đi hết luồng chức năng từ giao diện người dùng tới backend, AI service và quay lại frontend. Tiêu chí thứ hai là mức độ sẵn sàng của từng chức năng cho môi trường vận hành thật. Theo tiêu chí thứ nhất, nhiều luồng chính đã có đủ thành phần kỹ thuật để demo. Theo tiêu chí thứ hai, hệ thống vẫn cần bổ sung xác thực, lưu trữ ảnh bền vững, đo hiệu năng, retry policy và giám sát vận hành.
+
+\medskip
+
+Bảng dưới đây tóm tắt mức độ hoàn thiện của từng chức năng chính. Các nhận xét trong bảng được viết theo trạng thái mã nguồn hiện tại, không thay thế cho kết quả nghiệm thu sau khi chạy demo.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Mức độ hoàn thiện các chức năng chính}
+\begin{tabularx}{\textwidth}{|L{3.2cm}|L{3cm}|Y|}
+\hline
+\textbf{Chức năng} & \textbf{Mức hoàn thiện} & \textbf{Ghi chú đánh giá} \\
+\hline
+Storefront và product grid & Đã triển khai MVP & Lấy sản phẩm từ Medusa Store API, hỗ trợ tìm kiếm, sắp xếp, thêm giỏ và thử đồ. \\
+\hline
+Giỏ hàng & Đã triển khai MVP & Lưu bằng Zustand persist, có cart drawer, tăng giảm số lượng và chuyển sang checkout. \\
+\hline
+AI Profile & Đã triển khai MVP & Lưu ảnh cơ thể, chiều cao, cân nặng, giới tính vào bảng \code{ai_profile}. \\
+\hline
+Wardrobe & Đã triển khai MVP & Upload, list, delete trang phục cá nhân, đồng bộ vector khi thêm/xóa. \\
+\hline
+AI Stylist & Đã triển khai luồng chính & Có phân tích ý định, guardrail ngoài miền, tìm kiếm LanceDB, sinh JSON gợi ý phối đồ và bổ sung dữ liệu thật. \\
+\hline
+Replace item & Đã triển khai MVP & Tìm item tương đồng bằng vector, loại trừ item hiện tại và context items. \\
+\hline
+VTON local & Đã có adapter và queue & Có CatVTON adapter, xử lý tác vụ từ RabbitMQ và trả URL file tĩnh local. \\
+\hline
+VTON cloud & Đã có adapter & Có Replicate FLUX.2 adapter, hỗ trợ nhiều ảnh trang phục trong cùng request. \\
+\hline
+Kết quả thời gian thực & Đã triển khai & Có \code{ai_vision_results} consumer và SSE event \code{vision_update}. \\
+\hline
+Checkout & Backend MVP, frontend cần chỉnh endpoint & Backend có workflow mô phỏng thanh toán và rollback khi payment mock thất bại; frontend đã có giao diện checkout nhưng còn gọi lệch đường dẫn so với route backend. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\medskip
+
+Từ bảng trên có thể thấy hệ thống đã có đủ khung kỹ thuật cho các luồng chính, nhưng phần nghiệm thu vẫn cần ảnh chụp, log và số liệu cụ thể. Vì vậy, mục tiếp theo trình bày những minh chứng cần bổ sung thay vì đưa ra kết luận định lượng khi chưa chạy thực nghiệm.
+
+\section{Minh chứng cần bổ sung trong bản nghiệm thu}
+
+Mã nguồn dự án hiện có code và tài liệu khung, nhưng chưa có đầy đủ ảnh chụp giao diện, log thực nghiệm và số liệu benchmark. Khi hoàn thiện bản nghiệm thu, cần bổ sung ảnh chụp trang chủ, trang sản phẩm, cart drawer, checkout MVP, AI Profile, Wardrobe và AI Stylist. Riêng với AI Stylist, nên ghi lại cả JSON response từ \code{/v1/stylist/search} và giao diện OutfitCard tương ứng để chứng minh dữ liệu AI đã được frontend ánh xạ thành hành động. Với VTON, cần có log RabbitMQ cho một tác vụ hoàn chỉnh, bao gồm message vào \code{ai_vision_jobs}, quá trình consumer xử lý, kết quả trong \code{ai_vision_results} và sự kiện SSE gửi về frontend. Nếu môi trường chạy model và API token cho phép, báo cáo cuối nên bổ sung ảnh trước/sau cho cả CatVTON local và FLUX.2 cloud.
+
+\medskip
+
+Minh chứng nghiệm thu nên được tổ chức theo luồng thay vì chỉ chụp rời rạc từng màn hình. Với luồng AI Stylist, minh chứng hợp lý là một câu hỏi tiếng Việt, phản hồi phân tích intent, kết quả truy hồi LanceDB, phản hồi outfit sau khi Gemini sinh và giao diện OutfitCard sau khi Medusa bổ sung dữ liệu sản phẩm. Với luồng VTON, minh chứng hợp lý là ảnh người dùng, ảnh trang phục, job id trong Medusa, thông điệp RabbitMQ, log xử lý của AI service, URL ảnh kết quả và event SSE ở frontend. Cách trình bày theo luồng giúp người đọc thấy được dữ liệu đi qua từng service, đồng thời chứng minh kiến trúc bất đồng bộ hoạt động đúng mục tiêu.
+
+\medskip
+
+Đối với phần giao diện, ảnh chụp nên thể hiện trạng thái trước, trong và sau khi xử lý. Ví dụ, AI Stylist cần có trạng thái đang chờ phản hồi, kết quả đã sinh và thao tác đổi item hoặc thêm vào giỏ. VTON cần có trạng thái queued/processing, trạng thái completed và trạng thái failed nếu có điều kiện kiểm thử lỗi. Những trạng thái này quan trọng vì một hệ thống AI có thời gian xử lý dài không chỉ được đánh giá ở ảnh kết quả cuối cùng, mà còn ở cách giao diện giúp người dùng hiểu hệ thống đang làm gì.
+
+\medskip
+
+Vị trí hình dưới đây được giữ như một placeholder để sau khi chạy code có thể bổ sung ảnh before/after VTON, giúp phần đánh giá không chỉ dựa vào mô tả kiến trúc.
+
+\placeholderfigure{Kết quả thử đồ before/after}{Ảnh chụp cần bổ sung: bên trái là ảnh người dùng và ảnh trang phục, bên phải là ảnh kết quả từ CatVTON hoặc FLUX.2.}
+
+\medskip
+
+Bên cạnh minh chứng giao diện và log, báo cáo cũng cần kế hoạch đo hiệu năng để xác định các điểm nghẽn của từng thành phần. Phần này hiện được trình bày như kế hoạch vì mã nguồn dự án chưa có số liệu benchmark chính thức.
+
+\section{Kế hoạch đo hiệu năng}
+
+Chưa thấy trong mã nguồn dự án số liệu đo hiệu năng chính thức. Vì vậy, báo cáo không đưa ra kết luận định lượng về latency hoặc throughput. Các chỉ số dưới đây là kế hoạch đo cần thực hiện khi có môi trường chạy ổn định.
+
+\medskip
+
+Kế hoạch đo hiệu năng cần tách riêng các thành phần vì mỗi thành phần có đặc điểm tải khác nhau. Nếu chỉ đo thời gian từ frontend tới kết quả cuối cùng, nhóm sẽ khó biết độ trễ đến từ Gemini, vector nhúng, LanceDB, RabbitMQ, CatVTON hay SSE. Vì vậy, ngoài đo đầu cuối, cần ghi timestamp ở các điểm quan trọng như lúc frontend gửi yêu cầu, lúc Medusa nhận yêu cầu, lúc AI service bắt đầu xử lý, lúc vector search hoàn tất, lúc worker nhận job, lúc ảnh được lưu và lúc frontend nhận event. Khi có các mốc này, báo cáo có thể phân tích nguyên nhân nghẽn thay vì chỉ đưa ra một con số tổng.
+
+\medskip
+
+Bảng kế hoạch dưới đây xác định trước các chỉ số cần đo, cách đo và dạng kết quả cần ghi lại để có thể bổ sung vào báo cáo sau khi hệ thống chạy ổn định.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Kế hoạch đo hiệu năng cần bổ sung}
+\begin{tabularx}{\textwidth}{|L{3.2cm}|Y|L{4.4cm}|}
+\hline
+\textbf{Chỉ số} & \textbf{Cách đo} & \textbf{Kết quả cần ghi} \\
+\hline
+Latency AI Stylist & Đo từ lúc frontend gửi truy vấn đến lúc nhận phản hồi gợi ý phối đồ. Chạy 10 đến 20 truy vấn khác nhau. & Min, max, trung bình, cấu hình máy và model. \\
+\hline
+Latency vector search & Đo riêng thời gian embedding và query LanceDB. & Thời gian trung bình và số record trong LanceDB. \\
+\hline
+Latency CatVTON local & Đo thời gian từ khi worker nhận tác vụ đến khi lưu file kết quả. & Thời gian xử lý theo loại trang phục, cấu hình CPU/GPU/RAM. \\
+\hline
+Latency FLUX.2 cloud & Đo từ lúc gọi Replicate đến khi tải xong output. & Thời gian trung bình và biến động do mạng/API. \\
+\hline
+Queue round-trip & Đo từ khi Medusa phát message vào \code{ai_vision_jobs} đến khi nhận \code{ai_vision_results}. & Trung bình và p95 nếu có đủ số mẫu. \\
+\hline
+SSE delivery & Đo từ lúc backend nhận queue kết quả đến lúc frontend nhận \code{vision_update}. & Thời gian mili giây hoặc mô tả định tính nếu chưa có công cụ đo. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\medskip
+
+Khi chưa có số đo cuối cùng, phần đánh giá cần tập trung vào cấu trúc kiến trúc và mức độ phù hợp của các quyết định thiết kế. Đây là cơ sở để nhận diện ưu điểm, hạn chế và hướng cải tiến trong các mục tiếp theo.
+
+\section{Đánh giá kiến trúc}
+
+Kiến trúc hiện tại có ưu điểm là tách rõ vai trò giữa frontend, backend core và AI service. MedusaJS giữ dữ liệu thương mại điện tử và điều phối nghiệp vụ. FastAPI tập trung vào các tác vụ AI và LanceDB. RabbitMQ giúp VTON chạy bất đồng bộ, tránh để request HTTP phải chờ inference ảnh. SSE giúp frontend cập nhật kết quả gần thời gian thực.
+
+\medskip
+
+Luồng AI Stylist theo hướng RAG là lựa chọn phù hợp với bài toán gợi ý sản phẩm. Vì model chỉ được chọn từ tập sản phẩm và tủ đồ đã truy hồi, nguy cơ gợi ý sản phẩm không tồn tại được giảm so với việc để LLM sinh tự do. Việc bổ sung dữ liệu thật tại Medusa cũng giúp frontend nhận được tiêu đề, ảnh đại diện, biến thể và loại trang phục thực tế.
+
+\medskip
+
+Adapter pattern cũng là điểm mạnh của hệ thống. Cùng một interface VTON có thể dùng CatVTON local hoặc FLUX.2 cloud. Cùng một interface intent analyzer hiện dùng Gemini nhưng có thể thay bằng provider khác nếu cần. Điều này giúp hệ thống giảm phụ thuộc vào một nhà cung cấp AI cụ thể.
+
+\medskip
+
+Một ưu điểm khác là hệ thống đã chọn đúng ranh giới đồng bộ và bất đồng bộ. AI Stylist vẫn có thể chạy theo request/response vì mục tiêu là trả gợi ý văn bản và danh sách item trong một tương tác chat. VTON được đưa qua queue vì sinh ảnh có độ trễ cao và dễ vượt quá thời gian chờ của request HTTP. Khi kết quả quay lại bằng SSE, frontend nhận được trải nghiệm gần thời gian thực mà không phải polling liên tục. Đây là thiết kế cân bằng giữa độ đơn giản của MVP và yêu cầu thực tế của tác vụ AI nặng.
+
+\medskip
+
+Kiến trúc cũng có lợi thế ở khả năng mở rộng theo từng chiều. Nếu số lượng truy vấn AI Stylist tăng, có thể tối ưu riêng AI service, cache embedding hoặc điều chỉnh top-k của LanceDB. Nếu số lượng job VTON tăng, có thể scale worker xử lý queue hoặc tách worker local và worker cloud. Nếu storefront tăng tải, Medusa và frontend vẫn có thể được tối ưu riêng mà không nhất thiết thay đổi toàn bộ pipeline AI. Dù vậy, việc mở rộng này chỉ thực sự an toàn khi hệ thống có monitoring, retry và cơ chế lưu trữ ảnh chung.
+
+\medskip
+
+Về mặt học thuật, đề tài thể hiện được sự kết hợp giữa nhiều nhóm kỹ thuật: thương mại điện tử, RAG, vector search, generative image model và kiến trúc message-driven. Điểm đáng chú ý là các kỹ thuật này không được trình bày như module rời, mà được gắn vào một bài toán nghiệp vụ cụ thể. Người dùng không tương tác với LanceDB hay RabbitMQ trực tiếp; họ chỉ thấy các hành động như hỏi stylist, đổi item, thử đồ và thêm vào giỏ. Đây là dấu hiệu cho thấy kiến trúc kỹ thuật đã được chuyển hóa thành trải nghiệm ứng dụng.
+
+\medskip
+
+Dù kiến trúc có nhiều điểm phù hợp với mục tiêu MVP, hệ thống vẫn còn khoảng cách đáng kể so với một sản phẩm vận hành thật. Các hạn chế dưới đây được ghi nhận để phần kết luận không đánh đồng bản demo kỹ thuật với một hệ thống vận hành hoàn chỉnh.
+
+\section{Hạn chế hiện tại}
+
+Dù đã có đủ luồng xử lý chính, hệ thống vẫn còn một số hạn chế cần được ghi nhận. Cơ chế xác thực người dùng chưa hoàn chỉnh; một số route và frontend vẫn dùng fallback như \code{mock-customer-id} hoặc \code{default_user}. Checkout hiện là workflow mô phỏng, chưa tích hợp cổng thanh toán thật và chưa quản lý tồn kho thực tế đầy đủ. Ảnh tải lên và ảnh kết quả VTON đang lưu local, chưa có object storage hoặc CDN.
+
+\medskip
+
+Ở tầng xử lý AI, luồng VTON local nhiều bước tạm lưu garment URL trong trường \code{error_message}; thiết kế vận hành thật nên bổ sung metadata riêng cho tác vụ. RabbitMQ cũng chưa có retry policy và dead-letter queue hoàn chỉnh, nên khi consumer lỗi, thông điệp có thể bị ack để tránh vòng lặp vô hạn. Ngoài ra, hệ thống chưa có benchmark chính thức, chưa có load test, chưa có dashboard monitoring và tracking chuyển đổi từ AI Stylist/VTON sang đơn hàng mới vẫn ở mức TODO. Một điểm kỹ thuật cần rà soát thêm là path checkout ở frontend, vì trang checkout đang gọi \code{/api/v1/checkout}, trong khi route backend hiện triển khai dưới \code{/v1/checkout}.
+
+\medskip
+
+Hạn chế về dữ liệu cũng cần được nhấn mạnh. Chất lượng gợi ý của AI Stylist phụ thuộc vào chất lượng metadata và số lượng sản phẩm trong LanceDB. Nếu catalog ít sản phẩm, thiếu ảnh hoặc metadata không đồng nhất, model có thể đưa ra gợi ý đúng cấu trúc nhưng chưa thuyết phục về mặt thời trang. Tương tự, VTON phụ thuộc mạnh vào chất lượng ảnh người dùng và ảnh trang phục. Ảnh quá tối, góc chụp lệch, trang phục bị che khuất hoặc nền phức tạp đều có thể làm kết quả kém ổn định. Đây là những giới hạn tự nhiên của hệ thống AI thị giác cần được phản ánh trong nghiệm thu.
+
+\medskip
+
+Một hạn chế khác là hệ thống chưa có chiến lược kiểm soát chi phí AI. Gemini, Replicate và các model cloud có thể phát sinh chi phí theo số lần gọi hoặc theo thời gian xử lý. Nếu người dùng thử nhiều outfit liên tục, backend cần rate limit, quota hoặc cơ chế xác nhận trước khi chạy engine cloud. Trong MVP, phần này chưa được triển khai vì trọng tâm là chứng minh luồng kỹ thuật, nhưng đây là yêu cầu quan trọng nếu hệ thống chuyển sang vận hành thật. Ngoài ra, tracking conversion từ AI Stylist/VTON sang giỏ hàng hoặc checkout mới dừng ở mức định hướng thiết kế, chưa có pipeline ghi nhận session thật xuyên suốt từ OutfitCard tới checkout.
+
+\medskip
+
+Các hạn chế trên đồng thời tạo thành danh sách ưu tiên cho giai đoạn phát triển tiếp theo. Vì vậy, phần định hướng cải tiến tập trung vào những việc có tác động trực tiếp tới khả năng vận hành, đo lường và mở rộng hệ thống.
+
+\section{Định hướng cải tiến}
+
+Trong giai đoạn tiếp theo, hệ thống nên ưu tiên chuẩn hóa xác thực và phân quyền người dùng để thay thế các mock/default user ID. Checkout cần được tích hợp payment gateway thật và đồng bộ chặt hơn với order/inventory của Medusa. Với VTON, nên bổ sung metadata JSONB cho tác vụ để bỏ cơ chế tạm dùng \code{error_message}, đồng thời đưa ảnh tải lên và ảnh kết quả lên object storage tương thích S3, sau đó trả URL CDN cho frontend. Ở tầng vận hành, hệ thống cần retry policy, dead-letter queue và dashboard quan sát RabbitMQ. Cuối cùng, cần viết script benchmark cho AI Stylist, vector search, CatVTON, FLUX.2 và SSE, đồng thời bổ sung conversion tracking để đánh giá tác động của AI Stylist và VTON tới hành vi mua hàng.
+
+\medskip
+
+Về mặt sản phẩm, hướng cải tiến quan trọng là thu thập phản hồi của người dùng đối với từng gợi ý. Người dùng có thể đánh dấu set đồ phù hợp, không phù hợp, muốn rẻ hơn, muốn trang trọng hơn hoặc muốn thay đổi màu sắc. Những phản hồi này có thể được lưu cùng \code{stylist_session} để cải thiện prompt, bộ lọc truy hồi hoặc chiến lược ranking. Khi có dữ liệu phản hồi đủ lớn, hệ thống có thể chuyển từ gợi ý dựa hoàn toàn vào LLM và vector search sang mô hình kết hợp giữa tín hiệu hành vi và tri thức thời trang.
+
+\medskip
+
+Về mặt kiểm thử, cần bổ sung bộ test theo từng lớp. Frontend cần test các store quan trọng và các trạng thái hiển thị của VTON modal. Backend cần test route custom, workflow checkout, module cá nhân hóa AI và consumer kết quả. AI service cần test kiểm tra schema, vector search, adapter Gemini mock và adapter VTON mock. Ngoài ra, cần có một kịch bản đầu cuối tối thiểu chạy qua AI Stylist và VTON với dữ liệu mẫu ổn định. Bộ test này sẽ giúp phát hiện sớm lỗi contract giữa các service, vốn là rủi ro lớn trong kiến trúc nhiều thành phần.
+
+\clearpage

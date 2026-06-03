@@ -1,0 +1,258 @@
+\chapter{Phân tích và thiết kế hệ thống}
+
+Chương này chuyển từ phần nền tảng lý thuyết sang thiết kế cụ thể của hệ thống trong mã nguồn dự án. Nội dung bắt đầu từ yêu cầu chức năng và phi chức năng, sau đó trình bày kiến trúc tổng thể, các luồng AI chính, thiết kế dữ liệu và cách tách lớp giao tiếp để hệ thống có thể thay đổi engine AI khi cần.
+
+\medskip
+
+\section{Phân tích yêu cầu}
+
+Hệ thống AI Fashion E-commerce cần đáp ứng đồng thời hai nhóm yêu cầu: yêu cầu thương mại điện tử và yêu cầu AI cá nhân hóa. Nhóm yêu cầu thương mại điện tử bao gồm duyệt sản phẩm, xem ảnh, thêm sản phẩm vào giỏ hàng, checkout MVP và thêm sản phẩm mới ở giao diện quản trị đơn giản. Nhóm yêu cầu AI bao gồm thiết lập hồ sơ cơ thể, tải trang phục cá nhân lên hệ thống, tư vấn phối đồ bằng ngôn ngữ tự nhiên, đổi món tương tự và thử đồ ảo.
+
+\medskip
+
+Về mặt nghiệp vụ, các yêu cầu này không tồn tại độc lập. Người dùng có thể bắt đầu từ trang sản phẩm, thử một sản phẩm bằng VTON, sau đó thêm vào giỏ hàng. Người dùng cũng có thể bắt đầu từ AI Stylist bằng một yêu cầu tự nhiên, nhận một set đồ, đổi một item chưa phù hợp, thử toàn bộ outfit và cuối cùng chuyển một hoặc nhiều sản phẩm cửa hàng sang giỏ hàng. Vì vậy, thiết kế hệ thống cần bảo đảm dữ liệu sản phẩm, dữ liệu tư vấn, dữ liệu tủ đồ và dữ liệu tác vụ VTON có thể liên kết với nhau ở mức đủ để frontend trình bày một trải nghiệm liền mạch.
+
+\medskip
+
+Một yêu cầu quan trọng khác là hệ thống phải phân biệt rõ dữ liệu nguồn và dữ liệu suy diễn. Sản phẩm, biến thể, giá và danh mục là dữ liệu nguồn do Medusa quản lý. Metadata thời trang như style, occasion, color hoặc material có thể được Gemini phân tích và ghi vào LanceDB để phục vụ tìm kiếm, nhưng không nên thay thế dữ liệu gốc của sản phẩm. Tương tự, kết quả AI Stylist là đề xuất tại một thời điểm cụ thể, cần được lưu dưới dạng session để phục vụ lịch sử và truy vết, nhưng không được xem là thay đổi trực tiếp lên catalog.
+
+\medskip
+
+Từ các yêu cầu nghiệp vụ trên, bảng use case dưới đây tóm tắt những chức năng chính mà hệ thống cần hỗ trợ ở mức MVP.
+
+\subsection{Yêu cầu chức năng}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Use case tổng quát của hệ thống}
+\begin{tabularx}{\textwidth}{|L{2.7cm}|L{3.7cm}|Y|}
+\hline
+\textbf{Nhóm chức năng} & \textbf{Use case} & \textbf{Mô tả} \\
+\hline
+Storefront & Xem và tìm kiếm sản phẩm & Người dùng xem danh sách sản phẩm từ Medusa Store API, tìm theo từ khóa và sắp xếp theo giá hoặc tên. \\
+\hline
+Giỏ hàng & Thêm sản phẩm vào giỏ & Frontend lưu giỏ hàng bằng Zustand persist, hỗ trợ tăng giảm số lượng và mở cart drawer. \\
+\hline
+AI Profile & Thiết lập hồ sơ AI & Người dùng tải ảnh cơ thể, nhập chiều cao, cân nặng, giới tính. Backend lưu vào bảng \code{ai_profile}. \\
+\hline
+Wardrobe & Quản lý tủ đồ cá nhân & Người dùng tải ảnh trang phục, chọn loại trang phục, xóa trang phục và lưu kết quả VTON vào bộ sưu tập. \\
+\hline
+AI Stylist & Truy vấn phối đồ & Người dùng nhập yêu cầu bằng tiếng Việt. Hệ thống trả về các outfit options có reasoning và danh sách item. \\
+\hline
+AI Stylist & Đổi món tương tự & Người dùng chọn một item trong outfit để tìm item tương đồng, loại trừ item hiện tại và các item cùng set. \\
+\hline
+Virtual Try-On & Thử một sản phẩm & Người dùng thử trực tiếp một sản phẩm trong lưới sản phẩm trên ảnh cơ thể đã lưu. \\
+\hline
+Virtual Try-On & Thử cả outfit & Người dùng thử một set gồm áo/quần hoặc váy liền từ AI Stylist hoặc Wardrobe. \\
+\hline
+Checkout & Thanh toán MVP & Backend có workflow mô phỏng giữ tồn kho, tạo đơn hàng chờ xử lý, xử lý thanh toán mô phỏng và hoàn tất đơn hàng; frontend cần chỉnh lại endpoint trước khi demo đầu cuối. \\
+\hline
+Admin tool & Thêm sản phẩm & Giao diện \code{/admin-tools/add-product} tạo sản phẩm mới và kích hoạt đồng bộ vector qua subscriber. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\medskip
+
+Các use case này chỉ mô tả hành vi nhìn từ phía người dùng và hệ thống. Để triển khai ổn định, báo cáo cần tiếp tục xác định các yêu cầu phi chức năng liên quan đến độ trễ, xử lý bất đồng bộ, bảo mật nội bộ và tính nhất quán dữ liệu.
+
+\subsection{Yêu cầu phi chức năng}
+
+Hệ thống cần có kiến trúc tách service rõ ràng để các tác vụ AI nặng không chặn luồng thương mại điện tử. Các queue cần bền vững và worker chỉ xử lý một job tại một thời điểm để hạn chế quá tải tài nguyên GPU; cách kiểm soát số thông điệp chưa xác nhận có thể dựa trên cơ chế consumer prefetch của RabbitMQ \cite{rabbitmq-prefetch}. API nội bộ giữa backend và AI service sử dụng internal token. Các phản hồi lỗi cần có cấu trúc nhất quán gồm trạng thái, mã lỗi và thông điệp.
+
+\medskip
+
+Với frontend, trải nghiệm cần phản hồi rõ các trạng thái chờ xử lý, đang xử lý, hoàn tất và lỗi trong quá trình VTON. Dữ liệu trạng thái như ảnh người dùng, engine VTON và outfit đang chọn được lưu bằng Zustand persist để tránh mất dữ liệu khi chuyển trang.
+
+\medskip
+
+Tính nhất quán dữ liệu trong MVP được thiết kế theo hướng eventual consistency đối với các phần AI. Khi sản phẩm được tạo hoặc cập nhật, bản ghi PostgreSQL là nguồn chính xác trước tiên; vector trong LanceDB được đồng bộ sau qua RabbitMQ \cite{postgresql,lancedb,rabbitmq}. Điều này có nghĩa là trong một khoảng thời gian ngắn, sản phẩm mới có thể đã xuất hiện trên storefront nhưng chưa xuất hiện trong kết quả AI Stylist. Đây là đánh đổi chấp nhận được vì luồng mua sắm vẫn hoạt động, còn luồng AI sẽ bắt kịp khi consumer xử lý xong message đồng bộ.
+
+\medskip
+
+Về bảo mật, do phạm vi MVP chưa hoàn thiện xác thực người dùng, báo cáo ghi nhận rõ các fallback như \code{mock-customer-id}. Tuy nhiên, thiết kế route nội bộ giữa Medusa và AI service vẫn có header \code{x-internal-token} để tránh việc AI service bị gọi trực tiếp từ client. Trong bản production, cơ chế này cần được nâng cấp cùng với auth/session thật, phân quyền admin, giới hạn kích thước file upload và kiểm tra loại nội dung ảnh.
+
+\medskip
+
+Sau khi xác định yêu cầu, bước tiếp theo là tổ chức các thành phần kỹ thuật sao cho từng nhóm chức năng có ranh giới trách nhiệm rõ ràng. Kiến trúc tổng thể dưới đây thể hiện cách frontend, backend thương mại điện tử, AI service và các hệ lưu trữ phối hợp với nhau.
+
+\section{Kiến trúc tổng thể}
+
+Kho mã nguồn được tổ chức theo mô hình monorepo. Tầng frontend nằm trong \code{apps/web}, backend core nằm trong \code{apps/api-medusa}, AI service nằm trong \code{apps/ai-service}. Các schema dùng chung được đặt trong \code{packages/shared-types}.
+
+\medskip
+
+Sơ đồ kiến trúc được đặt ở đây nhằm giúp người đọc nắm đường đi chính của dữ liệu trước khi đi vào từng luồng xử lý chi tiết.
+
+\placeholderfigure{Sơ đồ kiến trúc tổng thể của hệ thống}{Next.js frontend giao tiếp với MedusaJS backend. Medusa dùng PostgreSQL, Redis và RabbitMQ. FastAPI AI service tiêu thụ message từ queue, truy cập LanceDB, gọi Gemini, CatVTON hoặc FLUX.2. Kết quả VTON được gửi về frontend qua SSE.}
+
+Trong kiến trúc này, MedusaJS đóng vai trò backend core và BFF cho frontend. Frontend không gọi trực tiếp các tác vụ AI nặng, mà thông qua Medusa để đảm bảo dữ liệu sản phẩm, session và job được lưu trong database. AI service tập trung vào xử lý ngôn ngữ, vector nhúng, vector search và inference ảnh.
+
+\medskip
+
+Vai trò BFF của Medusa đặc biệt quan trọng vì dữ liệu AI chưa đủ để frontend sử dụng trực tiếp. AI service có thể trả về product id, closet id, reasoning và danh sách item, nhưng frontend vẫn cần tiêu đề sản phẩm, ảnh đại diện, variant id, trạng thái tồn kho và loại item để hiện nút hành động phù hợp. Nếu frontend gọi thẳng AI service, phần bổ sung dữ liệu này sẽ bị dàn trải ở client và làm tăng rủi ro sai lệch giữa UI với backend thương mại điện tử. Medusa vì vậy được đặt ở giữa để chuẩn hóa response và giữ quyền kiểm soát nghiệp vụ.
+
+\medskip
+
+Kiến trúc cũng tách rõ đường đi đồng bộ và đường đi bất đồng bộ. Các yêu cầu như xem sản phẩm, lưu hồ sơ AI hoặc gửi truy vấn AI Stylist vẫn là HTTP request/response vì thời gian xử lý có thể chấp nhận được trong MVP. Ngược lại, VTON được đưa qua queue vì sinh ảnh có độ trễ cao và phụ thuộc tài nguyên. Sự phân tách này giúp hệ thống tránh dùng một cơ chế duy nhất cho mọi tác vụ, đồng thời phản ánh đúng đặc điểm tải của từng luồng.
+
+\medskip
+
+Từ kiến trúc tổng thể, hai luồng cần phân tích sâu nhất là AI Stylist và Virtual Try-On. Luồng thứ nhất xử lý truy vấn ngôn ngữ tự nhiên và gợi ý sản phẩm, còn luồng thứ hai xử lý tác vụ sinh ảnh bất đồng bộ.
+
+\section{Thiết kế luồng AI Stylist}
+
+Luồng AI Stylist bắt đầu khi người dùng nhập câu hỏi trong \code{ChatBox}. Frontend gửi request tới \code{/v1/stylist/search}. Backend Medusa lấy \code{customer_id} từ auth context, header \code{x-customer-id} hoặc fallback \code{mock-customer-id}. Nếu người dùng đã có AI Profile, backend lấy giới tính để truyền sang AI service.
+
+\medskip
+
+FastAPI nhận request tại \code{/api/v1/stylist/search}. Route này dùng \code{GeminiAnalyzerAdapter} để phân tích query. Nếu query không liên quan tới thời trang, Gemini trả về cờ \code{is_fashion_related = false} và hệ thống trả lời từ chối mềm. Nếu query hợp lệ, hệ thống lấy \code{search_keywords} để gọi \code{VectorSearch.global_search}.
+
+\medskip
+
+Sequence diagram dưới đây mô tả rõ hơn cách yêu cầu đi qua Medusa, FastAPI, Gemini và LanceDB trước khi frontend nhận lại dữ liệu đã được bổ sung thông tin sản phẩm thật.
+
+\placeholderfigure{Sequence diagram luồng AI Stylist}{Browser gửi truy vấn tới Medusa. Medusa gọi FastAPI. Gemini phân tích ý định. LanceDB trả về sản phẩm và tủ đồ. Gemini sinh JSON gợi ý phối đồ. Medusa bổ sung dữ liệu sản phẩm thật và frontend hiển thị.}
+
+\code{global_search} gộp hai nguồn dữ liệu: \code{products_vector} cho sản phẩm cửa hàng và \code{closet_vector} cho tủ đồ cá nhân. Kết quả được đánh dấu nguồn là \code{store} hoặc \code{closet}. Gemini sau đó sinh các phương án phối đồ, ưu tiên kết hợp trang phục cá nhân với sản phẩm cửa hàng khi phù hợp.
+
+\medskip
+
+Sau khi nhận dữ liệu từ AI service, Medusa bổ sung dữ liệu thật cho các item. Với item có id bắt đầu bằng \code{prod_}, backend truy vấn Product Module để lấy tiêu đề, ảnh đại diện, biến thể và danh mục. Với item tủ đồ, backend truy vấn module AI personalization để lấy ảnh và danh mục. Sau đó backend lưu \code{stylist_session}, lưu các \code{stylist_session_item} hợp lệ và trả về JSON cho frontend.
+
+\medskip
+
+Trong luồng này, việc lưu \code{stylist_session} có hai ý nghĩa. Thứ nhất, nó cho phép frontend hiển thị lại lịch sử và tóm tắt phiên tư vấn thông qua prompt và reasoning đã lưu. Ở MVP hiện tại, frontend chưa khôi phục đầy đủ toàn bộ outfit options và danh sách item từ lịch sử để người dùng tiếp tục thao tác trên cùng một outfit như một phiên đang hoạt động. Thứ hai, session tạo điểm nối để sau này đo lường chuyển đổi từ tư vấn sang hành động mua hàng, chẳng hạn số lần người dùng thêm sản phẩm được gợi ý vào giỏ hoặc chạy VTON từ một outfit do AI đề xuất. Hiện tại phần tracking này chưa hoàn chỉnh, nhưng việc lưu session từ đầu giúp thiết kế có đường phát triển rõ ràng.
+
+\medskip
+
+Khi người dùng yêu cầu đổi món tương tự, hệ thống không gọi lại toàn bộ pipeline gợi ý từ đầu. Backend truyền item hiện tại và các item cần loại trừ sang AI service để tìm kiếm vector với ngữ cảnh tương đồng. Cách làm này tiết kiệm hơn so với sinh lại toàn bộ outfit, đồng thời phù hợp với hành vi người dùng: họ thường chỉ không hài lòng với một món trong set, còn reasoning và các món còn lại vẫn có thể giữ nguyên. Phần thay thế vì vậy được thiết kế như một thao tác tinh chỉnh kết quả, không phải một phiên tư vấn mới hoàn toàn.
+
+\medskip
+
+Khác với AI Stylist, luồng VTON không phù hợp với cách xử lý đồng bộ vì thời gian sinh ảnh dài và phụ thuộc tài nguyên tính toán. Do đó, thiết kế VTON tập trung vào queue, trạng thái job và kênh cập nhật kết quả về frontend.
+
+\section{Thiết kế luồng Virtual Try-On}
+
+Luồng VTON được thiết kế bất đồng bộ. Frontend mở kết nối SSE trước khi gửi request tạo tác vụ \cite{sse-mdn}. Sau đó frontend gọi \code{/v1/vton/jobs} với ảnh người dùng, danh sách trang phục và engine được chọn. Backend tạo bản ghi \code{vton_job}, phát message vào queue \code{ai_vision_jobs} rồi trả về \code{job_id}.
+
+\medskip
+
+AI service tiêu thụ message từ \code{ai_vision_jobs}. Nếu engine là \code{local}, worker dùng \code{LocalCatVTONAdapter}. Nếu engine là \code{cloud}, worker dùng \code{CloudFluxVTONAdapter}. Khi xử lý xong, AI service phát kết quả vào \code{ai_vision_results}.
+
+\medskip
+
+Medusa consumer nhận \code{ai_vision_results}, gọi \code{VisionOrchestrator} để cập nhật database và kiểm tra có tác vụ con hay không. Với VTON local nhiều bước, kết quả của tác vụ trước được dùng làm ảnh người cho tác vụ sau. Khi trạng thái cuối cùng là hoàn tất hoặc thất bại, backend phát dữ liệu về frontend qua \code{VisionSSEManager}.
+
+\medskip
+
+Luồng VTON nhiều bước xuất hiện khi người dùng thử một outfit gồm nhiều trang phục. Với engine local, hệ thống xử lý lần lượt từng item vì adapter local phù hợp với thao tác thay một vùng trang phục trong một lần inference. Kết quả của bước trước trở thành ảnh đầu vào cho bước sau, nhờ đó có thể mô phỏng việc mặc nhiều lớp hoặc nhiều item trong cùng một set. Với engine cloud, adapter FLUX.2 có thể nhận nhiều ảnh tham chiếu trong một request nên backend tạo job theo kiểu outfit. Sự khác biệt này được ẩn sau tham số engine để frontend không phải biết chi tiết cài đặt của từng provider.
+
+\medskip
+
+Thiết kế trạng thái của \code{vton_job} cần hỗ trợ cả thành công, thất bại và chuyển bước. Khi job mới được tạo, trạng thái ban đầu là queued hoặc pending tùy cách gọi. Khi AI service nhận tác vụ, trạng thái chuyển sang processing. Nếu inference thành công, kết quả được lưu vào \code{result_image_url}. Nếu inference lỗi, trạng thái chuyển thành failed và frontend nhận thông báo qua SSE. Với job nhiều bước, \code{parent_job_id} và \code{step} giúp backend biết job nào là một phần của cùng một chuỗi xử lý.
+
+\medskip
+
+Hình dưới đây tóm tắt toàn bộ vòng đời của một tác vụ VTON, từ lúc frontend tạo job đến khi kết quả được broadcast ngược lại qua SSE.
+
+\placeholderfigure{Luồng Virtual Try-On qua RabbitMQ và SSE}{Frontend mở SSE và tạo tác vụ. Medusa phát thông điệp vào queue AI vision jobs. FastAPI xử lý CatVTON hoặc FLUX.2. FastAPI phát kết quả vào queue AI vision results. Medusa cập nhật tác vụ và phát sự kiện vision update.}
+
+\medskip
+
+Các luồng xử lý trên chỉ có thể vận hành nhất quán khi dữ liệu trạng thái, dữ liệu người dùng, dữ liệu sản phẩm và vector truy hồi được tổ chức đúng trách nhiệm. Vì vậy, phần tiếp theo trình bày thiết kế dữ liệu quan hệ và dữ liệu vector.
+
+\section{Thiết kế dữ liệu}
+
+\subsection{Cơ sở dữ liệu quan hệ PostgreSQL}
+
+MedusaJS quản lý dữ liệu e-commerce core như product, variant, price, category và sales channel. Phần cá nhân hóa AI được cài đặt bằng custom module \code{ai-personalization}. Module này định nghĩa năm model chính.
+
+\medskip
+
+Bảng dưới đây tập trung vào các bảng do module AI Personalization bổ sung, không lặp lại toàn bộ schema thương mại điện tử lõi của Medusa.
+
+\begin{longtable}{|L{3.1cm}|L{4.8cm}|L{5.8cm}|}
+\caption{Cấu trúc bảng của module AI Personalization} \\
+\hline
+\textbf{Bảng} & \textbf{Trường chính} & \textbf{Vai trò} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Bảng} & \textbf{Trường chính} & \textbf{Vai trò} \\
+\hline
+\endhead
+\code{ai_profile} & \code{id}, \code{customer_id}, \code{height}, \code{weight}, \code{gender}, \code{base_body_image_url} & Lưu hồ sơ cơ thể và ảnh nền của người dùng để phục vụ cá nhân hóa và VTON. \\
+\hline
+\code{user_closet_item} & \code{id}, \code{customer_id}, \code{image_url}, \code{category}, \code{metadata}, \code{vector_status} & Lưu trang phục cá nhân hoặc kết quả VTON được lưu lại. \\
+\hline
+\code{stylist_session} & \code{id}, \code{customer_id}, \code{prompt}, \code{reasoning}, \code{status} & Lưu lịch sử truy vấn AI Stylist và tóm tắt kết quả gợi ý. \\
+\hline
+\code{stylist_session_item} & \code{id}, \code{session_id}, \code{product_id}, \code{replaces_item_id} & Lưu item cửa hàng trong phiên tư vấn. Closet item hiện được bổ sung dữ liệu cho UI nhưng chưa có quan hệ riêng tối ưu. \\
+\hline
+\code{vton_job} & \code{id}, \code{customer_id}, \code{parent_job_id}, \code{step}, \code{status}, \code{result_image_url}, \code{error_message}, \code{retry_count} & Lưu trạng thái tác vụ VTON và liên kết các bước trong luồng VTON nhiều bước. \\
+\hline
+\end{longtable}
+
+Các migration hiện có tạo bảng theo đúng model trên. Trong MVP, một số trường chưa tối ưu cho môi trường vận hành thật. Ví dụ, luồng VTON local nhiều bước đang tạm dùng \code{error_message} để giữ URL trang phục cho tác vụ tiếp theo. Khi nâng cấp, nên bổ sung trường metadata JSONB riêng cho \code{vton_job}.
+
+\medskip
+
+Mô hình dữ liệu quan hệ được chọn để giữ những thông tin cần tính toàn vẹn và truy vấn theo người dùng. \code{ai_profile} có quan hệ logic một-một với khách hàng trong phạm vi hồ sơ AI. \code{user_closet_item} có quan hệ một-nhiều vì một người dùng có thể lưu nhiều trang phục cá nhân hoặc nhiều ảnh kết quả VTON. \code{stylist_session} và \code{stylist_session_item} tạo quan hệ giữa một lần tư vấn với các item được đề xuất, tuy nhiên quan hệ với closet item hiện chưa được tối ưu bằng một bảng nối riêng. \code{vton_job} có thể tạo cây tác vụ thông qua \code{parent_job_id}, phục vụ luồng nhiều bước.
+
+\medskip
+
+Một nguyên tắc thiết kế quan trọng là database quan hệ không lưu trực tiếp vector nhúng. Vector được tách sang LanceDB vì đây là dạng dữ liệu phục vụ truy vấn tương đồng, có cách đánh index và cách truy vấn khác với dữ liệu giao dịch. PostgreSQL vẫn là nguồn chính cho trạng thái người dùng, session và job; LanceDB là kho truy hồi phục vụ AI. Sự tách biệt này giúp giảm việc trộn hai loại workload vào cùng một database, đồng thời làm rõ trách nhiệm của từng hệ lưu trữ.
+
+\subsection{Cơ sở dữ liệu vector LanceDB}
+
+LanceDB đóng vai trò kho đọc chuyên biệt cho AI. Dữ liệu gốc vẫn nằm ở PostgreSQL và Medusa. Khi sản phẩm hoặc trang phục cá nhân thay đổi, backend phát event qua RabbitMQ để AI service cập nhật vector tương ứng \cite{lancedb,rabbitmq}.
+
+\medskip
+
+Khác với PostgreSQL, LanceDB được dùng để lưu vector nhúng và metadata phục vụ truy hồi ngữ nghĩa. Bảng sau trình bày hai bảng vector chính mà AI service sử dụng.
+
+\begin{longtable}{|L{3cm}|L{5.3cm}|L{5.3cm}|}
+\caption{Schema LanceDB phục vụ tìm kiếm ngữ nghĩa} \\
+\hline
+\textbf{Bảng} & \textbf{Trường dữ liệu} & \textbf{Nguồn đồng bộ} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Bảng} & \textbf{Trường dữ liệu} & \textbf{Nguồn đồng bộ} \\
+\hline
+\endhead
+\code{products_vector} & \code{product_id}, \code{vector[512]}, \code{category}, \code{gender}, \code{color}, \code{price}, \code{in_stock}, \code{style}, \code{occasion}, \code{material}, \code{name}, \code{image_url} & Subscriber \code{product.created} và \code{product.updated} phát thông điệp vào \code{product_metadata_sync}. \\
+\hline
+\code{closet_vector} & \code{id}, \code{user_id}, \code{vector[512]}, \code{category}, \code{color}, \code{pattern}, \code{style}, \code{material}, \code{image_url} & Route tải lên/xóa tủ đồ phát message vào \code{closet_metadata_sync}. \\
+\hline
+\end{longtable}
+
+Trong LanceDB, vector chỉ là một phần của bản ghi. Metadata đi kèm như category, gender, color, price, style và in stock giúp hệ thống lọc trước hoặc lọc sau khi tìm kiếm tương đồng \cite{lancedb}. Nếu chỉ dựa vào cosine similarity, kết quả có thể gần về mặt ngữ nghĩa nhưng không phù hợp yêu cầu cụ thể, ví dụ truy vấn tìm áo khoác nhưng trả về váy vì mô tả phong cách tương đồng. Metadata filter giúp kết quả bám sát ngữ cảnh hơn và cũng tạo nền tảng để backend loại bỏ những item không thể mua hoặc không thuộc người dùng hiện tại. Tuy nhiên, ở bản MVP, các trường \code{price} và \code{in_stock} trong bảng vector sản phẩm vẫn đang được consumer ghi theo giá trị mặc định, nên phần đồng bộ giá và tồn kho thật từ Medusa cần được bổ sung trước khi dùng các filter này như tiêu chí đánh giá chính thức.
+
+\medskip
+
+Đối với tủ đồ cá nhân, trường \code{user_id} là ranh giới dữ liệu quan trọng. Vector của trang phục cá nhân chỉ được truy hồi trong phạm vi người dùng tương ứng, tránh việc một người dùng nhận gợi ý từ ảnh tủ đồ của người khác. Trong MVP, phần xác thực còn đơn giản nên ranh giới này phụ thuộc nhiều vào customer id được truyền qua backend. Khi triển khai production, ràng buộc này cần được gắn với auth thật và kiểm tra ở cả Medusa lẫn AI service.
+
+\medskip
+
+Sau khi dữ liệu đã được tách thành các kho lưu trữ phù hợp, phần còn lại của thiết kế là cách cô lập các phụ thuộc AI để có thể thay model hoặc provider mà không làm vỡ toàn bộ pipeline.
+
+\section{Thiết kế interface và adapter}
+
+Hệ thống sử dụng adapter pattern để tránh phụ thuộc cứng vào một nhà cung cấp AI cụ thể. Trong AI service, các interface chính gồm \code{IIntentAnalyzer}, \code{IEmbeddingService} và \code{IVirtualTryOnService}. Cài đặt hiện tại tương ứng là \code{GeminiAnalyzerAdapter}, \code{LocalCLIPEmbeddingAdapter}, \code{LocalCatVTONAdapter} và \code{CloudFluxVTONAdapter}.
+
+\medskip
+
+Cách thiết kế này giúp hệ thống có thể thay đổi engine AI trong tương lai. Ví dụ, AI Stylist có thể chuyển từ Gemini sang provider LLM khác mà không cần thay đổi toàn bộ route. VTON có thể chuyển từ CatVTON local sang cloud adapter khác nếu yêu cầu triển khai thay đổi.
+
+\medskip
+
+Adapter pattern cũng giúp báo cáo đánh giá hệ thống theo contract thay vì theo một thư viện cụ thể. Với \code{IIntentAnalyzer}, phần còn lại của AI service chỉ cần biết adapter có thể phân tích truy vấn, trích xuất metadata và sinh outfit có cấu trúc. Với \code{IEmbeddingService}, vector search chỉ cần nhận vector đúng số chiều và ổn định giữa lúc ghi và lúc truy vấn. Với \code{IVirtualTryOnService}, worker chỉ cần truyền ảnh người, ảnh trang phục và nhận về đường dẫn kết quả hoặc lỗi. Khi contract rõ ràng, việc thay model, thay API cloud hoặc thêm một adapter mới sẽ ít ảnh hưởng tới các luồng khác.
+
+\medskip
+
+Tuy nhiên, adapter không thay thế được kiểm thử tích hợp. Các model AI có thể khác nhau về định dạng output, độ ổn định JSON, giới hạn kích thước ảnh, thời gian xử lý và cách báo lỗi. Vì vậy, ngoài unit test cho từng adapter, hệ thống cần kiểm thử đầu cuối từ frontend tới Medusa, RabbitMQ, AI service và ngược lại. Đây cũng là lý do Chương 4 không chỉ đánh giá từng chức năng riêng lẻ, mà còn nhấn mạnh việc bổ sung log, ảnh chụp và benchmark khi nghiệm thu.
+
+\clearpage
