@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Slide bảo vệ đồ án cơ sở: Hệ thống thương mại điện tử thời trang tích hợp AI Stylist và Virtual Try-On"
+    />
+    <title>AI Fashion E-commerce | Báo cáo đồ án cơ sở</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#slide-deck">Đi tới nội dung slide</a>
+
+    <main id="slide-deck" class="slide-deck" aria-live="polite">
+      <section class="slide cover-slide active" data-title="Giới thiệu">
+        <div class="ambient ambient-one"></div>
+        <div class="ambient ambient-two"></div>
+        <header class="cover-header">
+          <img class="university-logo" src="assets/images/pnk_logo.jpg" alt="Logo Đại học Phenikaa" />
+          <div>
+            <p class="eyebrow">Đại học Phenikaa · Khoa học Máy tính</p>
+            <p class="cover-kicker">Báo cáo đồ án cơ sở</p>
+          </div>
+        </header>
+
+        <div class="cover-content">
+          <p class="chapter-label">AI Fashion E-commerce</p>
+          <h1>
+            Xây dựng hệ thống thương mại điện tử thời trang tích hợp
+            <span class="gradient-text">AI Stylist &amp; Virtual Try-On</span>
+          </h1>
+          <p class="cover-summary">
+            Từ yêu cầu bằng ngôn ngữ tự nhiên đến gợi ý phối đồ, thử đồ ảo và hành động mua hàng.
+          </p>
+        </div>
+
+        <footer class="cover-footer">
+          <div class="people-block">
+            <span class="meta-label">Sinh viên thực hiện</span>
+            <strong>Đoàn Anh Hùng · 23010022</strong>
+            <strong>Nguyễn Quang Hiệp · 23010451</strong>
+          </div>
+          <div class="people-block">
+            <span class="meta-label">Giảng viên hướng dẫn</span>
+            <strong>ThS. Trần Đình Tân</strong>
+          </div>
+          <div class="year-mark">Hà Nội · 2026</div>
+        </footer>
+      </section>
+
+      <section class="slide" data-title="Nội dung trình bày">
+        <div class="slide-heading">
+          <p class="chapter-label">Timeline</p>
+          <h2>Nội dung trình bày</h2>
+          <p>Đi từ vấn đề thực tế đến giải pháp, kiến trúc và kết quả thực nghiệm.</p>
+        </div>
+
+        <ol class="timeline">
+          <li class="timeline-item">
+            <span class="timeline-number">01</span>
+            <div>
+              <strong>Bài toán &amp; mục tiêu</strong>
+              <small>Vì sao trải nghiệm mua thời trang trực tuyến cần cá nhân hóa?</small>
+            </div>
+          </li>
+          <li class="timeline-item">
+            <span class="timeline-number">02</span>
+            <div>
+              <strong>Giải pháp đề xuất</strong>
+              <small>Hành trình mua sắm kết hợp AI Stylist và Virtual Try-On.</small>
+            </div>
+          </li>
+          <li class="timeline-item">
+            <span class="timeline-number">03</span>
+            <div>
+              <strong>Phân tích &amp; thiết kế</strong>
+              <small>Kiến trúc tổng thể, luồng RAG và xử lý bất đồng bộ.</small>
+            </div>
+          </li>
+          <li class="timeline-item">
+            <span class="timeline-number">04</span>
+            <div>
+              <strong>Kết quả &amp; đánh giá</strong>
+              <small>Giao diện, thực nghiệm VTON, hạn chế và hướng phát triển.</small>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="slide" data-title="Bài toán đặt ra">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">01 · Bài toán</p>
+          <h2>Mua quần áo online vẫn còn một khoảng cách lớn</h2>
+        </div>
+
+        <div class="problem-layout">
+          <div class="question-stack">
+            <article class="quote-card quote-a">
+              <span class="quote-mark">“</span>
+              <p>Trang phục này có hợp với vóc dáng của tôi không?</p>
+            </article>
+            <article class="quote-card quote-b">
+              <span class="quote-mark">“</span>
+              <p>Tôi nên phối món đồ này với những gì đang có?</p>
+            </article>
+            <article class="quote-card quote-c">
+              <span class="quote-mark">“</span>
+              <p>Khi mặc lên người thật, tổng thể sẽ trông như thế nào?</p>
+            </article>
+          </div>
+
+          <div class="problem-thesis">
+            <div class="big-stat">3</div>
+            <p class="stat-caption">khoảng trống trải nghiệm</p>
+            <ul class="signal-list">
+              <li><span></span>Thiếu tư vấn theo ngữ cảnh</li>
+              <li><span></span>Khó tận dụng tủ đồ cá nhân</li>
+              <li><span></span>Khó hình dung trước khi mua</li>
+            </ul>
+            <p class="thesis-note">
+              Danh sách sản phẩm và bảng kích thước chưa đủ để hỗ trợ quyết định mang tính cá nhân.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-title="Mục tiêu và phạm vi">
+        <div class="slide-heading">
+          <p class="chapter-label">01 · Mục tiêu</p>
+          <h2>Xây dựng một MVP mua sắm thời trang có AI đồng hành</h2>
+          <p>Trọng tâm là chứng minh luồng kỹ thuật và trải nghiệm xuyên suốt.</p>
+        </div>
+
+        <div class="objective-grid">
+          <article class="objective-card accent-rose">
+            <span class="objective-icon">01</span>
+            <h3>Thương mại điện tử nền tảng</h3>
+            <p>Duyệt sản phẩm, tìm kiếm, thêm giỏ hàng và checkout mô phỏng.</p>
+          </article>
+          <article class="objective-card accent-orange">
+            <span class="objective-icon">02</span>
+            <h3>Cá nhân hóa</h3>
+            <p>AI Profile và tủ đồ cá nhân làm dữ liệu ngữ cảnh cho hệ thống.</p>
+          </article>
+          <article class="objective-card accent-violet">
+            <span class="objective-icon">03</span>
+            <h3>AI Stylist</h3>
+            <p>Hiểu yêu cầu tiếng Việt, truy hồi sản phẩm thật và sinh phương án phối đồ.</p>
+          </article>
+          <article class="objective-card accent-blue">
+            <span class="objective-icon">04</span>
+            <h3>Virtual Try-On</h3>
+            <p>Sinh ảnh thử đồ bằng engine local hoặc cloud mà không chặn luồng web.</p>
+          </article>
+        </div>
+
+        <div class="scope-strip">
+          <span class="scope-pill scope-in">Trong phạm vi: MVP kỹ thuật có AI thật</span>
+          <span class="scope-pill">Chưa production hóa: auth, payment, storage, monitoring</span>
+        </div>
+      </section>
+
+      <section class="slide" data-title="Giải pháp đề xuất">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">02 · Giải pháp</p>
+          <h2>Một hành trình liền mạch từ ý tưởng trang phục đến quyết định mua</h2>
+        </div>
+
+        <div class="journey">
+          <article class="journey-step">
+            <span class="journey-index">01</span>
+            <div class="journey-icon">?</div>
+            <h3>Nêu nhu cầu</h3>
+            <p>“Gợi ý trang phục đi phỏng vấn.”</p>
+          </article>
+          <div class="journey-arrow" aria-hidden="true">→</div>
+          <article class="journey-step">
+            <span class="journey-index">02</span>
+            <div class="journey-icon">AI</div>
+            <h3>Nhận outfit</h3>
+            <p>AI kết hợp sản phẩm cửa hàng và tủ đồ cá nhân.</p>
+          </article>
+          <div class="journey-arrow" aria-hidden="true">→</div>
+          <article class="journey-step">
+            <span class="journey-index">03</span>
+            <div class="journey-icon">V</div>
+            <h3>Thử đồ ảo</h3>
+            <p>Xem outfit trên ảnh cơ thể đã thiết lập.</p>
+          </article>
+          <div class="journey-arrow" aria-hidden="true">→</div>
+          <article class="journey-step">
+            <span class="journey-index">04</span>
+            <div class="journey-icon">+</div>
+            <h3>Hành động</h3>
+            <p>Đổi món, thêm giỏ hàng hoặc tiếp tục mua sắm.</p>
+          </article>
+        </div>
+
+        <div class="solution-highlight">
+          <strong>Điểm khác biệt:</strong>
+          AI không chỉ trả lời bằng văn bản, mà tạo dữ liệu có cấu trúc để giao diện biến thành hành động mua sắm.
+        </div>
+      </section>
+
+      <section class="slide" data-title="Các chức năng chính">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">02 · Sản phẩm</p>
+          <h2>Các chức năng chính đã triển khai</h2>
+        </div>
+
+        <div class="feature-showcase">
+          <figure class="browser-frame main-shot">
+            <div class="browser-bar"><i></i><i></i><i></i><span>AI Fashion E-commerce</span></div>
+            <img src="assets/images/ui_home.png" alt="Giao diện trang chủ AI Fashion" />
+          </figure>
+          <figure class="browser-frame float-shot float-one">
+            <div class="browser-bar"><i></i><i></i><i></i><span>AI Stylist</span></div>
+            <img src="assets/images/ui_ai_stylist.png" alt="Giao diện AI Stylist" />
+          </figure>
+          <figure class="browser-frame float-shot float-two">
+            <div class="browser-bar"><i></i><i></i><i></i><span>Wardrobe</span></div>
+            <img src="assets/images/ui_wardrobe.png" alt="Giao diện tủ đồ cá nhân" />
+          </figure>
+          <div class="feature-tags" aria-label="Danh sách chức năng">
+            <span>Storefront</span><span>AI Profile</span><span>Wardrobe</span>
+            <span>AI Stylist</span><span>VTON</span><span>Checkout MVP</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-title="Kiến trúc tổng thể">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">03 · Kiến trúc</p>
+          <h2>Tách rõ thương mại điện tử, điều phối nghiệp vụ và xử lý AI</h2>
+        </div>
+
+        <div class="architecture">
+          <div class="arch-row core-row">
+            <article class="arch-node user-node">
+              <span class="node-tag">Client</span>
+              <strong>Trình duyệt</strong>
+              <small>Người dùng</small>
+            </article>
+            <span class="connector sync">HTTP</span>
+            <article class="arch-node service-node">
+              <span class="node-tag">Frontend</span>
+              <strong>Next.js 14</strong>
+              <small>Storefront · Stylist · Wardrobe</small>
+            </article>
+            <span class="connector sync">API</span>
+            <article class="arch-node primary-node">
+              <span class="node-tag">Backend Core / BFF</span>
+              <strong>MedusaJS</strong>
+              <small>Nghiệp vụ · Dữ liệu · SSE</small>
+            </article>
+            <span class="connector sync">Internal API</span>
+            <article class="arch-node ai-node">
+              <span class="node-tag">AI Service</span>
+              <strong>FastAPI</strong>
+              <small>Gemini · CLIP · VTON worker</small>
+            </article>
+          </div>
+
+          <div class="arch-row infra-row">
+            <article class="arch-node data-node"><strong>PostgreSQL</strong><small>Commerce + AI data</small></article>
+            <article class="arch-node data-node"><strong>Redis</strong><small>Hạ tầng Medusa</small></article>
+            <article class="arch-node queue-node"><strong>RabbitMQ</strong><small>Job &amp; result queues</small></article>
+            <article class="arch-node data-node"><strong>LanceDB</strong><small>Product + closet vectors</small></article>
+            <article class="arch-node ai-node small-node"><strong>Gemini</strong><small>LLM / Vision</small></article>
+            <article class="arch-node ai-node small-node"><strong>CatVTON · FLUX.2</strong><small>Image generation</small></article>
+          </div>
+
+          <div class="architecture-legend">
+            <span><i class="legend-dot sync-dot"></i>Đồng bộ: phản hồi nhanh</span>
+            <span><i class="legend-dot async-dot"></i>Bất đồng bộ: tác vụ AI nặng</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-title="Luồng AI Stylist">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">03 · AI Stylist</p>
+          <h2>RAG ràng buộc gợi ý vào sản phẩm có thật</h2>
+        </div>
+
+        <div class="rag-flow">
+          <article class="flow-card">
+            <span class="flow-index">01 · Extract</span>
+            <h3>Phân tích ý định</h3>
+            <p>Gemini nhận diện ngữ cảnh, phong cách, danh mục và guardrail.</p>
+            <span class="flow-tech">Gemini</span>
+          </article>
+          <span class="flow-arrow">→</span>
+          <article class="flow-card">
+            <span class="flow-index">02 · Retrieve</span>
+            <h3>Truy hồi ngữ nghĩa</h3>
+            <p>CLIP tạo vector 512 chiều, LanceDB tìm sản phẩm và đồ cá nhân phù hợp.</p>
+            <span class="flow-tech">CLIP + LanceDB</span>
+          </article>
+          <span class="flow-arrow">→</span>
+          <article class="flow-card">
+            <span class="flow-index">03 · Generate</span>
+            <h3>Sinh outfit JSON</h3>
+            <p>Gemini chỉ chọn item trong pool truy hồi và giải thích cách phối.</p>
+            <span class="flow-tech">Structured JSON</span>
+          </article>
+          <span class="flow-arrow">→</span>
+          <article class="flow-card">
+            <span class="flow-index">04 · Hydrate</span>
+            <h3>Bổ sung dữ liệu thật</h3>
+            <p>Medusa kiểm tra ID, lấy ảnh, variant, category và lưu session.</p>
+            <span class="flow-tech">Medusa BFF</span>
+          </article>
+        </div>
+
+        <div class="rag-proof">
+          <div>
+            <strong>Giảm hallucination</strong>
+            <span>Model không tự tạo sản phẩm ngoài catalog.</span>
+          </div>
+          <div>
+            <strong>JSON-driven UI</strong>
+            <span>Mỗi item trở thành nút đổi món, thử đồ hoặc thêm giỏ.</span>
+          </div>
+          <div>
+            <strong>Kết hợp hai nguồn</strong>
+            <span>Sản phẩm cửa hàng + tủ đồ của người dùng.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-title="Luồng Virtual Try-On">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">03 · Virtual Try-On</p>
+          <h2>Xử lý bất đồng bộ để tác vụ sinh ảnh không chặn website</h2>
+        </div>
+
+        <div class="vton-pipeline">
+          <article class="pipeline-stage stage-client">
+            <span>1</span>
+            <strong>Frontend</strong>
+            <small>Mở SSE, gửi yêu cầu VTON</small>
+          </article>
+          <div class="pipeline-link"><b>HTTP</b><i>→</i></div>
+          <article class="pipeline-stage stage-backend">
+            <span>2</span>
+            <strong>MedusaJS</strong>
+            <small>Tạo vton_job, chọn engine</small>
+          </article>
+          <div class="pipeline-link async-link"><b>Queue</b><i>⇢</i></div>
+          <article class="pipeline-stage stage-queue">
+            <span>3</span>
+            <strong>RabbitMQ</strong>
+            <small>ai_vision_jobs</small>
+          </article>
+          <div class="pipeline-link async-link"><b>Consume</b><i>⇢</i></div>
+          <article class="pipeline-stage stage-ai">
+            <span>4</span>
+            <strong>AI Worker</strong>
+            <small>CatVTON hoặc FLUX.2</small>
+          </article>
+          <div class="pipeline-link async-link"><b>Publish</b><i>⇢</i></div>
+          <article class="pipeline-stage stage-queue">
+            <span>5</span>
+            <strong>Result Queue</strong>
+            <small>ai_vision_results</small>
+          </article>
+          <div class="pipeline-link async-link"><b>Consume</b><i>⇢</i></div>
+          <article class="pipeline-stage stage-backend">
+            <span>6</span>
+            <strong>Orchestrator</strong>
+            <small>Cập nhật vton_job, phát SSE</small>
+          </article>
+          <div class="pipeline-link"><b>SSE</b><i>→</i></div>
+          <article class="pipeline-stage stage-result">
+            <span>7</span>
+            <strong>Frontend Result</strong>
+            <small>Nhận vision_update theo user ID</small>
+          </article>
+        </div>
+
+        <div class="engine-comparison">
+          <article>
+            <span class="engine-badge local-badge">Local</span>
+            <h3>CatVTON</h3>
+            <p>Xử lý từng vùng trang phục tuần tự, chủ động tài nguyên và luồng inference.</p>
+          </article>
+          <article>
+            <span class="engine-badge cloud-badge">Cloud</span>
+            <h3>FLUX.2 qua Replicate</h3>
+            <p>Nhận nhiều ảnh tham chiếu trong một request, giảm tải GPU cục bộ.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide" data-title="Công nghệ triển khai">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">03 · Triển khai</p>
+          <h2>Monorepo kết nối ba ứng dụng và hạ tầng chuyên biệt</h2>
+        </div>
+
+        <div class="stack-layout">
+          <div class="repo-tree">
+            <div class="tree-title"><span></span><span></span><span></span><strong>AI Fashion Monorepo</strong></div>
+            <code><b>apps/</b></code>
+            <code>├── <em>web/</em> <span>Next.js + React + Zustand</span></code>
+            <code>├── <em>api-medusa/</em> <span>MedusaJS + TypeScript</span></code>
+            <code>└── <em>ai-service/</em> <span>FastAPI + Python</span></code>
+            <code><b>packages/</b></code>
+            <code>└── <em>shared-types/</em> <span>Zod schemas</span></code>
+            <code><b>docker/</b> <span>PostgreSQL · Redis · RabbitMQ</span></code>
+          </div>
+
+          <div class="stack-grid">
+            <article><span>UI</span><strong>Next.js 14</strong><small>React 18 · Tailwind · Zustand</small></article>
+            <article><span>Core</span><strong>MedusaJS 2.14</strong><small>Custom API · Workflow · SSE</small></article>
+            <article><span>AI</span><strong>FastAPI</strong><small>Pydantic · Gemini · VTON</small></article>
+            <article><span>Data</span><strong>PostgreSQL + LanceDB</strong><small>Quan hệ + vector 512 chiều</small></article>
+            <article><span>Async</span><strong>RabbitMQ</strong><small>4 durable queues</small></article>
+            <article><span>Ops</span><strong>Docker + Turborepo</strong><small>Môi trường local và monorepo</small></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-title="Thực nghiệm VTON">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">04 · Thực nghiệm</p>
+          <h2>Cùng một ảnh người dùng và hai trang phục tham chiếu</h2>
+        </div>
+
+        <div class="input-gallery">
+          <figure class="fashion-card tall-card">
+            <img src="assets/images/human_input.jpg" alt="Ảnh người dùng đầu vào" />
+            <figcaption><span>01</span><strong>Ảnh người dùng</strong><small>Giữ đặc điểm khuôn mặt và dáng đứng</small></figcaption>
+          </figure>
+          <div class="plus-sign" aria-hidden="true">+</div>
+          <figure class="fashion-card">
+            <img src="assets/images/garment_upper.png" alt="Áo polo xanh đầu vào" />
+            <figcaption><span>02</span><strong>Upper garment</strong><small>Áo polo xanh</small></figcaption>
+          </figure>
+          <div class="plus-sign" aria-hidden="true">+</div>
+          <figure class="fashion-card">
+            <img src="assets/images/garment_lower.png" alt="Quần short đỏ đầu vào" />
+            <figcaption><span>03</span><strong>Lower garment</strong><small>Quần short đỏ</small></figcaption>
+          </figure>
+        </div>
+
+        <div class="experiment-note">
+          <strong>Cấu hình CatVTON local:</strong>
+          GPU 5060 8 GB VRAM · RAM 16 GB · AMD Ryzen 9 8940HX · 25 bước cho mỗi vùng
+        </div>
+      </section>
+
+      <section class="slide" data-title="Kết quả VTON">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">04 · Kết quả</p>
+          <h2>So sánh hai hướng thử đồ ảo</h2>
+        </div>
+
+        <div class="result-gallery">
+          <figure class="result-card">
+            <div class="result-image-wrap">
+              <img src="assets/images/catvton_upper_result.png" alt="Kết quả CatVTON sau bước upper" />
+              <span class="image-chip">Bước 1</span>
+            </div>
+            <figcaption>
+              <strong>CatVTON · Upper</strong>
+              <span>≈ 33 giây</span>
+            </figcaption>
+          </figure>
+          <figure class="result-card featured-result">
+            <div class="result-image-wrap">
+              <img src="assets/images/catvton_outfit_result.png" alt="Kết quả CatVTON toàn bộ outfit" />
+              <span class="image-chip">Local</span>
+            </div>
+            <figcaption>
+              <strong>CatVTON · Full outfit</strong>
+              <span>≈ 64 giây · 2 bước tuần tự</span>
+            </figcaption>
+          </figure>
+          <figure class="result-card featured-result cloud-result">
+            <div class="result-image-wrap">
+              <img src="assets/images/flux2_outfit_result.png" alt="Kết quả FLUX.2 toàn bộ outfit" />
+              <span class="image-chip">Cloud</span>
+            </div>
+            <figcaption>
+              <strong>FLUX.2 · Full outfit</strong>
+              <span>≈ 21 giây · 1 request</span>
+            </figcaption>
+          </figure>
+        </div>
+
+        <p class="evidence-note">Số liệu từ một lần chạy quan sát, chưa phải benchmark lặp chính thức.</p>
+      </section>
+
+      <section class="slide" data-title="Đánh giá kết quả">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">04 · Đánh giá</p>
+          <h2>Kết quả đạt được ở mức MVP kỹ thuật</h2>
+        </div>
+
+        <div class="evaluation-layout">
+          <div class="completion-panel">
+            <div class="completion-ring"><strong>MVP</strong><span>đủ khung kỹ thuật cho các luồng chính</span></div>
+            <div class="completion-list">
+              <span class="done">Storefront &amp; Cart</span>
+              <span class="done">AI Profile &amp; Wardrobe</span>
+              <span class="done">AI Stylist &amp; Replace item</span>
+              <span class="done">VTON local &amp; cloud</span>
+              <span class="done">RabbitMQ &amp; SSE</span>
+              <span class="partial">Checkout cần chỉnh endpoint frontend</span>
+            </div>
+          </div>
+
+          <div class="metric-panel">
+            <h3>Thời gian VTON quan sát</h3>
+            <div class="bar-chart">
+              <div class="bar-row">
+                <span>FLUX.2 cloud</span>
+                <div class="bar-track"><i class="bar flux-bar" style="--value: 33%"></i></div>
+                <strong>~21s</strong>
+              </div>
+              <div class="bar-row">
+                <span>CatVTON upper</span>
+                <div class="bar-track"><i class="bar upper-bar" style="--value: 52%"></i></div>
+                <strong>~33s</strong>
+              </div>
+              <div class="bar-row">
+                <span>CatVTON outfit</span>
+                <div class="bar-track"><i class="bar outfit-bar" style="--value: 100%"></i></div>
+                <strong>~64s</strong>
+              </div>
+            </div>
+            <p>Queue và SSE giữ giao diện phản hồi được trong lúc tác vụ AI đang xử lý.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-title="Hạn chế và hướng phát triển">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">04 · Roadmap</p>
+          <h2>Từ demo kỹ thuật đến sản phẩm có thể vận hành</h2>
+        </div>
+
+        <div class="roadmap">
+          <article class="roadmap-column">
+            <span class="roadmap-stage">Hiện tại</span>
+            <h3>MVP tích hợp</h3>
+            <ul>
+              <li>Auth còn dùng mock/default ID</li>
+              <li>Checkout và payment mô phỏng</li>
+              <li>Ảnh lưu local</li>
+              <li>Chưa có benchmark chính thức</li>
+            </ul>
+          </article>
+          <div class="roadmap-arrow">→</div>
+          <article class="roadmap-column roadmap-near">
+            <span class="roadmap-stage">Ưu tiên tiếp theo</span>
+            <h3>Ổn định hóa</h3>
+            <ul>
+              <li>Auth và phân quyền thật</li>
+              <li>Object storage + CDN</li>
+              <li>Retry policy + dead-letter queue</li>
+              <li>Logging và monitoring tập trung</li>
+            </ul>
+          </article>
+          <div class="roadmap-arrow">→</div>
+          <article class="roadmap-column roadmap-future">
+            <span class="roadmap-stage">Tương lai</span>
+            <h3>Đo lường &amp; tối ưu</h3>
+            <ul>
+              <li>Benchmark latency và throughput</li>
+              <li>Feedback ranking cho AI Stylist</li>
+              <li>Conversion tracking</li>
+              <li>Tối ưu chất lượng và chi phí VTON</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide conclusion-slide" data-title="Kết luận và Q&A">
+        <div class="ambient ambient-one"></div>
+        <div class="ambient ambient-three"></div>
+        <div class="conclusion-content">
+          <p class="chapter-label">Kết luận</p>
+          <h2>Đề tài chứng minh khả năng kết hợp</h2>
+          <div class="conclusion-equation">
+            <span>Thương mại điện tử</span><b>+</b>
+            <span>RAG &amp; Vector Search</span><b>+</b>
+            <span>Generative AI</span><b>+</b>
+            <span>Kiến trúc bất đồng bộ</span>
+          </div>
+          <p>
+            để tạo trải nghiệm mua sắm thời trang cá nhân hóa, trực quan và có khả năng mở rộng.
+          </p>
+          <div class="qa-mark">Q&amp;A</div>
+          <small>Cảm ơn thầy cô và các bạn đã lắng nghe.</small>
+        </div>
+      </section>
+
+      <section class="slide appendix-slide" data-title="Phụ lục: Dữ liệu">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">Phụ lục A</p>
+          <h2>Dữ liệu được tách theo đúng trách nhiệm</h2>
+        </div>
+        <div class="appendix-grid">
+          <article class="appendix-card">
+            <h3>PostgreSQL · nguồn dữ liệu nghiệp vụ</h3>
+            <div class="schema-list">
+              <span><b>ai_profile</b>Hồ sơ cơ thể và ảnh nền</span>
+              <span><b>user_closet_item</b>Trang phục cá nhân</span>
+              <span><b>stylist_session</b>Lịch sử tư vấn</span>
+              <span><b>stylist_session_item</b>Item được gợi ý</span>
+              <span><b>vton_job</b>Trạng thái tác vụ thử đồ</span>
+            </div>
+          </article>
+          <article class="appendix-card">
+            <h3>LanceDB · dữ liệu suy diễn để truy hồi</h3>
+            <div class="schema-list">
+              <span><b>products_vector</b>Vector và metadata sản phẩm</span>
+              <span><b>closet_vector</b>Vector trang phục theo user</span>
+              <span><b>Embedding</b>CLIP multilingual 512 chiều</span>
+              <span><b>Metadata</b>Category · style · occasion · color</span>
+            </div>
+          </article>
+        </div>
+        <div class="appendix-note">Nguyên tắc: vector và metadata AI hỗ trợ truy hồi, không thay thế dữ liệu catalog gốc.</div>
+      </section>
+
+      <section class="slide appendix-slide" data-title="Phụ lục: Queue và API">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">Phụ lục B</p>
+          <h2>Queue và endpoint chính</h2>
+        </div>
+        <div class="appendix-grid">
+          <article class="appendix-card">
+            <h3>RabbitMQ queues</h3>
+            <div class="queue-list">
+              <span><code>product_metadata_sync</code><small>Đồng bộ catalog sang LanceDB</small></span>
+              <span><code>closet_metadata_sync</code><small>Phân tích và đồng bộ tủ đồ</small></span>
+              <span><code>ai_vision_jobs</code><small>Nhận tác vụ VTON</small></span>
+              <span><code>ai_vision_results</code><small>Trả kết quả về Medusa</small></span>
+            </div>
+          </article>
+          <article class="appendix-card">
+            <h3>Custom API nổi bật</h3>
+            <div class="queue-list">
+              <span><code>POST /v1/stylist/search</code><small>Tìm kiếm và sinh outfit</small></span>
+              <span><code>POST /v1/stylist/replace</code><small>Đổi item tương tự</small></span>
+              <span><code>POST /v1/vton/jobs</code><small>Tạo tác vụ thử đồ</small></span>
+              <span><code>GET /v1/stream/vision-results</code><small>Kênh SSE trả kết quả</small></span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide appendix-slide" data-title="Phụ lục: Phím tắt">
+        <div class="slide-heading">
+          <p class="chapter-label">Phụ lục C</p>
+          <h2>Điều khiển bộ slide</h2>
+          <p>Bộ slide chạy hoàn toàn offline bằng HTML, CSS và JavaScript thuần.</p>
+        </div>
+        <div class="shortcut-grid">
+          <span><kbd>← ↑</kbd><kbd>→ ↓</kbd><strong>Chuyển slide</strong></span>
+          <span><kbd>Space</kbd><strong>Slide tiếp theo</strong></span>
+          <span><kbd>P</kbd><strong>Toàn màn hình</strong></span>
+          <span><kbd>T</kbd><strong>Sáng / tối</strong></span>
+          <span><kbd>O</kbd><strong>Tổng quan slide</strong></span>
+          <span><kbd>PgUp</kbd><kbd>PgDn</kbd><kbd>Home</kbd><kbd>End</kbd><strong>Điều hướng nhanh</strong></span>
+        </div>
+        <div class="print-instruction">
+          <strong>Xuất PDF:</strong> nhấn nút “PDF” hoặc dùng <kbd>Ctrl</kbd> + <kbd>P</kbd>, chọn khổ ngang và bật in hình nền.
+        </div>
+      </section>
+    </main>
+
+    <aside
+      id="overview"
+      class="overview"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="overview-title"
+      aria-hidden="true"
+    >
+      <div class="overview-header">
+        <div>
+          <p class="chapter-label">Navigator</p>
+          <h2 id="overview-title">Tổng quan slide</h2>
+        </div>
+        <button id="close-overview" class="icon-button" type="button" aria-label="Đóng tổng quan">×</button>
+      </div>
+      <div id="overview-grid" class="overview-grid"></div>
+    </aside>
+
+    <nav class="controls" aria-label="Điều khiển trình chiếu">
+      <div class="control-cluster">
+        <button id="prev-slide" class="icon-button" type="button" aria-label="Slide trước" title="Slide trước (←)">←</button>
+        <button id="next-slide" class="icon-button" type="button" aria-label="Slide tiếp theo" title="Slide tiếp theo (→)">→</button>
+      </div>
+      <button
+        id="overview-button"
+        class="text-button"
+        type="button"
+        title="Tổng quan (O)"
+        aria-controls="overview"
+        aria-expanded="false"
+      >
+        Tổng quan
+      </button>
+      <div class="slide-counter" aria-label="Số thứ tự slide">
+        <strong id="current-slide">01</strong><span>/</span><span id="total-slides">18</span>
+      </div>
+      <button id="theme-button" class="text-button" type="button" title="Đổi giao diện (T)">Tối</button>
+      <button id="print-button" class="text-button" type="button" title="Xuất PDF">PDF</button>
+      <button id="fullscreen-button" class="text-button primary-control" type="button" title="Toàn màn hình (P)">Trình chiếu</button>
+    </nav>
+
+    <div class="progress-track" aria-hidden="true"><div id="progress-bar"></div></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <noscript>Bộ slide cần JavaScript để điều hướng. Bạn vẫn có thể in toàn bộ nội dung bằng trình duyệt.</noscript>
+    <script src="js/slides.js"></script>
+  </body>
+</html>
