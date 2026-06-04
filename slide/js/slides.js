@@ -10,7 +10,6 @@
   const currentLabel = document.getElementById("current-slide");
   const totalLabel = document.getElementById("total-slides");
   const progressBar = document.getElementById("progress-bar");
-  const themeButton = document.getElementById("theme-button");
   const fullscreenButton = document.getElementById("fullscreen-button");
   const overviewButton = document.getElementById("overview-button");
   const toast = document.getElementById("toast");
@@ -130,23 +129,8 @@
     }
   }
 
-  function applyTheme(theme, announce = false) {
+  function applyTheme(theme) {
     root.dataset.theme = theme;
-    themeButton.textContent = theme === "dark" ? "Sáng" : "Tối";
-    themeButton.setAttribute(
-      "aria-label",
-      theme === "dark" ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối",
-    );
-    try {
-      localStorage.setItem("slide-theme", theme);
-    } catch {
-      // The slide still works when storage is blocked by private browsing policies.
-    }
-    if (announce) showToast(theme === "dark" ? "Đã bật chế độ tối" : "Đã bật chế độ sáng");
-  }
-
-  function toggleTheme() {
-    applyTheme(root.dataset.theme === "dark" ? "light" : "dark", true);
   }
 
   async function toggleFullscreen() {
@@ -176,7 +160,7 @@
     const isInteractiveTarget = event.target.closest?.("button, a, input, textarea, select");
 
     if (isInteractiveTarget && (key === " " || key === "enter")) return;
-    if (event.repeat && (key === "p" || key === "t" || key === "o")) return;
+    if (event.repeat && (key === "p" || key === "o")) return;
 
     if (key === "escape" && overviewOpen) {
       event.preventDefault();
@@ -212,7 +196,6 @@
       home: () => goToSlide(0),
       end: () => goToSlide(slides.length - 1),
       p: toggleFullscreen,
-      t: toggleTheme,
       o: toggleOverview,
     };
 
@@ -253,25 +236,14 @@
   }
 
   function initializeTheme() {
-    let savedTheme = null;
-    try {
-      savedTheme = localStorage.getItem("slide-theme");
-    } catch {
-      // Fall back to the system preference when storage is unavailable.
-    }
-    const requestedTheme = new URLSearchParams(window.location.search).get("theme");
-    const validRequestedTheme = requestedTheme === "dark" || requestedTheme === "light" ? requestedTheme : null;
-    const preferredTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    applyTheme(validRequestedTheme || savedTheme || preferredTheme);
+    applyTheme("light");
   }
 
   document.getElementById("prev-slide").addEventListener("click", previousSlide);
   document.getElementById("next-slide").addEventListener("click", nextSlide);
   overviewButton.addEventListener("click", toggleOverview);
   document.getElementById("close-overview").addEventListener("click", () => closeOverview());
-  document.getElementById("theme-button").addEventListener("click", toggleTheme);
   document.getElementById("fullscreen-button").addEventListener("click", toggleFullscreen);
-  document.getElementById("print-button").addEventListener("click", () => window.print());
 
   document.addEventListener("keydown", handleKeydown);
   document.addEventListener("fullscreenchange", syncFullscreenButton);

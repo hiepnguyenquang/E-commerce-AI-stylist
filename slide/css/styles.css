@@ -7,6 +7,7 @@
   --text: #17151c;
   --muted: #706b78;
   --line: rgba(32, 26, 39, 0.12);
+  --line-strong: rgba(32, 26, 39, 0.25);
   --shadow: 0 24px 70px rgba(39, 23, 49, 0.12);
   --rose: #e94377;
   --orange: #f4793a;
@@ -28,6 +29,7 @@ html[data-theme="dark"] {
   --text: #f6f2f8;
   --muted: #b6afbf;
   --line: rgba(255, 255, 255, 0.13);
+  --line-strong: rgba(255, 255, 255, 0.28);
   --shadow: 0 26px 80px rgba(0, 0, 0, 0.36);
   --navy: #090710;
 }
@@ -105,9 +107,19 @@ button {
   pointer-events: none;
 }
 
+/* slide/css/styles.css */
 .slide.active {
-  display: block;
+  display: flex;
+  flex-direction: column;
   animation: slide-in 420ms cubic-bezier(0.2, 0.72, 0.23, 1);
+}
+
+.slide:not(.cover-slide):not(.conclusion-slide) > .slide-heading + * {
+  margin-top: auto;
+}
+
+.slide:not(.cover-slide):not(.conclusion-slide) > *:last-child {
+  margin-bottom: auto;
 }
 
 @keyframes slide-in {
@@ -685,12 +697,13 @@ html[data-theme="dark"] .cover-slide {
   height: min(68vh, 690px);
 }
 
+/* slide/css/styles.css */
 .browser-frame {
   margin: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--line-strong);
   border-radius: 22px;
-  background: #fff;
+  background: var(--surface-solid);
   box-shadow: var(--shadow);
 }
 
@@ -727,7 +740,7 @@ html[data-theme="dark"] .cover-slide {
 
 .main-shot {
   position: absolute;
-  inset: 4% 18% 2% 4%;
+  inset: 4% 18% 20% 4%;
 }
 
 .main-shot img {
@@ -757,8 +770,8 @@ html[data-theme="dark"] .cover-slide {
 .feature-tags {
   position: absolute;
   z-index: 4;
-  bottom: 0;
-  left: 0;
+  bottom: 2%;
+  left: 4%;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -1549,8 +1562,8 @@ html[data-theme="dark"] .cover-slide {
 }
 
 .conclusion-slide {
-  background: var(--navy);
-  color: #fff;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .conclusion-slide.active {
@@ -1580,10 +1593,10 @@ html[data-theme="dark"] .cover-slide {
 
 .conclusion-equation span {
   padding: 14px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--line-strong);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #eee7f3;
+  background: var(--surface-muted);
+  color: var(--text);
   font-size: clamp(13px, 1vw, 17px);
   font-weight: 750;
 }
@@ -1596,7 +1609,7 @@ html[data-theme="dark"] .cover-slide {
 .conclusion-content > p {
   max-width: 900px;
   margin: 0 auto;
-  color: #bdb4c7;
+  color: var(--muted);
   font-size: clamp(16px, 1.3vw, 22px);
   line-height: 1.55;
 }
@@ -1614,7 +1627,7 @@ html[data-theme="dark"] .cover-slide {
 }
 
 .conclusion-content small {
-  color: #92889e;
+  color: var(--muted);
   font-size: 13px;
 }
 
@@ -1738,6 +1751,14 @@ kbd {
   box-shadow: var(--shadow);
   transform: translateX(-50%);
   backdrop-filter: blur(20px);
+}
+
+:fullscreen .controls {
+  display: none !important;
+}
+
+:-webkit-full-screen .controls {
+  display: none !important;
 }
 
 .control-cluster {
@@ -2028,7 +2049,34 @@ noscript {
   }
 
   .feature-showcase {
-    height: 70vh;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .feature-showcase .browser-frame {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    transform: none;
+  }
+
+  .feature-showcase .main-shot img {
+    height: auto;
+  }
+
+  .feature-showcase .feature-tags {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    max-width: 100%;
+    margin-top: 10px;
   }
 
   .arch-row {
@@ -2108,18 +2156,37 @@ noscript {
   }
 }
 
+/* slide/css/styles.css */
 @media print {
   @page {
     size: 13.333in 7.5in;
     margin: 0;
   }
 
+  :root,
+  html,
+  html[data-theme="dark"],
+  body {
+    --bg: #ffffff !important;
+    --surface: #ffffff !important;
+    --surface-solid: #ffffff !important;
+    --surface-muted: #f5f5f5 !important;
+    --text: #111111 !important;
+    --muted: #555555 !important;
+    --line: rgba(0, 0, 0, 0.12) !important;
+    --line-strong: rgba(0, 0, 0, 0.25) !important;
+    --navy: #ffffff !important;
+    color-scheme: light !important;
+  }
+
   html,
   body {
+    margin: 0 !important;
+    padding: 0 !important;
     width: auto;
     height: auto;
     overflow: visible;
-    background: #fff;
+    background: #ffffff !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
@@ -2127,13 +2194,16 @@ noscript {
   .slide-deck {
     width: auto;
     height: auto;
-    background: #fff;
+    background: #ffffff !important;
+    background-image: none !important;
   }
 
+  /* Disable heavy background patterns & ambient lighting elements */
   .slide,
   .slide.active {
     position: relative;
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
     width: 13.333in;
     height: 7.5in;
     min-height: 0;
@@ -2142,6 +2212,41 @@ noscript {
     page-break-after: always;
     break-after: page;
     animation: none;
+    background: #ffffff !important;
+    background-image: none !important;
+  }
+
+  .slide::after,
+  .slide::before,
+  .cover-slide::after,
+  .cover-slide::before,
+  .conclusion-slide::after,
+  .conclusion-slide::before {
+    background: none !important;
+    background-image: none !important;
+    display: none !important;
+  }
+
+  .ambient,
+  .ambient-one,
+  .ambient-two,
+  .ambient-three {
+    display: none !important;
+  }
+
+  .conclusion-slide,
+  .conclusion-slide.active {
+    background: #ffffff !important;
+    color: #111111 !important;
+  }
+
+  .conclusion-content h2,
+  .conclusion-equation span,
+  .conclusion-content > p,
+  .conclusion-content small {
+    color: #111111 !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+    background: rgba(0, 0, 0, 0.04) !important;
   }
 
   .cover-slide,
@@ -2149,10 +2254,13 @@ noscript {
   .conclusion-slide,
   .conclusion-slide.active {
     display: grid !important;
+    background: #ffffff !important;
+    background-image: none !important;
   }
 
   .slide:last-child {
     page-break-after: auto;
+    break-after: auto;
   }
 
   .controls,

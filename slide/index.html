@@ -331,6 +331,7 @@
         </div>
       </section>
 
+<!-- slide/index.html -->
       <section class="slide" data-title="Luồng Virtual Try-On">
         <div class="slide-heading compact-heading">
           <p class="chapter-label">03 · Virtual Try-On</p>
@@ -340,57 +341,65 @@
         <div class="vton-pipeline">
           <article class="pipeline-stage stage-client">
             <span>1</span>
-            <strong>Frontend</strong>
-            <small>Mở SSE, gửi yêu cầu VTON</small>
+            <strong>Frontend (UI)</strong>
+            <small>Chọn VTON engine, kết nối SSE, gửi HTTP POST</small>
           </article>
-          <div class="pipeline-link"><b>HTTP</b><i>→</i></div>
+          <div class="pipeline-link"><b>HTTP POST</b><i>→</i></div>
           <article class="pipeline-stage stage-backend">
             <span>2</span>
-            <strong>MedusaJS</strong>
-            <small>Tạo vton_job, chọn engine</small>
+            <strong>MedusaJS API</strong>
+            <small>Tạo vton_job (pending), đẩy payload vào Queue</small>
           </article>
-          <div class="pipeline-link async-link"><b>Queue</b><i>⇢</i></div>
+          <div class="pipeline-link async-link"><b>Enqueue</b><i>⇢</i></div>
           <article class="pipeline-stage stage-queue">
             <span>3</span>
-            <strong>RabbitMQ</strong>
-            <small>ai_vision_jobs</small>
+            <strong>RabbitMQ Queue</strong>
+            <small>Hàng đợi task <code>ai_vision_jobs</code></small>
           </article>
           <div class="pipeline-link async-link"><b>Consume</b><i>⇢</i></div>
           <article class="pipeline-stage stage-ai">
             <span>4</span>
-            <strong>AI Worker</strong>
-            <small>CatVTON hoặc FLUX.2</small>
+            <strong>AI Workers</strong>
+            <small>Xử lý Local GPU (CatVTON) hoặc Cloud API (FLUX.2)</small>
           </article>
           <div class="pipeline-link async-link"><b>Publish</b><i>⇢</i></div>
           <article class="pipeline-stage stage-queue">
             <span>5</span>
-            <strong>Result Queue</strong>
-            <small>ai_vision_results</small>
+            <strong>RabbitMQ Queue</strong>
+            <small>Hàng đợi kết quả <code>ai_vision_results</code></small>
           </article>
           <div class="pipeline-link async-link"><b>Consume</b><i>⇢</i></div>
           <article class="pipeline-stage stage-backend">
             <span>6</span>
             <strong>Orchestrator</strong>
-            <small>Cập nhật vton_job, phát SSE</small>
+            <small>Cập nhật trạng thái DB, phát sự kiện qua SSE</small>
           </article>
-          <div class="pipeline-link"><b>SSE</b><i>→</i></div>
+          <div class="pipeline-link"><b>SSE Push</b><i>→</i></div>
           <article class="pipeline-stage stage-result">
             <span>7</span>
-            <strong>Frontend Result</strong>
-            <small>Nhận vision_update theo user ID</small>
+            <strong>UI Update</strong>
+            <small>Lắng nghe <code>vision_update</code>, hiển thị ảnh thử đồ</small>
           </article>
         </div>
 
         <div class="engine-comparison">
           <article>
-            <span class="engine-badge local-badge">Local</span>
-            <h3>CatVTON</h3>
-            <p>Xử lý từng vùng trang phục tuần tự, chủ động tài nguyên và luồng inference.</p>
+            <span class="engine-badge local-badge">Local GPU</span>
+            <h3>CatVTON (In-house)</h3>
+            <p>
+              • <b>Chi phí:</b> $0 (Chạy trực tiếp trên GPU máy chủ local)<br>
+              • <b>Khả năng:</b> Thử từng sản phẩm tuần tự, bảo mật dữ liệu cao<br>
+              • <b>Đánh đổi:</b> Tải phần cứng cao, giới hạn hàng đợi xử lý
+            </p>
           </article>
           <article>
-            <span class="engine-badge cloud-badge">Cloud</span>
-            <h3>FLUX.2 qua Replicate</h3>
-            <p>Nhận nhiều ảnh tham chiếu trong một request, giảm tải GPU cục bộ.</p>
+            <span class="engine-badge cloud-badge">Cloud API</span>
+            <h3>FLUX.2 (Replicate)</h3>
+            <p>
+              • <b>Chi phí:</b> Trả phí theo lượt gọi (Pay-per-use API)<br>
+              • <b>Khả năng:</b> Thử đồ đa trang phục cùng lúc, xử lý song song cao<br>
+              • <b>Đánh đổi:</b> Phụ thuộc mạng Internet và bên thứ ba (Replicate)
+            </p>
           </article>
         </div>
       </section>
@@ -600,80 +609,7 @@
         </div>
       </section>
 
-      <section class="slide appendix-slide" data-title="Phụ lục: Dữ liệu">
-        <div class="slide-heading compact-heading">
-          <p class="chapter-label">Phụ lục A</p>
-          <h2>Dữ liệu được tách theo đúng trách nhiệm</h2>
-        </div>
-        <div class="appendix-grid">
-          <article class="appendix-card">
-            <h3>PostgreSQL · nguồn dữ liệu nghiệp vụ</h3>
-            <div class="schema-list">
-              <span><b>ai_profile</b>Hồ sơ cơ thể và ảnh nền</span>
-              <span><b>user_closet_item</b>Trang phục cá nhân</span>
-              <span><b>stylist_session</b>Lịch sử tư vấn</span>
-              <span><b>stylist_session_item</b>Item được gợi ý</span>
-              <span><b>vton_job</b>Trạng thái tác vụ thử đồ</span>
-            </div>
-          </article>
-          <article class="appendix-card">
-            <h3>LanceDB · dữ liệu suy diễn để truy hồi</h3>
-            <div class="schema-list">
-              <span><b>products_vector</b>Vector và metadata sản phẩm</span>
-              <span><b>closet_vector</b>Vector trang phục theo user</span>
-              <span><b>Embedding</b>CLIP multilingual 512 chiều</span>
-              <span><b>Metadata</b>Category · style · occasion · color</span>
-            </div>
-          </article>
-        </div>
-        <div class="appendix-note">Nguyên tắc: vector và metadata AI hỗ trợ truy hồi, không thay thế dữ liệu catalog gốc.</div>
-      </section>
 
-      <section class="slide appendix-slide" data-title="Phụ lục: Queue và API">
-        <div class="slide-heading compact-heading">
-          <p class="chapter-label">Phụ lục B</p>
-          <h2>Queue và endpoint chính</h2>
-        </div>
-        <div class="appendix-grid">
-          <article class="appendix-card">
-            <h3>RabbitMQ queues</h3>
-            <div class="queue-list">
-              <span><code>product_metadata_sync</code><small>Đồng bộ catalog sang LanceDB</small></span>
-              <span><code>closet_metadata_sync</code><small>Phân tích và đồng bộ tủ đồ</small></span>
-              <span><code>ai_vision_jobs</code><small>Nhận tác vụ VTON</small></span>
-              <span><code>ai_vision_results</code><small>Trả kết quả về Medusa</small></span>
-            </div>
-          </article>
-          <article class="appendix-card">
-            <h3>Custom API nổi bật</h3>
-            <div class="queue-list">
-              <span><code>POST /v1/stylist/search</code><small>Tìm kiếm và sinh outfit</small></span>
-              <span><code>POST /v1/stylist/replace</code><small>Đổi item tương tự</small></span>
-              <span><code>POST /v1/vton/jobs</code><small>Tạo tác vụ thử đồ</small></span>
-              <span><code>GET /v1/stream/vision-results</code><small>Kênh SSE trả kết quả</small></span>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="slide appendix-slide" data-title="Phụ lục: Phím tắt">
-        <div class="slide-heading">
-          <p class="chapter-label">Phụ lục C</p>
-          <h2>Điều khiển bộ slide</h2>
-          <p>Bộ slide chạy hoàn toàn offline bằng HTML, CSS và JavaScript thuần.</p>
-        </div>
-        <div class="shortcut-grid">
-          <span><kbd>← ↑</kbd><kbd>→ ↓</kbd><strong>Chuyển slide</strong></span>
-          <span><kbd>Space</kbd><strong>Slide tiếp theo</strong></span>
-          <span><kbd>P</kbd><strong>Toàn màn hình</strong></span>
-          <span><kbd>T</kbd><strong>Sáng / tối</strong></span>
-          <span><kbd>O</kbd><strong>Tổng quan slide</strong></span>
-          <span><kbd>PgUp</kbd><kbd>PgDn</kbd><kbd>Home</kbd><kbd>End</kbd><strong>Điều hướng nhanh</strong></span>
-        </div>
-        <div class="print-instruction">
-          <strong>Xuất PDF:</strong> nhấn nút “PDF” hoặc dùng <kbd>Ctrl</kbd> + <kbd>P</kbd>, chọn khổ ngang và bật in hình nền.
-        </div>
-      </section>
     </main>
 
     <aside
@@ -712,8 +648,6 @@
       <div class="slide-counter" aria-label="Số thứ tự slide">
         <strong id="current-slide">01</strong><span>/</span><span id="total-slides">18</span>
       </div>
-      <button id="theme-button" class="text-button" type="button" title="Đổi giao diện (T)">Tối</button>
-      <button id="print-button" class="text-button" type="button" title="Xuất PDF">PDF</button>
       <button id="fullscreen-button" class="text-button primary-control" type="button" title="Toàn màn hình (P)">Trình chiếu</button>
     </nav>
 
