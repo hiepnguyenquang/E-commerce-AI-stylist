@@ -119,7 +119,7 @@ Backend sử dụng MedusaJS 2.14 và TypeScript \cite{medusa}. File \code{medus
 
 \medskip
 
-Các route custom quan trọng nằm dưới \code{apps/api-medusa/src/api/v1}. Route \code{/v1/ai-profile} cho phép tạo/cập nhật hồ sơ AI. Route \code{/v1/user/garments} xử lý tải trang phục lên, chuẩn hóa ảnh thành PNG bằng Sharp, lưu file trong \code{.medusa/uploads}, tạo bản ghi tủ đồ và phát event đồng bộ LanceDB. Route DELETE \code{/v1/user/garments/[id]} xóa file vật lý, xóa bản ghi database và phát event xóa vector.
+Các route custom quan trọng nằm dưới \code{apps/api-medusa/src/api/v1}. Route \code{/v1/ai-profile} cho phép tạo hoặc cập nhật hồ sơ AI. Route \code{/v1/user/garments} xử lý tải trang phục lên, chuẩn hóa ảnh thành PNG bằng Sharp, lưu file trong \code{.medusa/uploads}, tạo bản ghi tủ đồ và phát event đồng bộ LanceDB. Route DELETE \code{/v1/user/garments/[id]} xóa file vật lý, xóa bản ghi database và phát event xóa vector.
 
 \medskip
 
@@ -151,11 +151,11 @@ AI service tiêu thụ message từ queue này, dùng Gemini để trích xuất
 
 \medskip
 
-Luồng đồng bộ sản phẩm được thiết kế theo hướng idempotent ở mức MVP. Khi một sản phẩm được cập nhật nhiều lần, consumer xóa vector cũ theo \code{product_id} rồi ghi bản ghi mới, nhờ đó LanceDB không tích lũy nhiều bản ghi trùng cho cùng một sản phẩm. Metadata do Gemini trích xuất được dùng để tăng chất lượng truy hồi, còn các thuộc tính định danh như product id, tên và image url được lấy từ payload đồng bộ của Medusa. Riêng \code{price} và \code{in_stock} đã có trong schema LanceDB và có logic filter ở tầng tìm kiếm, nhưng consumer hiện vẫn ghi giá trị mặc định. Vì vậy, đồng bộ giá và tồn kho thật từ Medusa là một điểm cần hoàn thiện trước khi đánh giá chính thức chất lượng lọc theo giá/tồn kho. Nếu bước phân tích metadata lỗi, hệ thống cần ghi nhận trạng thái để có thể chạy lại đồng bộ, đây cũng là điểm nên được hoàn thiện thêm trong giai đoạn vận hành.
+Luồng đồng bộ sản phẩm được thiết kế theo hướng idempotent ở mức MVP. Khi một sản phẩm được cập nhật nhiều lần, consumer xóa vector cũ theo \code{product_id} rồi ghi bản ghi mới, nhờ đó LanceDB không tích lũy nhiều bản ghi trùng cho cùng một sản phẩm. Metadata do Gemini trích xuất được dùng để tăng chất lượng truy hồi, còn các thuộc tính định danh như product ID, tên và image URL được lấy từ payload đồng bộ của Medusa. Riêng \code{price} và \code{in_stock} đã có trong schema LanceDB và có logic filter ở tầng tìm kiếm, nhưng consumer hiện vẫn ghi giá trị mặc định. Vì vậy, đồng bộ giá và tồn kho thật từ Medusa là một điểm cần hoàn thiện trước khi đánh giá chính thức chất lượng lọc theo giá/tồn kho. Nếu bước phân tích metadata lỗi, hệ thống cần ghi nhận trạng thái để có thể chạy lại đồng bộ; đây cũng là điểm nên được hoàn thiện thêm trong giai đoạn vận hành.
 
 \medskip
 
-Đồng bộ tủ đồ cá nhân có tính chất tương tự nhưng nguồn dữ liệu là ảnh người dùng tải lên. AI service phân tích ảnh trang phục để suy luận category, màu sắc, họa tiết và chất liệu ở mức tương đối. Những thông tin này được lưu cùng vector trong \code{closet_vector}, phục vụ truy hồi khi AI Stylist cần phối đồ từ cả cửa hàng và tủ đồ. Vì ảnh tủ đồ thuộc người dùng cụ thể, payload đồng bộ luôn cần customer id hoặc user id để hệ thống có thể lọc theo đúng chủ sở hữu.
+Đồng bộ tủ đồ cá nhân có tính chất tương tự nhưng nguồn dữ liệu là ảnh người dùng tải lên. AI service phân tích ảnh trang phục để suy luận category, màu sắc, họa tiết và chất liệu ở mức tương đối. Những thông tin này được lưu cùng vector trong \code{closet_vector}, phục vụ truy hồi khi AI Stylist cần phối đồ từ cả cửa hàng và tủ đồ. Vì ảnh tủ đồ thuộc người dùng cụ thể, payload đồng bộ luôn cần customer ID hoặc user ID để hệ thống có thể lọc theo đúng chủ sở hữu.
 
 \medskip
 
@@ -243,7 +243,7 @@ Khi Medusa consumer nhận message từ queue \code{ai_vision_results}, backend 
 
 \medskip
 
-SSE manager trong backend giữ danh sách kết nối theo người dùng để khi có kết quả VTON, event chỉ được phát tới client tương ứng. Thiết kế này phù hợp với luồng một người dùng chờ kết quả tác vụ của chính mình. Trong MVP, ranh giới người dùng còn phụ thuộc vào customer id truyền từ frontend, nên đây không phải cơ chế bảo mật hoàn chỉnh. Dù vậy, việc tổ chức SSE theo user id từ đầu giúp hệ thống có cấu trúc rõ khi thay mock id bằng session thật.
+SSE manager trong backend giữ danh sách kết nối theo người dùng để khi có kết quả VTON, event chỉ được phát tới client tương ứng. Thiết kế này phù hợp với luồng một người dùng chờ kết quả tác vụ của chính mình. Trong MVP, ranh giới người dùng còn phụ thuộc vào customer ID truyền từ frontend, nên đây không phải cơ chế bảo mật hoàn chỉnh. Dù vậy, việc tổ chức SSE theo user ID từ đầu giúp hệ thống có cấu trúc rõ khi thay mock ID bằng session thật.
 
 \medskip
 

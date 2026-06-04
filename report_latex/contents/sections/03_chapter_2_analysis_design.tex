@@ -93,7 +93,7 @@ Trong kiến trúc này, MedusaJS đóng vai trò backend core và BFF cho front
 
 \medskip
 
-Vai trò BFF của Medusa đặc biệt quan trọng vì dữ liệu AI chưa đủ để frontend sử dụng trực tiếp. AI service có thể trả về product id, closet id, reasoning và danh sách item, nhưng frontend vẫn cần tiêu đề sản phẩm, ảnh đại diện, variant id, trạng thái tồn kho và loại item để hiện nút hành động phù hợp. Nếu frontend gọi thẳng AI service, phần bổ sung dữ liệu này sẽ bị dàn trải ở client và làm tăng rủi ro sai lệch giữa UI với backend thương mại điện tử. Medusa vì vậy được đặt ở giữa để chuẩn hóa response và giữ quyền kiểm soát nghiệp vụ.
+Vai trò BFF của Medusa đặc biệt quan trọng vì dữ liệu AI chưa đủ để frontend sử dụng trực tiếp. AI service có thể trả về product ID, closet ID, reasoning và danh sách item, nhưng frontend vẫn cần tiêu đề sản phẩm, ảnh đại diện, variant ID, trạng thái tồn kho và loại item để hiện nút hành động phù hợp. Nếu frontend gọi thẳng AI service, phần bổ sung dữ liệu này sẽ bị dàn trải ở client và làm tăng rủi ro sai lệch giữa UI với backend thương mại điện tử. Medusa vì vậy được đặt ở giữa để chuẩn hóa response và giữ quyền kiểm soát nghiệp vụ.
 
 \medskip
 
@@ -145,7 +145,7 @@ AI service tiêu thụ message từ \code{ai_vision_jobs}. Nếu engine là \cod
 
 \medskip
 
-Medusa consumer nhận \code{ai_vision_results}, gọi \code{VisionOrchestrator} để cập nhật database và kiểm tra có tác vụ con hay không. Với VTON local nhiều bước, kết quả của tác vụ trước được dùng làm ảnh người cho tác vụ sau. Khi trạng thái cuối cùng là hoàn tất hoặc thất bại, backend phát dữ liệu về frontend qua \code{VisionSSEManager}.
+Medusa consumer nhận \code{ai_vision_results}, gọi \code{VisionOrchestrator} để cập nhật database và kiểm tra có tác vụ con hay không. Với VTON local nhiều bước, kết quả của tác vụ trước được dùng làm ảnh đầu vào cho tác vụ sau. Khi trạng thái cuối cùng là hoàn tất hoặc thất bại, backend phát dữ liệu về frontend qua \code{VisionSSEManager}.
 
 \medskip
 
@@ -237,7 +237,7 @@ Trong LanceDB, vector chỉ là một phần của bản ghi. Metadata đi kèm 
 
 \medskip
 
-Đối với tủ đồ cá nhân, trường \code{user_id} là ranh giới dữ liệu quan trọng. Vector của trang phục cá nhân chỉ được truy hồi trong phạm vi người dùng tương ứng, tránh việc một người dùng nhận gợi ý từ ảnh tủ đồ của người khác. Trong MVP, phần xác thực còn đơn giản nên ranh giới này phụ thuộc nhiều vào customer id được truyền qua backend. Khi triển khai production, ràng buộc này cần được gắn với auth thật và kiểm tra ở cả Medusa lẫn AI service.
+Đối với tủ đồ cá nhân, trường \code{user_id} là ranh giới dữ liệu quan trọng. Vector của trang phục cá nhân chỉ được truy hồi trong phạm vi người dùng tương ứng, tránh việc một người dùng nhận gợi ý từ ảnh tủ đồ của người khác. Trong MVP, phần xác thực còn đơn giản nên ranh giới này phụ thuộc nhiều vào customer ID được truyền qua backend. Khi triển khai production, ràng buộc này cần được gắn với auth thật và kiểm tra ở cả Medusa lẫn AI service.
 
 \medskip
 
