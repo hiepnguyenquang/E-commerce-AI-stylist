@@ -51,9 +51,9 @@ Checkout & Backend MVP, frontend cần chỉnh endpoint & Backend có workflow m
 
 Từ bảng trên có thể thấy hệ thống đã có đủ khung kỹ thuật cho các luồng chính, nhưng phần nghiệm thu vẫn cần ảnh chụp, log và số liệu cụ thể. Vì vậy, mục tiếp theo trình bày những minh chứng cần bổ sung thay vì đưa ra kết luận định lượng khi chưa chạy thực nghiệm.
 
-\section{Minh chứng cần bổ sung trong bản nghiệm thu}
+\section{Minh chứng nghiệm thu và phần cần bổ sung}
 
-Mã nguồn dự án hiện có code và tài liệu khung, nhưng chưa có đầy đủ ảnh chụp giao diện, log thực nghiệm và số liệu benchmark. Khi hoàn thiện bản nghiệm thu, cần bổ sung ảnh chụp trang chủ, trang sản phẩm, cart drawer, checkout MVP, AI Profile, Wardrobe và AI Stylist. Riêng với AI Stylist, nên ghi lại cả JSON response từ \code{/v1/stylist/search} và giao diện OutfitCard tương ứng để chứng minh dữ liệu AI đã được frontend ánh xạ thành hành động. Với VTON, cần có log RabbitMQ cho một tác vụ hoàn chỉnh, bao gồm message vào \code{ai_vision_jobs}, quá trình consumer xử lý, kết quả trong \code{ai_vision_results} và sự kiện SSE gửi về frontend. Nếu môi trường chạy model và API token cho phép, báo cáo cuối nên bổ sung ảnh trước/sau cho cả CatVTON local và FLUX.2 cloud.
+Báo cáo hiện đã bổ sung ảnh chụp trang chủ, trang sản phẩm, AI Profile, Wardrobe, AI Stylist, ảnh trước/sau của CatVTON local và FLUX.2 cloud, cùng log thời gian xử lý CatVTON. Các minh chứng còn cần bổ sung khi hoàn thiện bản nghiệm thu gồm cart drawer, checkout MVP, giao diện OutfitCard đầy đủ, JSON response từ \code{/v1/stylist/search}, message vào \code{ai_vision_jobs}, kết quả trong \code{ai_vision_results} và sự kiện SSE gửi về frontend. Những dữ liệu này sẽ chứng minh đầy đủ hơn việc dữ liệu AI được frontend ánh xạ thành hành động và kiến trúc bất đồng bộ hoạt động xuyên suốt.
 
 \medskip
 
@@ -65,17 +65,89 @@ Minh chứng nghiệm thu nên được tổ chức theo luồng thay vì chỉ 
 
 \medskip
 
-Vị trí hình dưới đây được giữ như một placeholder để sau khi chạy code có thể bổ sung ảnh before/after VTON, giúp phần đánh giá không chỉ dựa vào mô tả kiến trúc.
+Hình~\ref{fig:vton-inputs} và Hình~\ref{fig:vton-results} ghi lại một lần chạy thử với cùng ảnh người dùng, áo polo xanh và quần short đỏ. CatVTON local được thực hiện tuần tự theo hai vùng \code{upper} và \code{lower}; FLUX.2 tạo kết quả toàn bộ trang phục trong một yêu cầu cloud.
 
-\placeholderfigure{Kết quả thử đồ before/after}{Ảnh chụp cần bổ sung: bên trái là ảnh người dùng và ảnh trang phục, bên phải là ảnh kết quả từ CatVTON hoặc FLUX.2.}
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[height=5.6cm,keepaspectratio]{Images/vton/human_input.jpg}
+        \par\smallskip
+        \small (a) Ảnh người dùng
+    \end{minipage}
+    \begin{minipage}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[height=5.6cm,keepaspectratio]{Images/vton/garment_upper.png}
+        \par\smallskip
+        \small (b) Trang phục phần trên
+    \end{minipage}
+    \begin{minipage}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[height=5.6cm,keepaspectratio]{Images/vton/garment_lower.png}
+        \par\smallskip
+        \small (c) Trang phục phần dưới
+    \end{minipage}
+    \caption{Ảnh đầu vào cho lần chạy thử đồ ảo}
+    \label{fig:vton-inputs}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[height=6.4cm,keepaspectratio]{Images/vton/catvton_upper_result.png}
+        \par\smallskip
+        \small (a) CatVTON sau bước \code{upper}
+    \end{minipage}
+    \begin{minipage}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[height=6.4cm,keepaspectratio]{Images/vton/catvton_outfit_result.png}
+        \par\smallskip
+        \small (b) CatVTON sau bước \code{lower}
+    \end{minipage}
+    \begin{minipage}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[height=6.4cm,keepaspectratio]{Images/vton/flux2_outfit_result.png}
+        \par\smallskip
+        \small (c) Kết quả FLUX.2
+    \end{minipage}
+    \caption{Kết quả thử đồ của CatVTON local và FLUX.2 cloud}
+    \label{fig:vton-results}
+\end{figure}
+
+Cấu hình máy được sử dụng cho lần chạy CatVTON local gồm GPU 5060 với 8 GB VRAM, 16 GB RAM và CPU AMD Ryzen 9 8940HX. Thông tin cấu hình này là cơ sở để diễn giải thời gian xử lý quan sát được; kết quả có thể thay đổi khi sử dụng phần cứng, driver, phiên bản thư viện hoặc tham số suy luận khác.
 
 \medskip
 
-Bên cạnh minh chứng giao diện và log, báo cáo cũng cần kế hoạch đo hiệu năng để xác định các điểm nghẽn của từng thành phần. Phần này hiện được trình bày như kế hoạch vì mã nguồn dự án chưa có số liệu benchmark chính thức.
+Log lần chạy CatVTON cho thấy consumer nhận hai job liên tiếp. Job \code{01KT8CNYSVJ0PEDXGAJ8NGTSK5} xử lý vùng \code{upper} trong khoảng 33 giây; kết quả của job này tiếp tục được dùng làm ảnh người cho job \code{01KT8CNYTVZH81MWW6WRDYYTSB} xử lý vùng \code{lower} trong khoảng 31 giây. Cả hai job đều dùng 25 bước suy luận, \code{scale=2.5}, AutoMask và hậu xử lý repaint. Tổng thời gian inference của chuỗi CatVTON hai bước khoảng 64 giây, chưa bao gồm thời gian xếp hàng, tạo mask, repaint và truyền dữ liệu. Trong lần quan sát được cung cấp, FLUX.2 trả kết quả sau khoảng 21 giây.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Thời gian VTON ghi nhận trong một lần chạy thử}
+\label{tab:vton-observed-time}
+\begin{tabularx}{\textwidth}{|L{3.2cm}|L{2.2cm}|L{2.7cm}|Y|}
+\hline
+\textbf{Luồng xử lý} & \textbf{Số bước} & \textbf{Thời gian} & \textbf{Ghi chú} \\
+\hline
+CatVTON \code{upper} & 25 & khoảng 33 giây & AutoMask, \code{scale=2.5}, repaint; tạo kết quả trung gian. \\
+\hline
+CatVTON \code{lower} & 25 & khoảng 31 giây & Dùng kết quả \code{upper} làm đầu vào cho bước thứ hai. \\
+\hline
+CatVTON toàn bộ outfit & 50 & khoảng 64 giây inference & Tổng của hai bước tuần tự; chưa tính toàn bộ overhead đầu cuối. \\
+\hline
+FLUX.2 cloud & Một yêu cầu & khoảng 21 giây & Thời gian phản hồi quan sát ở một lần chạy, chưa phải benchmark lặp. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\medskip
+
+Bên cạnh minh chứng giao diện và log, báo cáo cũng cần kế hoạch đo hiệu năng để xác định các điểm nghẽn của từng thành phần. Bảng~\ref{tab:vton-observed-time} mới phản ánh một lần chạy quan sát, vì vậy phần dưới vẫn được trình bày như kế hoạch benchmark chính thức.
 
 \section{Kế hoạch đo hiệu năng}
 
-Chưa thấy trong mã nguồn dự án số liệu đo hiệu năng chính thức. Vì vậy, báo cáo không đưa ra kết luận định lượng về latency hoặc throughput. Các chỉ số dưới đây là kế hoạch đo cần thực hiện khi có môi trường chạy ổn định.
+Báo cáo đã có số liệu sơ bộ cho một lần chạy VTON, nhưng chưa có đủ số lần lặp để đưa ra kết luận định lượng chính thức về latency hoặc throughput. Các chỉ số dưới đây là kế hoạch đo cần thực hiện khi có môi trường chạy ổn định.
 
 \medskip
 

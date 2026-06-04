@@ -1,0 +1,39 @@
+\begin{figure}[H]
+\centering
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+    \node[diagram user, minimum width=2.5cm] (customer) at (0,0) {Khách hàng};
+    \node[diagram user, minimum width=2.5cm] (admin) at (0,-6) {Người quản trị};
+
+    \node[diagram small box, ellipse, minimum width=4.0cm] (browse) at (5,3) {Xem, tìm kiếm sản phẩm};
+    \node[diagram small box, ellipse, minimum width=4.0cm] (profile) at (5,1) {Thiết lập AI Profile};
+    \node[diagram small box, ellipse, minimum width=4.0cm] (wardrobe) at (5,-1) {Quản lý Wardrobe};
+    \node[diagram small box, ellipse, minimum width=4.0cm] (stylist) at (5,-3) {Nhận tư vấn AI Stylist};
+    \node[diagram small box, ellipse, minimum width=4.0cm] (adminproduct) at (5,-6) {Thêm sản phẩm};
+
+    \node[diagram small box, ellipse, minimum width=4.0cm] (cart) at (10,3) {Quản lý giỏ hàng};
+    \node[diagram small box, ellipse, minimum width=4.0cm] (vton) at (10,-0.5) {Thử đồ ảo VTON};
+    \node[diagram small box, ellipse, minimum width=4.0cm] (replace) at (10,-3) {Đổi item tương tự};
+    \node[diagram small box, ellipse, minimum width=4.0cm] (checkout) at (15,3) {Checkout MVP};
+
+    \begin{scope}[on background layer]
+        \node[diagram group, fill=blue!2, fit=(browse)(profile)(wardrobe)(stylist)(adminproduct)(cart)(vton)(replace)(checkout),
+              label={[font=\small\bfseries]above:Hệ thống AI Fashion E-commerce}] {};
+    \end{scope}
+
+    \foreach \target in {browse,profile,wardrobe,stylist}
+        \draw[line width=0.65pt] (customer) -- (\target.west);
+    \draw[line width=0.55pt] (admin) -- (adminproduct.west);
+
+    \draw[diagram logical] (browse) -- (cart);
+    \draw[diagram logical] (cart) -- (checkout);
+    \draw[diagram logical] (stylist) -- (replace);
+    \draw[diagram logical] (profile) -- (vton);
+    \draw[diagram logical] (wardrobe) -- (vton);
+    \draw[diagram logical] (stylist) -- (vton);
+    \draw[diagram logical] (wardrobe) -- (stylist);
+\end{tikzpicture}%
+}
+\caption{Sơ đồ use case tổng quát của hệ thống}
+\label{fig:use-case}
+\end{figure}

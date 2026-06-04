@@ -1,0 +1,30 @@
+\begin{figure}[H]
+\centering
+\resizebox{0.92\textwidth}{!}{%
+\begin{tikzpicture}[node distance=11mm and 13mm]
+    \node[diagram user, minimum width=3.1cm] (query) {Truy vấn tiếng Việt\\của người dùng};
+    \node[diagram ai, right=of query, minimum width=3.4cm] (extract) {\textbf{1. Extract}\\Gemini phân tích intent,\\guardrail và bộ lọc};
+    \node[diagram service, right=of extract, minimum width=3.2cm] (embed) {CLIP multilingual\\sinh vector 512 chiều};
+    \node[diagram data, right=of embed, minimum width=3.7cm] (retrieve) {\textbf{2. Retrieve}\\LanceDB hybrid search\\\code{products_vector}\\+\code{closet_vector}};
+
+    \node[diagram ai, below=of retrieve, minimum width=3.7cm] (generate) {\textbf{3. Generate}\\Gemini chỉ chọn item trong pool\\và sinh outfit JSON};
+    \node[diagram service, left=of generate, minimum width=3.5cm] (hydrate) {Medusa kiểm tra ID,\\hydrate dữ liệu thật\\và lưu session};
+    \node[diagram user, left=of hydrate, minimum width=3.3cm] (ui) {Frontend hiển thị\\OutfitCard và hành động};
+
+    \draw[diagram arrow] (query) -- (extract);
+    \draw[diagram arrow] (extract) -- (embed);
+    \draw[diagram arrow] (embed) -- (retrieve);
+    \draw[diagram arrow] (retrieve) -- (generate);
+    \draw[diagram arrow] (generate) -- (hydrate);
+    \draw[diagram arrow] (hydrate) -- (ui);
+
+    \node[diagram note, above=11mm of extract, minimum width=3.4cm] (refusal) {Nếu ngoài miền thời trang:\\trả lời từ chối, không truy hồi};
+    \draw[diagram async] (extract) -- (refusal);
+
+    \node[diagram data, below=11mm of hydrate, minimum width=3.6cm] (source) {Product Module +\\AI Personalization Module};
+    \draw[diagram arrow] (source) -- node[right, font=\scriptsize] {title, ảnh, variant, category} (hydrate);
+\end{tikzpicture}%
+}
+\caption{Sơ đồ luồng RAG của AI Stylist theo mã nguồn triển khai}
+\label{fig:rag-flow}
+\end{figure}

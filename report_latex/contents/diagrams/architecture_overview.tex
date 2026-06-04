@@ -1,0 +1,42 @@
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}
+    \node[diagram user, minimum width=2.5cm, minimum height=1.3cm] (browser) at (0,0) {Trình duyệt\\người dùng};
+    \node[diagram service, minimum width=3.4cm, minimum height=1.5cm] (next) at (4.0,0) {\textbf{Next.js Frontend}\\Storefront, AI Stylist,\\Wardrobe, VTON modal};
+    \node[diagram service, minimum width=4.0cm, minimum height=1.7cm] (medusa) at (9.3,0) {\textbf{MedusaJS Backend / BFF}\\Custom API, workflow,\\AI Personalization, SSE};
+    \node[diagram ai, minimum width=4.0cm, minimum height=1.7cm] (fastapi) at (15.3,0) {\textbf{FastAPI AI Service}\\Gemini adapter, CLIP,\\vector search, VTON worker};
+
+    \node[diagram ai, minimum width=3.0cm] (gemini) at (13.2,3.5) {Google Gemini};
+    \node[diagram ai, minimum width=3.4cm] (engines) at (18.2,3.5) {CatVTON local\\FLUX.2 / Replicate};
+
+    \node[diagram data, minimum width=3.1cm] (postgres) at (5.8,-3.6) {PostgreSQL\\commerce + AI data};
+    \node[diagram data, minimum width=2.5cm] (redis) at (9.5,-3.6) {Redis};
+    \node[diagram queue, minimum width=3.2cm] (rabbit) at (13.2,-3.6) {RabbitMQ\\4 durable queues};
+    \node[diagram data, minimum width=3.2cm] (lance) at (17.2,-3.6) {LanceDB\\product + closet vectors};
+    \node[diagram data, minimum width=3.1cm] (static) at (21.3,-3.6) {Local static files\\VTON outputs};
+
+    \draw[diagram arrow, <->] (browser) -- (next);
+    \draw[diagram arrow, <->] (next) -- (medusa);
+    \draw[diagram async] (medusa.south west) to[out=-150,in=-30] (next.south east);
+    \draw[diagram arrow, <->] (medusa) -- (fastapi);
+
+    \draw[diagram arrow, <->] (medusa) -- (postgres);
+    \draw[diagram arrow, <->] (medusa) -- (redis);
+    \draw[diagram async, <->] (medusa) -- (rabbit);
+    \draw[diagram async, <->] (rabbit) -- (fastapi);
+    \draw[diagram arrow, <->] (fastapi) -- (lance);
+    \draw[diagram arrow, <->] (fastapi) -- (static);
+    \draw[diagram arrow, <->] (fastapi) -- (gemini);
+    \draw[diagram arrow, <->] (fastapi) -- (engines);
+
+    \node[diagram note, below=9mm of rabbit, minimum width=5.4cm] (queues) {
+        \code{product_metadata_sync}, \code{closet_metadata_sync}\\
+        \code{ai_vision_jobs}, \code{ai_vision_results}
+    };
+    \draw[diagram logical] (rabbit) -- (queues);
+\end{tikzpicture}%
+}
+\caption{Kiến trúc tổng thể của hệ thống theo các thành phần triển khai}
+\label{fig:architecture-overview}
+\end{figure}

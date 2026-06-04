@@ -1,0 +1,58 @@
+\begin{figure}[H]
+\centering
+\resizebox{0.98\textwidth}{!}{%
+\begin{tikzpicture}[font=\scriptsize]
+    \node[rectangle split, rectangle split parts=2, diagram box, align=left, minimum width=4.0cm] (customer) at (8,0) {
+        \textbf{Medusa customer (core)}
+        \nodepart{second}\code{id}
+    };
+    \node[rectangle split, rectangle split parts=2, diagram box, align=left, minimum width=4.0cm] (profile) at (2,-3.4) {
+        \textbf{ai\_profile}
+        \nodepart{second}\code{id}, \code{customer_id}\\
+        \code{height}, \code{weight}, \code{gender}\\
+        \code{base_body_image_url}
+    };
+    \node[rectangle split, rectangle split parts=2, diagram box, align=left, minimum width=4.0cm] (closet) at (8,-3.4) {
+        \textbf{user\_closet\_item}
+        \nodepart{second}\code{id}, \code{customer_id}\\
+        \code{image_url}, \code{category}\\
+        \code{metadata}, \code{vector_status}
+    };
+    \node[rectangle split, rectangle split parts=2, diagram box, align=left, minimum width=4.0cm] (product) at (14,-3.4) {
+        \textbf{Medusa product (core)}
+        \nodepart{second}\code{id}
+    };
+    \node[rectangle split, rectangle split parts=2, diagram box, align=left, minimum width=4.0cm] (session) at (2,-7.5) {
+        \textbf{stylist\_session}
+        \nodepart{second}\code{id}, \code{customer_id}\\
+        \code{prompt}, \code{reasoning}, \code{status}
+    };
+    \node[rectangle split, rectangle split parts=2, diagram box, align=left, minimum width=4.0cm] (sessionitem) at (8,-7.5) {
+        \textbf{stylist\_session\_item}
+        \nodepart{second}\code{id}, \code{session_id}\\
+        \code{product_id}, \code{replaces_item_id}
+    };
+    \node[rectangle split, rectangle split parts=2, diagram box, align=left, minimum width=4.6cm] (vton) at (14,-7.5) {
+        \textbf{vton\_job}
+        \nodepart{second}\code{id}, \code{customer_id}, \code{parent_job_id}\\
+        \code{step}, \code{status}, \code{result_image_url}\\
+        \code{error_message}, \code{retry_count}
+    };
+
+    \draw[diagram logical] (customer) -- (profile);
+    \draw[diagram logical] (customer) -- (closet);
+    \draw[diagram logical] (customer) -- (vton);
+    \draw[diagram logical] (customer) -- (session);
+    \draw[diagram arrow] (session) -- (sessionitem);
+    \draw[diagram logical] (product) -- (sessionitem);
+    \draw[diagram logical] (vton.south) to[out=-90,in=-15,looseness=4] (vton.south east);
+
+    \node[diagram note, minimum width=9.2cm] (legend) at (8,-11.2) {
+        Đường liền: quan hệ được khai báo bằng khóa ngoại. \quad
+        Đường nét đứt: tham chiếu logic lưu dưới dạng ID.
+    };
+\end{tikzpicture}%
+}
+\caption{ERD của module AI Personalization và các tham chiếu tới dữ liệu lõi Medusa}
+\label{fig:ai-erd}
+\end{figure}

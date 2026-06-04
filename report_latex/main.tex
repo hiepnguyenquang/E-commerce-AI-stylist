@@ -16,6 +16,16 @@
 \usepackage{fancyhdr}
 \usepackage{titlesec}
 \usepackage{xurl}
+\usepackage{tikz}
+\usetikzlibrary{
+    arrows.meta,
+    backgrounds,
+    calc,
+    fit,
+    positioning,
+    shapes.geometric,
+    shapes.multipart
+}
 
 \renewcommand{\contentsname}{Mục lục}
 \renewcommand{\listfigurename}{Danh mục hình vẽ}
@@ -46,6 +56,34 @@
         \fbox{\parbox[c][5cm][c]{0.86\textwidth}{\centering #2}}
         \caption{#1}
     \end{figure}
+}
+
+\tikzset{
+    diagram box/.style={
+        draw,
+        rounded corners=2pt,
+        align=center,
+        font=\small,
+        minimum height=9mm,
+        inner sep=4pt,
+        line width=0.65pt
+    },
+    diagram small box/.style={
+        diagram box,
+        font=\scriptsize,
+        minimum height=7mm,
+        inner sep=3pt
+    },
+    diagram service/.style={diagram box, fill=blue!8, draw=blue!65!black},
+    diagram data/.style={diagram box, cylinder, shape border rotate=90, aspect=0.25, fill=green!9, draw=green!45!black},
+    diagram queue/.style={diagram box, fill=orange!12, draw=orange!70!black},
+    diagram ai/.style={diagram box, fill=violet!10, draw=violet!65!black},
+    diagram user/.style={diagram box, fill=gray!10, draw=gray!70!black},
+    diagram note/.style={diagram small box, fill=yellow!12, draw=yellow!55!black},
+    diagram arrow/.style={-{Latex[length=2.2mm]}, line width=0.65pt},
+    diagram async/.style={diagram arrow, dashed},
+    diagram logical/.style={diagram arrow, dashed, draw=gray!75},
+    diagram group/.style={draw=gray!55, dashed, rounded corners=4pt, inner sep=6pt}
 }
 
 \pagestyle{fancy}

@@ -12,35 +12,35 @@
 \hline
 \textbf{Endpoint} & \textbf{Service} & \textbf{Vai trò} \\
 \hline
-\code{GET /v1/ai-profile} & Medusa & Lấy AI profile hiện tại của người dùng. \\
+\code{GET} \code{/v1/ai-profile} & Medusa & Lấy AI profile hiện tại của người dùng. \\
 \hline
-\code{POST /v1/ai-profile} & Medusa & Tạo hoặc cập nhật AI profile, hỗ trợ tải ảnh cơ thể lên hệ thống. \\
+\code{POST} \code{/v1/ai-profile} & Medusa & Tạo hoặc cập nhật AI profile, hỗ trợ tải ảnh cơ thể lên hệ thống. \\
 \hline
-\code{POST /v1/stylist/search} & Medusa & Nhận truy vấn từ frontend, gọi AI service và bổ sung dữ liệu cho các phương án phối đồ. \\
+\code{POST} \code{/v1/stylist/search} & Medusa & Nhận truy vấn từ frontend, gọi AI service và bổ sung dữ liệu cho các phương án phối đồ. \\
 \hline
-\code{GET /v1/stylist/sessions} & Medusa & Lấy lịch sử phiên tư vấn AI Stylist. \\
+\code{GET} \code{/v1/stylist/sessions} & Medusa & Lấy lịch sử phiên tư vấn AI Stylist. \\
 \hline
-\code{POST /v1/stylist/replace} & Medusa & Tìm item tương tự để thay thế một item trong outfit. \\
+\code{POST} \code{/v1/stylist/replace} & Medusa & Tìm item tương tự để thay thế một item trong outfit. \\
 \hline
-\code{POST /api/v1/stylist/search} & FastAPI & Endpoint nội bộ xử lý luồng AI Stylist. \\
+\code{POST} \code{/api/v1/stylist/search} & FastAPI & Endpoint nội bộ xử lý luồng AI Stylist. \\
 \hline
-\code{POST /api/v1/stylist/replace} & FastAPI & Endpoint nội bộ tìm item tương đồng bằng vector. \\
+\code{POST} \code{/api/v1/stylist/replace} & FastAPI & Endpoint nội bộ tìm item tương đồng bằng vector. \\
 \hline
-\code{GET /v1/user/assets} & Medusa & Lấy danh sách tủ đồ cá nhân. \\
+\code{GET} \code{/v1/user/assets} & Medusa & Lấy danh sách tủ đồ cá nhân. \\
 \hline
-\code{POST /v1/user/garments} & Medusa & Tải trang phục cá nhân lên hệ thống và phát event đồng bộ vector. \\
+\code{POST} \code{/v1/user/garments} & Medusa & Tải trang phục cá nhân lên hệ thống và phát event đồng bộ vector. \\
 \hline
-\code{DELETE /v1/user/garments/[id]} & Medusa & Xóa trang phục cá nhân và phát event xóa vector. \\
+\code{DELETE} \code{/v1/user/garments/[id]} & Medusa & Xóa trang phục cá nhân và phát event xóa vector. \\
 \hline
-\code{POST /v1/user/garments/vton-result} & Medusa & Lưu ảnh kết quả VTON vào bộ sưu tập outfit. \\
+\code{POST} \code{/v1/user/garments/vton-result} & Medusa & Lưu ảnh kết quả VTON vào bộ sưu tập outfit. \\
 \hline
-\code{POST /v1/vton/jobs} & Medusa & Tạo tác vụ VTON và phát message vào \code{ai_vision_jobs}. \\
+\code{POST} \code{/v1/vton/jobs} & Medusa & Tạo tác vụ VTON và phát message vào \code{ai_vision_jobs}. \\
 \hline
-\code{GET /v1/stream/vision-results} & Medusa & SSE endpoint gửi kết quả VTON cho frontend. \\
+\code{GET} \code{/v1/stream/vision-results} & Medusa & SSE endpoint gửi kết quả VTON cho frontend. \\
 \hline
-\code{POST /v1/checkout} & Medusa & Checkout MVP bằng Saga workflow mô phỏng. \\
+\code{POST} \code{/v1/checkout} & Medusa & Checkout MVP bằng Saga workflow mô phỏng. \\
 \hline
-\code{POST /v1/internal/products} & Medusa & Tạo sản phẩm từ admin tool nội bộ. \\
+\code{POST} \code{/v1/internal/products} & Medusa & Tạo sản phẩm từ admin tool nội bộ. \\
 \hline
 \end{tabularx}
 \end{table}
@@ -68,22 +68,11 @@
 \section{Lệnh chạy hệ thống local}
 
 \begin{enumerate}
-    \item Cài đặt dependency Node.js bằng lệnh \code{pnpm install}.
-    \item Khởi động các thành phần hạ tầng trong Docker bằng \code{docker compose up -d}.
-    \item Khi PostgreSQL, Redis và RabbitMQ đã sẵn sàng, chạy migration Medusa bằng \code{pnpm -F @fundamental/api-medusa exec medusa db:migrate}.
-    \item Khởi chạy frontend và Medusa từ thư mục gốc bằng \code{pnpm dev}.
-    \item Chạy AI service trong thư mục \code{apps/ai-service} bằng \code{uv run uvicorn main:app --reload}.
+    \item Cài đặt dependency Node.js bằng lệnh \code{pnpm} \code{install}.
+    \item Khởi động các thành phần hạ tầng trong Docker bằng \code{docker} \code{compose} \code{up} \code{-d}.
+    \item Khi PostgreSQL, Redis và RabbitMQ đã sẵn sàng, chạy migration Medusa bằng \code{pnpm} \code{-F} \code{@fundamental/api-medusa} \code{exec} \code{medusa} \code{db:migrate}.
+    \item Khởi chạy frontend và Medusa từ thư mục gốc bằng \code{pnpm} \code{dev}.
+    \item Chạy AI service trong thư mục \code{apps/ai-service} bằng \code{uv} \code{run} \code{uvicorn} \code{main:app} \code{--reload}.
 \end{enumerate}
-
-\section{Checklist minh chứng cần bổ sung}
-
-\begin{itemize}
-    \item Ảnh giao diện trang chủ, trang sản phẩm, AI Stylist, AI Profile, Wardrobe và checkout.
-    \item Ảnh trước/sau VTON cho local engine và cloud engine nếu môi trường chạy cho phép.
-    \item Log RabbitMQ cho quá trình đồng bộ sản phẩm, đồng bộ tủ đồ và xử lý tác vụ VTON.
-    \item Log hoặc ảnh chứng minh frontend nhận event SSE \code{vision_update}.
-    \item Kết quả thử AI Stylist với truy vấn hợp lệ và truy vấn ngoài miền để chứng minh guardrail.
-    \item Bảng latency sau khi đo trên cấu hình máy cụ thể.
-\end{itemize}
 
 \clearpage
