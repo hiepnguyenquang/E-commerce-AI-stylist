@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Sparkles, Shirt, Zap } from 'lucide-react';
+import { ArrowRight, Sparkles, Shirt, User, Zap } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -9,24 +9,24 @@ export default function Home() {
         <section className="relative pt-24 pb-32 overflow-hidden flex flex-col items-center justify-center">
           {/* Subtle background element */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-zinc-100 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
-          
+
           <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 text-zinc-800 text-sm font-medium mb-8">
-              <Sparkles size={16} /> 
+              <Sparkles size={16} />
               <span>Trải nghiệm phòng thử đồ ảo thế hệ mới</span>
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-zinc-900 leading-[1.1] mb-8">
               Định hình lại <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-900 to-zinc-500">
                 Thế giới Thời trang
               </span>
             </h1>
-            
+
             <p className="text-lg md:text-xl text-zinc-600 max-w-2xl mx-auto font-light leading-relaxed mb-12">
               Khám phá Studio Thời trang Ảo. Trò chuyện cùng AI Stylist chuyên nghiệp và ướm thử trang phục lên chính cơ thể bạn chỉ trong chớp mắt.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/ai-stylist"
@@ -109,15 +109,5 @@ export default function Home() {
         </section>
       </main>
     </div>
-  );
-}
-
-// User placeholder component since it's used in features
-function User({ size }: { size: number }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
   );
 }

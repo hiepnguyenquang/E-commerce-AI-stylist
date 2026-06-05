@@ -37,17 +37,17 @@ export default function Header() {
               AIFashion
             </Link>
           </div>
-          
+
           <div className="hidden md:flex md:space-x-1 items-center bg-zinc-50 p-1.5 rounded-full border border-zinc-100">
             {navLinks.map((link) => {
               const isActive = pathname === link.path;
               return (
-                <Link 
+                <Link
                   key={link.path}
-                  href={link.path} 
+                  href={link.path}
                   className={`px-5 py-2.5 rounded-full text-sm font-semibold tracking-wide transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-white text-zinc-900 shadow-[0_2px_10px_rgba(0,0,0,0.04)]' 
+                    isActive
+                      ? 'bg-white text-zinc-900 shadow-[0_2px_10px_rgba(0,0,0,0.04)]'
                       : 'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100/50'
                   }`}
                 >
@@ -56,9 +56,9 @@ export default function Header() {
               );
             })}
           </div>
-          
+
           <div className="flex items-center">
-            <button 
+            <button
               onClick={toggleCart}
               className="relative p-2.5 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 rounded-full transition-colors focus:outline-none flex items-center justify-center gap-2"
             >

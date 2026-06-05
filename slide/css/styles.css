@@ -241,24 +241,6 @@ html[data-theme="dark"] .cover-slide {
     var(--bg);
 }
 
-.cover-slide::before {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  top: 10%;
-  right: -4%;
-  width: 49%;
-  height: 72%;
-  border: 1px solid var(--line);
-  border-radius: 38px;
-  background:
-    linear-gradient(130deg, color-mix(in srgb, var(--bg) 20%, transparent), color-mix(in srgb, var(--bg) 72%, transparent)),
-    url("../assets/images/ui_home.png") top center / cover;
-  box-shadow: var(--shadow);
-  opacity: 0.18;
-  transform: rotate(2.5deg);
-}
-
 .cover-slide.active {
   display: grid;
 }
@@ -276,10 +258,13 @@ html[data-theme="dark"] .cover-slide {
 }
 
 .university-logo {
-  width: clamp(65px, 7vw, 104px);
-  height: clamp(65px, 7vw, 104px);
+  width: clamp(150px, 15vw, 230px);
+  height: auto;
+  max-height: clamp(72px, 7vw, 108px);
+  padding: 10px 14px;
   border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 22px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
   object-fit: contain;
   box-shadow: var(--shadow);
 }
@@ -786,6 +771,90 @@ html[data-theme="dark"] .cover-slide {
   box-shadow: 0 10px 25px rgba(39, 23, 49, 0.09);
   font-size: clamp(11px, 0.8vw, 14px);
   font-weight: 750;
+}
+
+.usecase-frame {
+  width: min(100%, 1320px);
+  margin: 0 auto;
+}
+
+.usecase-diagram {
+  display: block;
+  width: 100%;
+  height: min(61vh, 620px);
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow);
+}
+
+.usecase-system {
+  fill: rgba(140, 92, 245, 0.035);
+  stroke: rgba(32, 26, 39, 0.22);
+  stroke-dasharray: 8 8;
+  stroke-width: 1.4;
+}
+
+.usecase-system-title {
+  fill: var(--text);
+  font-size: 21px;
+  font-weight: 820;
+}
+
+.usecase-actor rect {
+  fill: var(--surface-muted);
+  stroke: rgba(32, 26, 39, 0.55);
+  stroke-width: 1.2;
+}
+
+.usecase-actor text,
+.usecase-node text {
+  fill: var(--text);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.usecase-actor text {
+  font-size: 22px;
+  font-weight: 780;
+}
+
+.usecase-node ellipse {
+  fill: #ffffff;
+  stroke: rgba(32, 26, 39, 0.78);
+  stroke-width: 1.6;
+}
+
+.usecase-primary ellipse {
+  fill: rgba(233, 67, 119, 0.08);
+  stroke: var(--rose);
+}
+
+.usecase-links line {
+  fill: none;
+  stroke: rgba(32, 26, 39, 0.82);
+  stroke-linecap: round;
+  stroke-width: 1.8;
+}
+
+.usecase-logical line {
+  marker-end: url("#usecase-arrow");
+  stroke: rgba(112, 107, 120, 0.72);
+  stroke-dasharray: 7 8;
+  stroke-width: 1.5;
+}
+
+#usecase-arrow path {
+  fill: rgba(112, 107, 120, 0.85);
+}
+
+.usecase-frame figcaption {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: clamp(13px, 1vw, 17px);
+  font-weight: 750;
+  text-align: center;
 }
 
 .architecture {
@@ -1562,6 +1631,7 @@ html[data-theme="dark"] .cover-slide {
 }
 
 .conclusion-slide {
+  display: none !important;
   background: var(--bg);
   color: var(--text);
 }
@@ -1967,6 +2037,10 @@ noscript {
     margin-top: 34px;
   }
 
+  .usecase-diagram {
+    height: min(59vh, 560px);
+  }
+
   .roadmap-column {
     min-height: 390px;
   }
@@ -2077,6 +2151,11 @@ noscript {
     left: auto;
     max-width: 100%;
     margin-top: 10px;
+  }
+
+  .usecase-diagram {
+    height: auto;
+    min-height: 0;
   }
 
   .arch-row {
@@ -2249,6 +2328,25 @@ noscript {
     background: rgba(0, 0, 0, 0.04) !important;
   }
 
+  .problem-thesis {
+    border: 1px solid rgba(32, 26, 39, 0.18) !important;
+    background: #151126 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  .problem-thesis .stat-caption {
+    color: #d8d2df !important;
+  }
+
+  .problem-thesis .signal-list li {
+    color: #ffffff !important;
+  }
+
+  .problem-thesis .thesis-note {
+    color: #c6bdce !important;
+  }
+
   .cover-slide,
   .cover-slide.active,
   .conclusion-slide,
@@ -2261,6 +2359,13 @@ noscript {
   .slide:last-child {
     page-break-after: auto;
     break-after: auto;
+  }
+
+  .conclusion-slide,
+  .conclusion-slide.active {
+    display: none !important;
+    page-break-after: auto !important;
+    break-after: auto !important;
   }
 
   .controls,
@@ -2312,6 +2417,18 @@ noscript {
 
   .architecture {
     gap: 0.22in;
+  }
+
+  .usecase-diagram {
+    height: 4.95in;
+    padding: 0.08in;
+    border-radius: 0.18in;
+    box-shadow: none;
+  }
+
+  .usecase-frame figcaption {
+    margin-top: 0.08in;
+    font-size: 9.5pt;
   }
 
   .pipeline-stage {

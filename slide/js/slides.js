@@ -3,7 +3,7 @@
 
   const root = document.documentElement;
   const deck = document.getElementById("slide-deck");
-  const slides = Array.from(document.querySelectorAll(".slide"));
+  const slides = Array.from(document.querySelectorAll(".slide:not(.conclusion-slide)"));
   const overview = document.getElementById("overview");
   const overviewGrid = document.getElementById("overview-grid");
   const controls = document.querySelector(".controls");

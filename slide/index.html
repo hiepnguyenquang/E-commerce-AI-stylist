@@ -44,7 +44,7 @@
           </div>
           <div class="people-block">
             <span class="meta-label">Giảng viên hướng dẫn</span>
-            <strong>ThS. Trần Đình Tân</strong>
+            <strong>TS. Trần Đình Tân</strong>
           </div>
           <div class="year-mark">Hà Nội · 2026</div>
         </footer>
@@ -160,6 +160,95 @@
           <span class="scope-pill scope-in">Trong phạm vi: MVP kỹ thuật có AI thật</span>
           <span class="scope-pill">Chưa production hóa: auth, payment, storage, monitoring</span>
         </div>
+      </section>
+
+      <section class="slide" data-title="Use case tổng quát">
+        <div class="slide-heading compact-heading">
+          <p class="chapter-label">02 · Use case</p>
+          <h2>Sơ đồ use case tổng quát của hệ thống</h2>
+        </div>
+
+        <figure class="usecase-frame" aria-labelledby="usecase-title usecase-desc">
+          <svg class="usecase-diagram" viewBox="0 0 1320 620" role="img">
+            <title id="usecase-title">Sơ đồ use case tổng quát của hệ thống AI Fashion E-commerce</title>
+            <desc id="usecase-desc">
+              Khách hàng tương tác với các chức năng xem sản phẩm, AI Profile, Wardrobe, AI Stylist, VTON, giỏ hàng và checkout. Người quản trị thêm sản phẩm.
+            </desc>
+            <defs>
+              <marker id="usecase-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" />
+              </marker>
+            </defs>
+
+            <rect class="usecase-system" x="280" y="50" width="980" height="520" rx="12" />
+            <text class="usecase-system-title" x="770" y="34" text-anchor="middle">Hệ thống AI Fashion E-commerce</text>
+
+            <g class="usecase-actor">
+              <rect x="48" y="190" width="155" height="58" rx="5" />
+              <text x="125" y="226" text-anchor="middle">Khách hàng</text>
+            </g>
+            <g class="usecase-actor">
+              <rect x="48" y="500" width="155" height="58" rx="5" />
+              <text x="125" y="536" text-anchor="middle">Người quản trị</text>
+            </g>
+
+            <g class="usecase-node">
+              <ellipse cx="430" cy="95" rx="138" ry="28" />
+              <text x="430" y="101" text-anchor="middle">Xem, tìm kiếm sản phẩm</text>
+            </g>
+            <g class="usecase-node">
+              <ellipse cx="430" cy="215" rx="128" ry="28" />
+              <text x="430" y="221" text-anchor="middle">Thiết lập AI Profile</text>
+            </g>
+            <g class="usecase-node">
+              <ellipse cx="430" cy="335" rx="128" ry="28" />
+              <text x="430" y="341" text-anchor="middle">Quản lý Wardrobe</text>
+            </g>
+            <g class="usecase-node">
+              <ellipse cx="430" cy="455" rx="128" ry="28" />
+              <text x="430" y="461" text-anchor="middle">Nhận tư vấn AI Stylist</text>
+            </g>
+            <g class="usecase-node">
+              <ellipse cx="430" cy="530" rx="128" ry="28" />
+              <text x="430" y="536" text-anchor="middle">Thêm sản phẩm</text>
+            </g>
+            <g class="usecase-node">
+              <ellipse cx="745" cy="95" rx="128" ry="28" />
+              <text x="745" y="101" text-anchor="middle">Quản lý giỏ hàng</text>
+            </g>
+            <g class="usecase-node usecase-primary">
+              <ellipse cx="745" cy="310" rx="128" ry="28" />
+              <text x="745" y="316" text-anchor="middle">Thử đồ ảo VTON</text>
+            </g>
+            <g class="usecase-node">
+              <ellipse cx="745" cy="455" rx="128" ry="28" />
+              <text x="745" y="461" text-anchor="middle">Đổi item tương tự</text>
+            </g>
+            <g class="usecase-node">
+              <ellipse cx="1080" cy="95" rx="128" ry="28" />
+              <text x="1080" y="101" text-anchor="middle">Checkout MVP</text>
+            </g>
+
+            <g class="usecase-links usecase-direct">
+              <line x1="203" y1="190" x2="315" y2="111" />
+              <line x1="203" y1="211" x2="302" y2="215" />
+              <line x1="203" y1="232" x2="306" y2="335" />
+              <line x1="203" y1="248" x2="306" y2="455" />
+              <line x1="203" y1="529" x2="302" y2="530" />
+            </g>
+
+            <g class="usecase-links usecase-logical">
+              <line x1="568" y1="95" x2="617" y2="95" />
+              <line x1="873" y1="95" x2="952" y2="95" />
+              <line x1="545" y1="228" x2="654" y2="286" />
+              <line x1="558" y1="335" x2="617" y2="318" />
+              <line x1="548" y1="442" x2="646" y2="330" />
+              <line x1="430" y1="363" x2="430" y2="427" />
+              <line x1="558" y1="455" x2="617" y2="455" />
+            </g>
+          </svg>
+          <figcaption>Hình 2.1: Sơ đồ use case tổng quát của hệ thống</figcaption>
+        </figure>
       </section>
 
       <section class="slide" data-title="Giải pháp đề xuất">
@@ -646,7 +735,7 @@
         Tổng quan
       </button>
       <div class="slide-counter" aria-label="Số thứ tự slide">
-        <strong id="current-slide">01</strong><span>/</span><span id="total-slides">18</span>
+        <strong id="current-slide">01</strong><span>/</span><span id="total-slides">15</span>
       </div>
       <button id="fullscreen-button" class="text-button primary-control" type="button" title="Toàn màn hình (P)">Trình chiếu</button>
     </nav>
