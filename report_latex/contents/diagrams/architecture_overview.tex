@@ -3,18 +3,18 @@
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}
     \node[diagram user, minimum width=2.5cm, minimum height=1.3cm] (browser) at (0,0) {Trình duyệt\\người dùng};
-    \node[diagram service, minimum width=3.4cm, minimum height=1.5cm] (next) at (4.0,0) {\textbf{Next.js Frontend}\\Storefront, AI Stylist,\\Wardrobe, VTON modal};
-    \node[diagram service, minimum width=4.0cm, minimum height=1.7cm] (medusa) at (9.3,0) {\textbf{MedusaJS Backend / BFF}\\Custom API, workflow,\\AI Personalization, SSE};
-    \node[diagram ai, minimum width=4.0cm, minimum height=1.7cm] (fastapi) at (15.3,0) {\textbf{FastAPI AI Service}\\Gemini adapter, CLIP,\\vector search, VTON worker};
+    \node[diagram service, minimum width=3.4cm, minimum height=1.5cm] (next) at (4.0,0) {\textbf{Giao diện Next.js}\\Cửa hàng, AI Stylist,\\tủ đồ, cửa sổ VTON};
+    \node[diagram service, minimum width=4.0cm, minimum height=1.7cm] (medusa) at (9.3,0) {\textbf{MedusaJS / BFF}\\API tùy chỉnh, quy trình,\\cá nhân hóa AI, SSE};
+    \node[diagram ai, minimum width=4.0cm, minimum height=1.7cm] (fastapi) at (15.3,0) {\textbf{Dịch vụ AI FastAPI}\\Gemini, CLIP, tìm kiếm\\vector, xử lý VTON};
 
     \node[diagram ai, minimum width=3.0cm] (gemini) at (13.2,3.5) {Google Gemini};
-    \node[diagram ai, minimum width=3.4cm] (engines) at (18.2,3.5) {CatVTON local\\FLUX.2 / Replicate};
+    \node[diagram ai, minimum width=3.4cm] (engines) at (18.2,3.5) {CatVTON cục bộ\\FLUX.2 / Replicate};
 
-    \node[diagram data, minimum width=3.1cm] (postgres) at (5.8,-3.6) {PostgreSQL\\commerce + AI data};
+    \node[diagram data, minimum width=3.1cm] (postgres) at (5.8,-3.6) {PostgreSQL\\dữ liệu nghiệp vụ\\và cá nhân hóa AI};
     \node[diagram data, minimum width=2.5cm] (redis) at (9.5,-3.6) {Redis};
-    \node[diagram queue, minimum width=3.2cm] (rabbit) at (13.2,-3.6) {RabbitMQ\\4 durable queues};
-    \node[diagram data, minimum width=3.2cm] (lance) at (17.2,-3.6) {LanceDB\\product + closet vectors};
-    \node[diagram data, minimum width=3.1cm] (static) at (21.3,-3.6) {Local static files\\VTON outputs};
+    \node[diagram queue, minimum width=3.2cm] (rabbit) at (13.2,-3.6) {RabbitMQ\\4 hàng đợi bền vững};
+    \node[diagram data, minimum width=3.2cm] (lance) at (17.2,-3.6) {LanceDB\\vector sản phẩm + tủ đồ};
+    \node[diagram data, minimum width=3.1cm] (static) at (21.3,-3.6) {Tệp tĩnh cục bộ\\kết quả VTON};
 
     \draw[diagram arrow, <->] (browser) -- (next);
     \draw[diagram arrow, <->] (next) -- (medusa);

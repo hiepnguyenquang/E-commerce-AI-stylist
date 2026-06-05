@@ -2,26 +2,26 @@
 \centering
 \resizebox{0.96\textwidth}{!}{%
 \begin{tikzpicture}
-    \node[diagram user, minimum width=3.0cm] (browser) at (0,0) {Browser};
+    \node[diagram user, minimum width=3.0cm] (browser) at (0,0) {Trình duyệt};
 
     \node[diagram service, minimum width=3.3cm] (web) at (4.2,0) {Next.js\\\code{localhost:3000}};
     \node[diagram service, minimum width=3.3cm] (medusa) at (8.8,0) {MedusaJS\\\code{localhost:9000}};
     \node[diagram ai, minimum width=3.3cm] (fastapi) at (13.4,0) {FastAPI\\\code{localhost:8000}};
 
-    \node[diagram data, minimum width=3.0cm] (postgres) at (4.8,-3.4) {PostgreSQL 15\\port 5432};
-    \node[diagram data, minimum width=2.8cm] (redis) at (8.5,-3.4) {Redis\\port 6379};
+    \node[diagram data, minimum width=3.0cm] (postgres) at (4.8,-3.4) {PostgreSQL 15\\cổng 5432};
+    \node[diagram data, minimum width=2.8cm] (redis) at (8.5,-3.4) {Redis\\cổng 6379};
     \node[diagram queue, minimum width=3.1cm] (rabbit) at (12.2,-3.4) {RabbitMQ\\5672 / 15672};
-    \node[diagram data, minimum width=3.1cm] (lance) at (16.1,-3.4) {LanceDB\\vector local};
-    \node[diagram data, minimum width=3.1cm] (files) at (20.0,-3.4) {Static files\\VTON outputs};
+    \node[diagram data, minimum width=3.1cm] (lance) at (16.1,-3.4) {LanceDB\\vector cục bộ};
+    \node[diagram data, minimum width=3.1cm] (files) at (20.0,-3.4) {Tệp tĩnh\\kết quả VTON};
 
     \node[diagram ai, minimum width=3.0cm] (gemini) at (11.0,3.5) {Gemini API};
     \node[diagram ai, minimum width=3.2cm] (replicate) at (16.0,3.5) {Replicate\\FLUX.2 Pro};
 
     \begin{scope}[on background layer]
         \node[diagram group, fill=gray!2, fit=(web)(medusa)(fastapi)(postgres)(redis)(rabbit)(lance)(files),
-              label={[font=\small\bfseries]above left:Môi trường phát triển local}] {};
+              label={[font=\small\bfseries]above left:Môi trường phát triển cục bộ}] {};
         \node[diagram group, fill=violet!2, fit=(gemini)(replicate),
-              label={[font=\small\bfseries]above:Dịch vụ cloud}] {};
+              label={[font=\small\bfseries]above:Dịch vụ đám mây}] {};
     \end{scope}
 
     \draw[diagram arrow, <->] (browser) -- (web);
@@ -37,6 +37,6 @@
     \draw[diagram arrow, <->] (fastapi) -- (replicate);
 \end{tikzpicture}%
 }
-\caption{Sơ đồ triển khai hệ thống trong môi trường phát triển local}
+\caption{Sơ đồ triển khai hệ thống trong môi trường phát triển cục bộ}
 \label{fig:local-deployment}
 \end{figure}

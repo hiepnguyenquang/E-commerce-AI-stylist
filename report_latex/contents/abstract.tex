@@ -2,18 +2,18 @@
 \phantomsection
 \addcontentsline{toc}{chapter}{Tóm tắt}
 
-Đề tài xây dựng một hệ thống thương mại điện tử thời trang tích hợp các chức năng AI nhằm cải thiện trải nghiệm mua sắm trực tuyến. Bên cạnh các chức năng cơ bản như xem sản phẩm, thêm vào giỏ hàng và checkout MVP, hệ thống tập trung vào hai chức năng chính: trợ lý phối đồ AI (AI Stylist) và thử đồ ảo (Virtual Try-On - VTON).
+Đề tài xây dựng một hệ thống thương mại điện tử thời trang tích hợp trí tuệ nhân tạo nhằm cải thiện trải nghiệm mua sắm trực tuyến. Bên cạnh các nghiệp vụ cơ bản như xem sản phẩm, quản lý giỏ hàng và thanh toán mô phỏng, hệ thống tập trung vào hai chức năng chính: trợ lý phối đồ AI (AI Stylist) và thử đồ ảo (Virtual Try-On -- VTON).
 
 \medskip
 
-AI Stylist cho phép người dùng nhập yêu cầu bằng ngôn ngữ tự nhiên, ví dụ tìm trang phục theo dịp sử dụng, phong cách hoặc giới tính. Hệ thống sử dụng mô hình Gemini để phân tích ý định, kết hợp tìm kiếm vector trên LanceDB để truy hồi sản phẩm và trang phục cá nhân phù hợp, sau đó sinh danh sách phương án phối đồ (outfit options) có cấu trúc JSON để frontend hiển thị thành các thẻ gợi ý có hành động như thêm vào giỏ, đổi món và thử đồ.
+AI Stylist tiếp nhận yêu cầu bằng ngôn ngữ tự nhiên và sử dụng Gemini để phân tích ý định. Dữ liệu sản phẩm và tủ đồ cá nhân được truy hồi từ LanceDB bằng tìm kiếm ngữ nghĩa, sau đó hệ thống sinh các phương án phối đồ có cấu trúc để giao diện hiển thị và hỗ trợ thao tác thêm vào giỏ hàng, thay thế sản phẩm hoặc thử đồ.
 
 \medskip
 
-VTON cho phép người dùng thử trang phục trên ảnh cơ thể đã thiết lập trong AI Profile. Các tác vụ sinh ảnh được xử lý bất đồng bộ bằng RabbitMQ nhằm tránh chặn luồng yêu cầu web. AI service hỗ trợ hai hướng xử lý: CatVTON local và FLUX.2 cloud qua dịch vụ Replicate. Kết quả được gửi ngược về backend qua queue và đẩy tới frontend bằng sự kiện máy chủ gửi tới client (Server-Sent Events - SSE).
+Đối với VTON, các tác vụ sinh ảnh được điều phối bất đồng bộ qua RabbitMQ nhằm tránh chặn luồng yêu cầu web. Dịch vụ AI hỗ trợ CatVTON chạy cục bộ và FLUX.2 thông qua nền tảng Replicate; trạng thái cùng kết quả xử lý được chuyển về hệ thống nghiệp vụ và cập nhật đến giao diện bằng Server-Sent Events. Thực nghiệm cho thấy CatVTON bảo toàn tốt hơn các đặc điểm của ảnh đầu vào, trong khi FLUX.2 có thời gian xử lý ngắn hơn đáng kể.
 
 \medskip
 
-Hệ thống được tổ chức theo monorepo gồm Next.js frontend, MedusaJS backend, FastAPI AI service và các package dùng chung. Báo cáo trình bày cơ sở lý thuyết, thiết kế hệ thống, quá trình cài đặt, kết quả đạt được, hạn chế hiện tại và định hướng phát triển tiếp theo.
+Hệ thống được tổ chức dưới dạng kho mã nguồn hợp nhất, gồm giao diện Next.js, hệ thống nghiệp vụ thương mại điện tử MedusaJS, dịch vụ AI xây dựng bằng FastAPI và các gói mã dùng chung. Kết quả triển khai chứng minh khả năng kết hợp tìm kiếm ngữ nghĩa, mô hình ngôn ngữ lớn, mô hình sinh ảnh và xử lý bất đồng bộ trong một quy trình mua sắm thời trang có tính cá nhân hóa.
 
 \clearpage

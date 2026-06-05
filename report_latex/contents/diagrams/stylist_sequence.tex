@@ -3,36 +3,36 @@
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[x=2.75cm, y=-0.62cm, font=\scriptsize]
     \foreach \x/\name/\title in {
-        0/fe/Frontend,
+        0/fe/Giao diện,
         1/medusa/Medusa BFF,
         2/fastapi/FastAPI,
         3/gemini/Gemini,
         4/lance/LanceDB,
-        5/data/Product + AI Module
+        5/data/Sản phẩm + AI
     } {
         \node[diagram small box, minimum width=2.25cm] (\name) at (\x,0) {\title};
         \draw[dashed, gray!65] (\name.south) -- ++(0,15.8);
     }
 
     \draw[diagram arrow] (fe.south |- 0,2.0) -- node[above, fill=white, inner sep=1pt] {1. \code{POST} \code{/v1/stylist/search}} (medusa.south |- 0,2.0);
-    \draw[diagram arrow] (medusa.south |- 0,2.3) -- node[above, fill=white, inner sep=1pt] {2. lấy AI Profile / gender} (data.south |- 0,2.3);
-    \draw[diagram arrow] (data.south |- 0,3.1) -- node[above, fill=white, inner sep=1pt] {profile hoặc \code{unisex}} (medusa.south |- 0,3.1);
-    \draw[diagram arrow] (medusa.south |- 0,4.2) -- node[above, fill=white, inner sep=1pt] {3. internal \code{/api/v1/stylist/search}} (fastapi.south |- 0,4.2);
+    \draw[diagram arrow] (medusa.south |- 0,2.3) -- node[above, fill=white, inner sep=1pt] {2. lấy hồ sơ AI / giới tính} (data.south |- 0,2.3);
+    \draw[diagram arrow] (data.south |- 0,3.1) -- node[above, fill=white, inner sep=1pt] {hồ sơ hoặc \code{unisex}} (medusa.south |- 0,3.1);
+    \draw[diagram arrow] (medusa.south |- 0,4.2) -- node[above, fill=white, inner sep=1pt] {3. API nội bộ \code{/api/v1/stylist/search}} (fastapi.south |- 0,4.2);
     \draw[diagram arrow] (fastapi.south |- 0,5.3) -- node[above, fill=white, inner sep=1pt] {4. \code{parse_query(query_text)}} (gemini.south |- 0,5.3);
-    \draw[diagram arrow] (gemini.south |- 0,6.1) -- node[above, fill=white, inner sep=1pt] {intent, filters, keywords} (fastapi.south |- 0,6.1);
+    \draw[diagram arrow] (gemini.south |- 0,6.1) -- node[above, fill=white, inner sep=1pt] {ý định, bộ lọc, từ khóa} (fastapi.south |- 0,6.1);
 
-    \node[diagram note, minimum width=2.5cm] (guard) at (2,7.2) {Ngoài miền: trả refusal\\và kết thúc sớm};
+    \node[diagram note, minimum width=2.5cm] (guard) at (2,7.2) {Ngoài miền: từ chối\\và kết thúc sớm};
 
-    \draw[diagram arrow] (fastapi.south |- 0,8.5) -- node[above, fill=white, inner sep=1pt] {5. global search + user filter} (lance.south |- 0,8.5);
-    \draw[diagram arrow] (lance.south |- 0,9.3) -- node[above, fill=white, inner sep=1pt] {pool store + closet} (fastapi.south |- 0,9.3);
-    \draw[diagram arrow] (fastapi.south |- 0,10.4) -- node[above, fill=white, inner sep=1pt] {6. generate outfit từ pool} (gemini.south |- 0,10.4);
-    \draw[diagram arrow] (gemini.south |- 0,11.2) -- node[above, fill=white, inner sep=1pt] {option IDs + reasoning} (fastapi.south |- 0,11.2);
-    \draw[diagram arrow] (fastapi.south |- 0,12.3) -- node[above, fill=white, inner sep=1pt] {7. AI response} (medusa.south |- 0,12.3);
-    \draw[diagram arrow] (medusa.south |- 0,13.4) -- node[above, fill=white, inner sep=1pt] {8. hydrate product / closet; lưu session} (data.south |- 0,13.4);
-    \draw[diagram arrow] (data.south |- 0,14.2) -- node[above, fill=white, inner sep=1pt] {title, ảnh, variant, category} (medusa.south |- 0,14.2);
-    \draw[diagram arrow] (medusa.south |- 0,15.3) -- node[above, fill=white, inner sep=1pt] {9. hydrated OutfitCard JSON} (fe.south |- 0,15.3);
+    \draw[diagram arrow] (fastapi.south |- 0,8.5) -- node[above, fill=white, inner sep=1pt] {5. tìm kiếm và lọc theo người dùng} (lance.south |- 0,8.5);
+    \draw[diagram arrow] (lance.south |- 0,9.3) -- node[above, fill=white, inner sep=1pt] {tập ứng viên cửa hàng + tủ đồ} (fastapi.south |- 0,9.3);
+    \draw[diagram arrow] (fastapi.south |- 0,10.4) -- node[above, fill=white, inner sep=1pt] {6. sinh phương án từ tập ứng viên} (gemini.south |- 0,10.4);
+    \draw[diagram arrow] (gemini.south |- 0,11.2) -- node[above, fill=white, inner sep=1pt] {định danh + phần giải thích} (fastapi.south |- 0,11.2);
+    \draw[diagram arrow] (fastapi.south |- 0,12.3) -- node[above, fill=white, inner sep=1pt] {7. phản hồi AI} (medusa.south |- 0,12.3);
+    \draw[diagram arrow] (medusa.south |- 0,13.4) -- node[above, fill=white, inner sep=1pt] {8. bổ sung dữ liệu; lưu phiên} (data.south |- 0,13.4);
+    \draw[diagram arrow] (data.south |- 0,14.2) -- node[above, fill=white, inner sep=1pt] {tiêu đề, ảnh, biến thể, danh mục} (medusa.south |- 0,14.2);
+    \draw[diagram arrow] (medusa.south |- 0,15.3) -- node[above, fill=white, inner sep=1pt] {9. JSON phương án phối đồ hoàn chỉnh} (fe.south |- 0,15.3);
 \end{tikzpicture}%
 }
-\caption{Sequence diagram luồng AI Stylist từ frontend tới dữ liệu hiển thị}
+\caption{Biểu đồ tuần tự của luồng AI Stylist}
 \label{fig:stylist-sequence}
 \end{figure}

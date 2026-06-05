@@ -3,6 +3,7 @@
 \usepackage[top=3.5cm, bottom=3.0cm, left=3.5cm, right=2.0cm]{geometry}
 \usepackage{fontspec}
 \setmainfont{Times New Roman}
+\setmonofont{Consolas}[Scale=MatchLowercase]
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{fancybox}
@@ -15,7 +16,6 @@
 \usepackage{hyperref}
 \usepackage{fancyhdr}
 \usepackage{titlesec}
-\usepackage{xurl}
 \usepackage{tikz}
 \usetikzlibrary{
     arrows.meta,
@@ -39,7 +39,7 @@
 \hypersetup{
     colorlinks=true,
     linkcolor=black,
-    urlcolor=blue,
+    urlcolor=black,
     citecolor=black
 }
 
@@ -47,9 +47,9 @@
 \setlist[enumerate]{leftmargin=1.2cm}
 \renewcommand{\arraystretch}{1.25}
 \setlength{\tabcolsep}{3pt}
-\newcolumntype{L}[1]{>{\hspace{0pt}\arraybackslash}p{#1}}
-\newcolumntype{Y}{>{\hspace{0pt}\arraybackslash}X}
-\newcommand{\code}[1]{{\small\ttfamily\urlstyle{same}\nolinkurl{#1}}}
+\newcolumntype{L}[1]{>{\raggedright\hspace{0pt}\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\hspace{0pt}\arraybackslash}X}
+\newcommand{\code}[1]{{\ttfamily\urlstyle{same}\nolinkurl{#1}}}
 \newcommand{\placeholderfigure}[2]{
     \begin{figure}[H]
         \centering
@@ -88,15 +88,17 @@
 
 \pagestyle{fancy}
 \fancyhf{}
-\lhead{AI Fashion E-commerce}
-\rhead{\thepage}
+\fancyhead[L]{AI Fashion E-commerce}
+\fancyhead[R]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyhead[L]{AI Fashion E-commerce}
+    \fancyhead[R]{\thepage}
+    \renewcommand{\headrulewidth}{0.4pt}
+}
 \setlength{\headheight}{15pt}
 \emergencystretch=3em
-\hbadness=10000
-\hfuzz=2pt
-\vfuzz=2pt
-\sloppy
 
 \begin{document}
 
@@ -108,6 +110,7 @@
 \input{contents/abstract}
 
 \tableofcontents
+\input{contents/abbreviations}
 \listoffigures
 \listoftables
 \clearpage

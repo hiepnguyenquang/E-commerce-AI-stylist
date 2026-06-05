@@ -1,41 +1,53 @@
 \begin{figure}[H]
 \centering
-\resizebox{0.98\textwidth}{!}{%
-\begin{tikzpicture}
-    \node[diagram user, minimum width=3.5cm] (frontend) at (0,0) {Frontend mở SSE trước\\và gửi yêu cầu VTON};
-    \node[diagram service, minimum width=3.7cm] (route) at (5.0,0) {Medusa \code{/v1/vton/jobs}\\kiểm tra payload và engine};
-    \node[diagram service, minimum width=3.7cm] (jobs) at (10.2,0) {Tạo bản ghi \code{vton_job}\\trong AI Personalization};
+\begin{tikzpicture}[every node/.style={font=\small}]
+    \node[diagram user, minimum width=7.4cm] (frontend) at (0,0) {
+        Giao diện mở SSE và gửi yêu cầu VTON
+    };
+    \node[diagram service, minimum width=7.4cm] (route) at (0,-1.6) {
+        Medusa kiểm tra yêu cầu, tạo bản ghi \code{vton_job}
+    };
 
-    \node[diagram note, minimum width=3.8cm] (local) at (7.6,-2.5) {\textbf{Local}\\Tạo chuỗi job theo item;\\chỉ phát job đầu tiên};
-    \node[diagram note, minimum width=3.8cm] (cloud) at (12.8,-2.5) {\textbf{Cloud}\\Tạo một job \code{outfit};\\gửi nhiều garment URL};
+    \node[diagram note, minimum width=4.4cm] (local) at (-2.5,-3.4) {
+        \textbf{CatVTON cục bộ}\\
+        Tạo chuỗi tác vụ theo từng vùng trang phục
+    };
+    \node[diagram note, minimum width=4.4cm] (cloud) at (2.5,-3.4) {
+        \textbf{FLUX.2 đám mây}\\
+        Tạo một tác vụ với nhiều ảnh tham chiếu
+    };
 
-    \node[diagram queue, minimum width=3.4cm] (jobq) at (10.2,-5.2) {RabbitMQ\\\code{ai_vision_jobs}};
-    \node[diagram ai, minimum width=3.8cm] (worker) at (15.2,-5.2) {FastAPI VTON consumer\\CatVTON hoặc FLUX.2};
-    \node[diagram queue, minimum width=3.5cm] (resultq) at (20.2,-5.2) {RabbitMQ\\\code{ai_vision_results}};
-    \node[diagram service, minimum width=3.8cm] (orchestrator) at (25.4,-5.2) {Medusa consumer +\\VisionOrchestrator};
-
-    \node[diagram data, minimum width=3.2cm] (db) at (25.4,-1.8) {Cập nhật\\\code{vton_job}};
-    \node[diagram data, minimum width=3.6cm] (output) at (15.2,-8.2) {Static output\\\code{/static/vton/*.png}};
-    \node[diagram service, minimum width=3.6cm] (sse) at (25.4,-8.2) {VisionSSEManager\\broadcast theo user ID};
-    \node[diagram note, minimum width=5.7cm] (childnote) at (9.0,-8.2) {
-        Local còn child job: kết quả trước trở thành\\ảnh đầu vào mới cho bước tiếp theo
+    \node[diagram queue, minimum width=7.4cm] (jobq) at (0,-5.2) {
+        RabbitMQ: \code{ai_vision_jobs}
+    };
+    \node[diagram ai, minimum width=7.4cm] (worker) at (0,-6.8) {
+        Dịch vụ AI xử lý ảnh và lưu tệp kết quả
+    };
+    \node[diagram queue, minimum width=7.4cm] (resultq) at (0,-8.4) {
+        RabbitMQ: \code{ai_vision_results}
+    };
+    \node[diagram service, minimum width=7.4cm] (orchestrator) at (0,-10.0) {
+        Medusa cập nhật trạng thái và điều phối bước tiếp theo
+    };
+    \node[diagram note, minimum width=7.4cm] (next) at (0,-11.6) {
+        Nếu còn bước cục bộ, ảnh kết quả trở thành đầu vào của tác vụ kế tiếp
+    };
+    \node[diagram user, minimum width=7.4cm] (result) at (0,-13.2) {
+        SSE gửi trạng thái và ảnh kết quả tới giao diện
     };
 
     \draw[diagram arrow] (frontend) -- (route);
-    \draw[diagram arrow] (route) -- (jobs);
-    \draw[diagram arrow] (jobs) -- (local);
-    \draw[diagram arrow] (jobs) -- (cloud);
+    \draw[diagram arrow] (route) -- (local);
+    \draw[diagram arrow] (route) -- (cloud);
     \draw[diagram async] (local) -- (jobq);
     \draw[diagram async] (cloud) -- (jobq);
     \draw[diagram async] (jobq) -- (worker);
-    \draw[diagram arrow] (worker) -- (output);
     \draw[diagram async] (worker) -- (resultq);
     \draw[diagram async] (resultq) -- (orchestrator);
-    \draw[diagram arrow] (orchestrator) -- (db);
-    \draw[diagram async] (orchestrator) -- (sse);
-    \draw[diagram async] (sse.south) |- (0,-10.5) -- (frontend.south);
-\end{tikzpicture}%
-}
-\caption{Luồng Virtual Try-On bất đồng bộ qua RabbitMQ và SSE}
+    \draw[diagram logical] (orchestrator) -- (next);
+    \draw[diagram async] (next) -- (result);
+    \draw[diagram logical] (next.west) -- ++(-12mm,0) |- (jobq.west);
+\end{tikzpicture}
+\caption{Luồng xử lý Virtual Try-On bất đồng bộ qua RabbitMQ và SSE}
 \label{fig:vton-flow}
 \end{figure}

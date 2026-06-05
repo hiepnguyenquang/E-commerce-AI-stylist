@@ -3,13 +3,13 @@
 \resizebox{0.92\textwidth}{!}{%
 \begin{tikzpicture}[node distance=11mm and 13mm]
     \node[diagram user, minimum width=3.1cm] (query) {Truy vấn tiếng Việt\\của người dùng};
-    \node[diagram ai, right=of query, minimum width=3.4cm] (extract) {\textbf{1. Extract}\\Gemini phân tích intent,\\guardrail và bộ lọc};
-    \node[diagram service, right=of extract, minimum width=3.2cm] (embed) {CLIP multilingual\\sinh vector 512 chiều};
-    \node[diagram data, right=of embed, minimum width=3.7cm] (retrieve) {\textbf{2. Retrieve}\\LanceDB hybrid search\\\code{products_vector}\\+\code{closet_vector}};
+    \node[diagram ai, right=of query, minimum width=3.4cm] (extract) {\textbf{1. Phân tích}\\Gemini xác định ý định,\\kiểm soát miền và bộ lọc};
+    \node[diagram service, right=of extract, minimum width=3.2cm] (embed) {CLIP đa ngôn ngữ\\sinh vector 512 chiều};
+    \node[diagram data, right=of embed, minimum width=3.7cm] (retrieve) {\textbf{2. Truy hồi}\\Tìm kiếm trên LanceDB\\\code{products_vector}\\+\code{closet_vector}};
 
-    \node[diagram ai, below=of retrieve, minimum width=3.7cm] (generate) {\textbf{3. Generate}\\Gemini chỉ chọn item trong pool\\và sinh outfit JSON};
-    \node[diagram service, left=of generate, minimum width=3.5cm] (hydrate) {Medusa kiểm tra ID,\\hydrate dữ liệu thật\\và lưu session};
-    \node[diagram user, left=of hydrate, minimum width=3.3cm] (ui) {Frontend hiển thị\\OutfitCard và hành động};
+    \node[diagram ai, below=of retrieve, minimum width=3.7cm] (generate) {\textbf{3. Sinh kết quả}\\Gemini chỉ chọn sản phẩm\\trong tập ứng viên};
+    \node[diagram service, left=of generate, minimum width=3.5cm] (hydrate) {Medusa kiểm tra ID,\\bổ sung dữ liệu giao dịch\\và lưu phiên};
+    \node[diagram user, left=of hydrate, minimum width=3.3cm] (ui) {Giao diện hiển thị\\phương án và hành động};
 
     \draw[diagram arrow] (query) -- (extract);
     \draw[diagram arrow] (extract) -- (embed);
@@ -22,7 +22,7 @@
     \draw[diagram async] (extract) -- (refusal);
 
     \node[diagram data, below=11mm of hydrate, minimum width=3.6cm] (source) {Product Module +\\AI Personalization Module};
-    \draw[diagram arrow] (source) -- node[right, font=\scriptsize] {title, ảnh, variant, category} (hydrate);
+    \draw[diagram arrow] (source) -- node[right, font=\scriptsize] {tiêu đề, ảnh, biến thể, danh mục} (hydrate);
 \end{tikzpicture}%
 }
 \caption{Sơ đồ luồng RAG của AI Stylist theo mã nguồn triển khai}
